@@ -204,6 +204,7 @@ func Body (spr, group) {
         none = false,                   ;; allowCollision.none
         world = false,                  ;; collideWorldBounds
         touching = [ up=false, down=false, left=false, right=false ],
+        allow = [ up=true, down=true, left=true, right=true ],  ;; allowCollision
         live = false,                   ;; in the quadtree of this frame
     ]
     sprite_drawn(spr)
@@ -538,7 +539,8 @@ func separate_axis (b1, b2, axis) {
         }
         d1 > d2 => {
             set ov = (p1 + s1) - p2
-            if ov > max {
+            val blocked = if X => (!b1.allow.right || !b2.allow.left) => (!b1.allow.down || !b2.allow.up)
+            if (ov > max) || blocked {
                 set ov = 0
             } else {
                 if X { set b1.touching.right = true ; set b2.touching.left = true }
@@ -547,7 +549,8 @@ func separate_axis (b1, b2, axis) {
         }
         d1 < d2 => {
             set ov = (p1 - s2) - p2
-            if -ov > max {
+            val blocked = if X => (!b1.allow.left || !b2.allow.right) => (!b1.allow.up || !b2.allow.down)
+            if (-ov > max) || blocked {
                 set ov = 0
             } else {
                 if X { set b1.touching.left = true ; set b2.touching.right = true }

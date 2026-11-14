@@ -30,6 +30,7 @@ func Emitter (img, max) {
         img = img, max = max, keys = if many => keys => nil,
         busy = [],                          ;; the slots in use
         x = 0, y = 0,                       ;; emitX, emitY
+        w = 1, h = 1,                       ;; the area where particles are born
         min_vx = -100, max_vx = 100,        ;; minParticleSpeed, maxParticleSpeed
         min_vy = -100, max_vy = 100,
         min_rot = -360, max_rot = 360,      ;; minRotation, maxRotation
@@ -84,7 +85,15 @@ task Particle (e) {
             }
         }
     }
-    body_reset(b, e.x, e.y)
+    ;; in the area of the emitter (its left, right, top, bottom), or at its
+    ;; point
+    if (e.w > 1) || (e.h > 1) {
+        val px = eng.rnd_integer_in_range(math.floor(e.x - (e.w / 2)), math.floor(e.x + (e.w / 2)))
+        val py = eng.rnd_integer_in_range(math.floor(e.y - (e.h / 2)), math.floor(e.y + (e.h / 2)))
+        body_reset(b, px, py)
+    } else {
+        body_reset(b, e.x, e.y)
+    }
     set s.lifespan = e.lifespan
     set b.vx = if e.min_vx != e.max_vx => eng.rnd_integer_in_range(e.min_vx, e.max_vx) => e.min_vx
     set b.vy = if e.min_vy != e.max_vy => eng.rnd_integer_in_range(e.min_vy, e.max_vy) => e.min_vy

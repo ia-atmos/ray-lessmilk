@@ -1,0 +1,73 @@
+;; Menu: the princess jumps on a platform; UP (or a press) starts.
+
+val IMG_PRINCESS = eng.image(A ++ "images/princess.png", 52, 72)
+val IMG_PLATFORM = eng.image(A ++ "images/platform.png")
+val IMG_MUTE     = eng.image(A ++ "images/mute.png", 28, 18)
+val SND_JUMP     = eng.sound(A ++ "sounds/jump.wav")
+
+;; a swing of an angle, for ever: .to(1).to(-1).loop()
+task Swing (t, ms) {
+    loop {
+        await Motion(t, [angle=1], ms)
+        await Motion(t, [angle=-1], ms)
+    }
+}
+
+;; the squash of a jump, then (onComplete) the jump: the scale is set again
+;; to (1, 1) in the menu; in Play to (-1, 1) when scale.x is not 1, which it
+;; never is after the tween (1.3 or -1.3): she always ends facing left
+task Squash (p, b, sx, flip) {
+    await Motion(p, [sy=0.7, sx=sx], 150)
+    if flip && (p.sx != 1) {
+        set p.sx, p.sy = (-1, 1)
+    } else {
+        set p.sx, p.sy = (1, 1)
+    }
+    set b.vy = -500
+}
+
+task Menu () {
+    input_reset()
+    val keys = Cursor()
+    val t1 = Text(math.floor(W/2) + 0.5, 50, "Princess Quest", 40)
+    val t2 = Text(math.floor(W/2) + 0.5, 100, "help the princess go as high as possible", 22)
+    val t3 = Text(math.floor(W/2) + 0.5, (H - 40) + 0.5, "press the UP arrow key to start", 25)
+    loop _, t in [t1, t2, t3] {
+        set t.ax, t.ay = (0.5, 0.5)
+    }
+    set t3.angle = 0
+    spawn Swing(t3, 300)
+    val princess = Sprite(IMG_PRINCESS, W/2, (H/2) - 50)
+    val pb = Body(princess, :princess)
+    set pb.gy = 12
+    set princess.ax, princess.ay = (0.5, 1)
+    set princess.frame = 1
+    val platform = Sprite(IMG_PLATFORM, W/2, (H/2) + 150)
+    val lb = Body(platform, :platform)
+    set platform.ax, platform.ay = (0.5, 0.5)
+    set lb.immovable = true
+    val mute = Sprite(IMG_MUTE, W - 70, 42)
+    defer {
+        body_remove(pb)
+        body_remove(lb)
+    }
+    pin tweens = tasks()
+    spawn {
+        loop on :rl.draw {
+            rl.clear(BG)
+            text_draw(t1)
+            text_draw(t2)
+            text_draw(t3)
+            sprite_draw(princess)
+            sprite_draw(platform)
+            sprite_draw(mute)
+        }
+    }
+    loop on :update {
+        collide(pb, lb)
+        if pb.touching.down && (princess.sy == 1) {
+            spawn @tweens Squash(princess, pb, 1.3, false)
+        }
+        until cursor_down(keys, 'UP') || pointer_down()
+    }
+}
