@@ -111,6 +111,24 @@ Control: 3 in the JavaScript (`holes_to_fill` as a gate, `timer_end_level`,
 the next level is drawn in the middle of an update, and the boxes of the
 new level are tested in that same update.
 
+## 6. Princess Quest
+
+| JavaScript | Kind | Port |
+|------------|------|------|
+| `w`, `h` | constant | `W`, `H` |
+| `score`, `best_score`, `sound` (globals) | data | globals of the port too |
+| `this.next_platform`, `this.next_cloud` (Play) | data: the height of the next platform and cloud | the same locals |
+| `this.count_update` (Play) | control: the platforms are tested once every 21 updates | `count_update`, the same counter |
+| `this.took_heart` (Play) | control: a spike does not hurt while the heart throws her up | `took_heart`, the same flag |
+| `this.emitter.on` | control: the hearts fly while she goes up fast | `emitter.on`, the same |
+| `princess.alive` | control: after a spike she falls through everything | the same flag of the sprite |
+| `this.clouds`, `this.platforms`, `this.hearts`, `this.spikes` | recycled sprites | `Group` |
+
+Control: 5 in the JavaScript, 4 left (`count_update`, `took_heart`,
+`emitter.on`, `alive`); the jump (a tween whose `onComplete` sets the
+velocity) is a task, `Squash`. The flags are read and written in the same
+update, in its order, by the physics and the princess.
+
 ## 8. Save the City
 
 | JavaScript | Kind | Port |

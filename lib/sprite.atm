@@ -130,14 +130,14 @@ func sprite_update (s) {
     val a = s.cur
     val now = eng.now()
     if a && s.playing && (now >= s.next) {
-        var skip = 1
+        var nskip = 1
         var diff = now - s.next
         if diff > a.delay {
-            set skip = math.floor(diff / a.delay)
-            set diff -= skip * a.delay
+            set nskip = math.floor(diff / a.delay)
+            set diff -= nskip * a.delay
         }
         set s.next = now + (a.delay - diff)
-        set s.index += skip
+        set s.index += nskip
         if s.index >= #a.frames {
             if a.loop {
                 set s.index = s.index % #a.frames

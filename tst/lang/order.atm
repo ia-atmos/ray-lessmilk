@@ -18,9 +18,10 @@ task E () {
 }
 spawn E()
 spawn {
+    pin qs = tasks()
     loop e on :X {
         if e.n == 1 {
-            spawn P(2)
+            spawn @qs P(2)
         }
     }
 }

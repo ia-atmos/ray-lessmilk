@@ -65,6 +65,12 @@ that maintains it, and what became of each. Nothing here blocked the port.
    changed: the error has the line of the assignment; the rule is that a
    captured variable may outlive the block of the pool.
 
+10. **`skip` is reserved** (the compiler added it, `e9cafa7`): `lib/sprite.atm`
+    had a variable of that name (`nskip` now).
+11. **A spawn that dies with its block is an error now**
+    (`invalid spawn : the task is aborted at the end of its block`):
+    `tst/lang/order.atm` had one, which showed nothing; it uses a pool now.
+
 ## Pitfalls met again
 
 9. **A spawn inside an `if` dies with the block** (also in the list of the

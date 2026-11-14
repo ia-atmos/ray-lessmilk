@@ -25,7 +25,6 @@ Each has the option recommended by this session.
 
 | # | Work |
 |---|------|
-| 2 | Princess Quest (game 6, Phaser 1.1.3); `orientation.png` is missing (only for phones) |
 | 3 | Dark Blue (game 10, Phaser 1.1.6): tilemaps of Tiled, collisions with tiles; depends on A2 |
 | 4 | The Three Hearts (game 11, Phaser 2.0.1): depends on A3; the loop of a frame and the physics of Phaser 2 differ from 1.1.3 |
 | 5 | Crazy Snake (game 12, Phaser 2.0.2): `game.time.events`, bodies read from transforms that include a group that turns and scales, `inCamera`, the order of a frame of Phaser 2 |
@@ -35,6 +34,8 @@ Each has the option recommended by this session.
 | 9 | `doc/table.md` and `doc/state.md`: the row and the section of Connected (control variables not counted yet) |
 | 10 | Copy `raylib.atm` at `0b1aa0f` of `ia-atmos/env-ray`, and use `rl.font_ex` in `lib/engine.atm` in place of its own C for fonts |
 | 11 | Run `ASAN=1 tst/run.sh` on the last commits (stopped once for time; the normal suite passes, 22 tests). The suite takes more than 10 minutes with ASAN: run it in the background |
+| 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
+| 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 16 | Fill the Holes: no run gets through the fifteen levels (End not compared); a run would need the solutions of levels 7 to 15 |
 | 12 | Box Jump: no run reaches the screen End (twenty levels); a run that wins would need a schedule of jumps found by search |
 | 13 | Consider `await(n, :e)` of the compiler (the nth occurrence of a pattern) where a port counts frames |

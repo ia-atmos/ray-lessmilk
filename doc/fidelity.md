@@ -375,6 +375,34 @@ drawn from `game.rnd` for each slot when it is made.
 
 No run gets through the fifteen levels (the screen End is not compared).
 
+## 6. Princess Quest
+
+The same as the original on its two runs, line by line
+(`tst/princess_quest/`):
+
+| Run | Frames | Seed | Input | Games |
+|-----|-------:|-----:|-------|------:|
+| `play` | 3610 | 3 | UP on the menu; LEFT and RIGHT at random (Python's generator, seed 6); UP after each death | 3 |
+| `drift` | 4777 | 14 | short moves and pauses at random (seed 66); UP every 900 frames | 3 |
+
+Trace: frame, state, score, best score; in Play, the princess (x, y,
+velocity, alive, scale, frame), the camera, the platforms that exist (how
+many, sums of x and y), the hearts, spikes, clouds, and particles that
+exist, the emitter on, the next platform, and `took_heart`.
+
+What it took: the camera that goes up (its setter floors it, and keeps it
+in the bounds of the world, which are 100000 pixels tall); platforms that
+collide only from above (`allowCollision`); an emitter of an area, turned
+on and off by the game, which `start` turns on in the create, so that it
+emits out of the screen until the first update turns it off. Kept as in
+the original: the jump ends with the princess facing left (its
+`onComplete` tests `scale.x == 1` when the scale is 1.3 or -1.3), and no
+heart is ever killed (`update_heart(h)` hides the global `h`, and the test
+compares a number with a string).
+
+What the runs do not reach: the spikes come from a score of 250, and the
+runs at random reach 27.
+
 ## 7. Connected
 
 The same as the original on its two runs, line by line (`tst/connected/`):
