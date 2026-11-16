@@ -2,7 +2,7 @@
 ;; when it leaves the world. Its life is the task: the group of Phaser,
 ;; recycled with getFirstExists, is a pool of tasks.
 
-val IMG_ENEMY = [
+pin IMG_ENEMY = [
     eng.image(A ++ "images/enemy1.png", 32, 36),
     eng.image(A ++ "images/enemy2.png", 28, 40),
 ]
@@ -24,11 +24,14 @@ func new_enemy () {
 }
 
 task Enemy (kind, x, y, tox, toy) {
-    val spr = Sprite(IMG_ENEMY@kind, x, y)
-    set spr.ax, spr.ay = (0.5, 0.5)
-    angle_set(spr, 90 + ((math.atan2(y - toy, x - tox) * 180) / math.pi))
+    val body = Body(do {
+        pin spr = Sprite(IMG_ENEMY@kind, x, y)
+        set spr.ax, spr.ay = (0.5, 0.5)
+        angle_set(spr, 90 + ((math.atan2(y - toy, x - tox) * 180) / math.pi))
+        spr
+    }, :enemy)
+    val spr = body.spr
     set pub = spr
-    val body = Body(spr, :enemy)
     defer {
         body_remove(body)
     }

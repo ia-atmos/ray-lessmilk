@@ -29,13 +29,7 @@ spawn Game(W, H)
 
 ;; [trace]
 ;; the trace of tools/original/trace/1.js, a line per frame, in test mode
-spawn {
-    if os.getenv("RL_FRAMES") {
-        loop on :rl.frame {
-            print(trace())
-        }
-    }
-}
+spawn Tracer(trace)
 ;; [/trace]
 
 loop {
