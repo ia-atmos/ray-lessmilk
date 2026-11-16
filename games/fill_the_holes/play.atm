@@ -12,9 +12,9 @@ task Remove (o) {
 
 task Play () {
     input_reset()
-    val holes = Group(IMG_HOLE, 10, :hole)
-    val boxes = Group(IMG_BOX, 10, :box)
-    val walls = Group(IMG_WALL, 10, :wall)
+    pin holes = Group(IMG_HOLE, 10, :hole)
+    pin boxes = Group(IMG_BOX, 10, :box)
+    pin walls = Group(IMG_WALL, 10, :wall)
     loop _, x in boxes.slots {
         set x.s.oob_kill = true
         input_enable(x.s)
@@ -23,8 +23,8 @@ task Play () {
     loop _, x in walls.slots {
         set x.b.immovable = true
     }
-    val reset_button = Sprite(IMG_WALL, W - 80, 0)
-    val rbody = Body(reset_button, :button)
+    val rbody = Body(Sprite(IMG_WALL, W - 80, 0), :button)
+    val reset_button = rbody.spr
     set reset_button.alpha = 0
     set reset_button.sx, reset_button.sy = (1.5, 0.8)
     input_enable(reset_button)
@@ -35,11 +35,11 @@ task Play () {
         body_remove(rbody)
         input_disable_all()
     }
-    val title = Text(10, 10, "Fill the Holes", 20)
-    val level_label = Text(W/2, 10, "1/" ++ tostring(#MAP), 20)
+    pin title = Text(10, 10, "Fill the Holes", 20)
+    pin level_label = Text(W/2, 10, "1/" ++ tostring(#MAP), 20)
     set level_label.ax = 0.5
-    val restart_label = Text(W - 70, 10, "restart", 20)
-    val expl = Text(W/2, H - 35, "", 20)
+    pin restart_label = Text(W - 70, 10, "restart", 20)
+    pin expl = Text(W/2, H - 35, "", 20)
     set expl.ax = 0.5
     set expl.sx, expl.sy = (1, 1)
     eng.play(SND_MUSIC, 0.15)
@@ -47,8 +47,12 @@ task Play () {
     pin tweens = tasks()
 
     ;; [trace]
-    set Fill.play = [ boxes=boxes, walls=walls, holes=holes, expl=expl,
-                      level=\{ level }, holes_to_fill=\{ holes_to_fill }, timer=\{ timer_end } ]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ boxes=boxes, walls=walls, holes=holes, expl=expl,
+                          level=\{ level }, holes_to_fill=\{ holes_to_fill }, timer=\{ timer_end } ])
+        }
+    }
     ;; [/trace]
 
     spawn {
@@ -197,12 +201,11 @@ task Play () {
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/5.js
-func trace () {
+func trace (p) {
     val f = rl.frame()
     if screen != "Play" {
         return tostring(f) ++ " " ++ screen ++ " " ++ tostring(user_clicks)
     }
-    val p = Fill.play
     var n, a, sx, sy, sv = (0, 0, 0, 0, 0)
     loop _, x in p.boxes.slots {
         if x.s.exists {

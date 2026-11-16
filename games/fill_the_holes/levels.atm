@@ -1,7 +1,7 @@
 ;; The levels and their explanations, from levels.js of the original: a
 ;; hole (1), a box (2), or a wall (3), in a grid of 9 x 6.
 
-val MAP = [
+pin MAP = [
     [
         [0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -126,7 +126,7 @@ val MAP = [
 
 ;; the explanation of each level (an array of one string, or none, in the
 ;; original, which Pixi writes as its string)
-val TEXT = [
+pin TEXT = [
     "fill the hole by clicking on the up arrow in the box",
     "this time, fill two holes",
     "once a hole is filled, you can slide over it",

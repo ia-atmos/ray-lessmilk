@@ -1,10 +1,10 @@
 ;; Menu: a box in the middle; a click on one of its sides pushes it; when it
 ;; leaves the world, the game starts.
 
-val IMG_WALL   = eng.image(A ++ "images/wall.png")
-val IMG_BOX    = eng.image(A ++ "images/box.png")
-val IMG_HOLE   = eng.image(A ++ "images/hole.png")
-val IMG_ARROWS = eng.image(A ++ "images/arrows.png")
+pin IMG_WALL   = eng.image(A ++ "images/wall.png")
+pin IMG_BOX    = eng.image(A ++ "images/box.png")
+pin IMG_HOLE   = eng.image(A ++ "images/hole.png")
+pin IMG_ARROWS = eng.image(A ++ "images/arrows.png")
 
 ;; in_triangle and sign of the original
 func sign (p, a, b) {
@@ -20,9 +20,9 @@ func in_triangle (p, a, b, c) {
 ;; box_clicked: the side of the box under the pointer (its triangle, from the
 ;; corners of the box as drawn) gives the direction
 func push_box (s, b, px, py) {
-    val k = sprite_corners(s)
-    val tl, tr, bl, br = ([k@0, k@1], [k@2, k@3], [k@4, k@5], [k@6, k@7])
-    val p, c = ([px, py], [s.x, s.y])
+    pin k = sprite_corners(s)
+    pin tl, tr, bl, br = ([k@0, k@1], [k@2, k@3], [k@4, k@5], [k@6, k@7])
+    pin p, c = ([px, py], [s.x, s.y])
     val speed = 300
     ifs {
         in_triangle(p, tl, tr, c) => set b.vy = -speed
@@ -42,16 +42,16 @@ task Pulse (o, big, ms) {
 
 task Menu () {
     input_reset()
-    val title = Text((W/2) + 0.5, 50, "Fill the Holes", 50)
-    val expl = Text((W/2) + 0.5, (H - 30) + 0.5, "click on the box above to start", 20, 0.5)
+    pin title = Text((W/2) + 0.5, 50, "Fill the Holes", 50)
+    pin expl = Text((W/2) + 0.5, (H - 30) + 0.5, "click on the box above to start", 20, 0.5)
     loop _, t in [title, expl] {
         set t.ax, t.ay = (0.5, 0.5)
     }
-    val arrows = Sprite(IMG_ARROWS, W/2, H/2)
+    pin arrows = Sprite(IMG_ARROWS, W/2, H/2)
     set arrows.ax, arrows.ay = (0.5, 0.5)
     spawn Pulse(arrows, 1.2, 1000)
-    val box = Sprite(IMG_BOX, W/2, H/2)
-    val body = Body(box, :box)
+    val body = Body(Sprite(IMG_BOX, W/2, H/2), :box)
+    val box = body.spr
     input_enable(box)
     set box.ax, box.ay = (0.5, 0.5)
     set box.oob_signal = true
