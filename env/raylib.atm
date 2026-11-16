@@ -381,7 +381,7 @@ int main (int argc, char** argv) {
 }
 ```
 
-val rl = [
+pin rl = [
     ;; rl.window [title=, width=, height=, fps=]: opens the window
     window = func (t) {
         `InitWindow((int)rl_fld($t,"width",800), (int)rl_fld($t,"height",450), rl_str($t,"title","Atmos"));`

@@ -35,12 +35,12 @@
 ;;      }
 
 ;; the list of tweens, and the tweens added in this pass
-val Tweens = [ list = [], add = [] ]
+pin Tweens = [ list = [], add = [] ]
 
 ;; The easings that the originals use. The same formulas are in reasings.h of
 ;; raylib, but in 32-bit floats: here they are in doubles, as in JavaScript,
 ;; so that the positions are the same as the originals'.
-val Ease = [
+pin Ease = [
     ;; Phaser.Easing.Linear.None, the default of a tween
     linear = func (k) {
         k
@@ -60,8 +60,8 @@ val Ease = [
     },
 ]
 
-;; `ctl`, optional, is a table whose field `stop` pauses the tween for good,
-;; as tween.pause() did: set ctl.stop = true.
+;; The task is paused for good, as tween.pause() did, with
+;; `set t.pub.stop = true` (t the task of the Motion).
 ;;
 ;; `delay`, optional, in ms, is tween.delay(): the tween starts at
 ;; now + delay, in its own timeline, as Phaser computes it (not the same as
@@ -69,43 +69,35 @@ val Ease = [
 ;;
 ;; A value given as a string, as "-20" or "+30", is relative to the value at
 ;; the start, as in Phaser. `ms` is `ms || 1000`, as in Phaser.
-task Motion (obj, to, ms, ease, ctl, delay) {
-    val r = :Tween [
-        obj = obj, f = ease || Ease.linear, dur = ms || 1000, ctl = ctl,
-        from = [], end = [],
-        t0 = eng.now() + (delay || 0),
-        dead = false,
-    ]
+task Motion (obj, to, ms, ease, delay) {
+    set pub = [ stop = false ]              ;; set pub.stop = true: tween.pause()
+    val f, dur = (ease || Ease.linear, ms || 1000)
+    val t0 = eng.now() + (delay || 0)
+    pin from = []
+    pin end = []
     loop k, v in to {
-        set r.from@k = prop_get(obj, k)
-        set r.end@k = if type(v) == "string" => r.from@k + tonumber(v) => v
+        set from@k = prop_get(obj, k)
+        set end@k = if type(v) == "string" => from@k + tonumber(v) => v
     }
+    ;; the record, in the list of the manager (TweenManager.add): the list
+    ;; is global and the object is not, so the record only marks the place
+    ;; of this tween in the list, and the pass asks the task to move
+    set Tweens.add@+ = :Tween [ dead = false ]
+    val r = Tweens.add@(#Tweens.add - 1)
     defer {
         set r.dead = true                   ;; pendingDelete
     }
-    set Tweens.add@+ = r                    ;; TweenManager.add
-    await :tween.done until it.r == r
-}
-
-;; Tween.update: false when the tween is over (or deleted)
-func tween_update (r, now) {
-    ifs {
-        r.dead => false
-        (r.ctl && r.ctl.stop) || (now < r.t0) => true      ;; paused, or in its delay
-        else => {
-            val t = (now - r.t0) / r.dur
+    ;; Tween.update, in each pass: it ends when the tween reaches its end
+    loop {
+        val now = (await :tween.step until it.r == r).now
+        if !pub.stop && (now >= t0) {     ;; paused, or in its delay
+            val t = (now - t0) / dur
             val e = if t > 1 => 1 => t
-            val v = r.f(e)
-            loop k, x in r.end {
-                prop_set(r.obj, k, r.from@k + ((x - r.from@k) * v))
+            val v = f(e)
+            loop k, x in end {
+                prop_set(obj, k, from@k + ((x - from@k) * v))
             }
-            if e == 1 {
-                set r.dead = true
-                emit @:global :tween.done [r=r]     ;; onComplete
-                false
-            } else {
-                true
-            }
+            until e == 1                    ;; onComplete
         }
     }
 }
@@ -117,15 +109,19 @@ func tweens_pass () {
     var n = #Tweens.list
     loop {
         while i < n
-        if tween_update(Tweens.list@i, now) {
-            set i += 1
-        } else {
+        val r = Tweens.list@i
+        if !r.dead {
+            emit @:global :tween.step [r=r, now=now]
+        }
+        if r.dead {
             vector.remove(Tweens.list, i)
             set n -= 1
+        } else {
+            set i += 1
         }
     }
     loop _, r in Tweens.add {
         set Tweens.list@+ = r
     }
-    set Tweens.add = []
+    vector.clear(Tweens.add)
 }

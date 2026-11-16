@@ -9,9 +9,9 @@ include "../../lib/game.atm"
 rl.window [title="motion", width=100, height=100]
 spawn Game(100, 100)
 
-val a = [x=0, y=100]
-val b = [s=0]
-val c = [angle=0]
+pin a = [x=0, y=100]
+pin b = [s=0]
+pin c = [angle=0]
 
 spawn {
     await Motion(a, [x=100, y=0], 100)

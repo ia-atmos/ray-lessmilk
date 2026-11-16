@@ -20,7 +20,7 @@
 ;; Phaser does; a particle takes the first slot that is free, and its image.
 func Emitter (img, max) {
     val many = (img ?? :table) && !(img ?? :Image)
-    val keys = []
+    pin keys = []
     if many {
         loop _ in max {
             set keys@+ = img@(eng.rnd_integer_in_range(0, #img))      ;; rnd.pick
@@ -70,11 +70,11 @@ task Particle (e) {
     defer {
         set e.busy@(slot) = false
     }
-    val s = Sprite(if e.keys => e.keys@(slot) => e.img, e.x, e.y)
+    val b = Body(Sprite(if e.keys => e.keys@(slot) => e.img, e.x, e.y), :particle)
+    val s = b.spr
     set s.ax, s.ay = (0.5, 0.5)
     set pub = s
     set e.sprites@+ = s
-    val b = Body(s, :particle)
     set b.none = true                       ;; allowCollision.none
     defer {
         body_remove(b)

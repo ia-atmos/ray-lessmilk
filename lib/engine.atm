@@ -280,16 +280,16 @@ static double eng_text (const char* path, double asc, double desc, double gap,
 ;; same metrics (lib/fonts/, SIL OFL 1.1). Each with its hhea metrics: ascent,
 ;; descent, line gap, and units per em. Paths are relative to the root of the
 ;; repository, where the games run.
-val FONT_SANS = [ path="lib/fonts/LiberationSans-Regular.ttf", asc=1854, desc=434, gap=67, upem=2048 ]
-val FONT_MONO = [ path="lib/fonts/LiberationMono-Regular.ttf", asc=1705, desc=615, gap=0,  upem=2048 ]
+pin FONT_SANS = [ path="lib/fonts/LiberationSans-Regular.ttf", asc=1854, desc=434, gap=67, upem=2048 ]
+pin FONT_MONO = [ path="lib/fonts/LiberationMono-Regular.ttf", asc=1705, desc=615, gap=0,  upem=2048 ]
 
 ;; the images and sounds, by path
-val ENG_IMAGES = []
-val ENG_SOUNDS = []
-val ENG_AUDIO  = [ tried = false ]
-val ENG_CLOCK  = [ now = 1000 ]
+pin ENG_IMAGES = []
+pin ENG_SOUNDS = []
+pin ENG_AUDIO  = [ tried = false ]
+pin ENG_CLOCK  = [ now = 1000 ]
 
-val eng = [
+pin eng = [
 
     ;; eng.seed(s): the seed of the generator, as SEED of a run;
     ;; RL_SEED by default, or 1
@@ -352,14 +352,13 @@ val eng = [
     ;; eng.image(path, [fw, fh]): an image, or a sheet of frames of fw x fh;
     ;; loaded once per path (rl.texture)
     image = func (path, fw, fh) {
-        val t = ENG_IMAGES@(path) || do {
-            val t = rl.texture(path)
-            if rl.texture_id(t) == 0 {
+        if !ENG_IMAGES@(path) {
+            set ENG_IMAGES@(path) = rl.texture(path)
+            if rl.texture_id(ENG_IMAGES@(path)) == 0 {
                 throw :error, "engine : cannot load image : " ++ path
             }
-            set ENG_IMAGES@(path) = t
-            t
         }
+        val t = ENG_IMAGES@(path)
         val w, h = (rl.texture_width(t), rl.texture_height(t))
         :Image [ tex=t, w=w, h=h, fw=fw || w, fh=fh || h ]
     },
@@ -410,11 +409,10 @@ val eng = [
                 rl.audio_init()
             }
         }
-        ENG_SOUNDS@(path) || do {
-            val snd = rl.sound(path)
-            set ENG_SOUNDS@(path) = snd
-            snd
+        if !ENG_SOUNDS@(path) {
+            set ENG_SOUNDS@(path) = rl.sound(path)
         }
+        ENG_SOUNDS@(path)
     },
     ;; eng.play(snd, [volume])
     play = func (snd, volume) {

@@ -14,7 +14,7 @@
 ;; The pointer is over a sprite if it is in its frame, unscaled, in the
 ;; transform drawn in the last frame (getLocalUnmodifiedPosition).
 
-val Inputs = [ items = [] ]
+pin Inputs = [ items = [] ]
 
 func input_enable (s) {
     set s.input = [ down = false ]

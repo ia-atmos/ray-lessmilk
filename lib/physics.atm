@@ -4,7 +4,8 @@
 ;; A body belongs to a sprite. It has a box of the size of a frame, placed by
 ;; the anchor of the sprite, and the fields of Phaser.Physics.Arcade.Body:
 ;;
-;;      val b = Body(spr, :enemy)           ;; registers it in Physics.bodies
+;;      val b = Body(Sprite(img, x, y), :enemy)     ;; in Physics.bodies
+;;      val spr = b.spr                     ;; the sprite, which the body owns
 ;;      set b.vx = -300                     ;; px/s, as body.velocity.x
 ;;      set b.gy = 12                       ;; body.gravity.y
 ;;      set b.world = true                  ;; collideWorldBounds
@@ -122,7 +123,7 @@ static void phs_bounds (double x, double y, double rot, double sx, double sy,
 }
 ```
 
-val Physics = [
+pin Physics = [
     x = 0, y = 0,           ;; the world: (x, y, w, h) (world.setBounds)
     w = 0, h = 0,
     elapsed = 0,            ;; game.time.elapsed, in ms
@@ -181,7 +182,9 @@ func sprite_drawn (s) {
 ;; test overlaps against). It starts where the sprite is, and is in the
 ;; world only after its first preUpdate.
 func Body (spr, group) {
-    val b = :Body [
+    ;; Physics.bodies owns the body and its sprite (a new one): a body is in
+    ;; the list of all bodies, which outlives the screens
+    set Physics.bodies@+ = :Body [
         spr = spr,
         group = group,
         w = spr.img.fw * spr.sx, h = spr.img.fh * spr.sy,
@@ -207,8 +210,8 @@ func Body (spr, group) {
         allow = [ up=true, down=true, left=true, right=true ],  ;; allowCollision
         live = false,                   ;; in the quadtree of this frame
     ]
-    sprite_drawn(spr)
-    set Physics.bodies@+ = b
+    val b = Physics.bodies@(#Physics.bodies - 1)
+    sprite_drawn(b.spr)
     b
 }
 
@@ -500,8 +503,9 @@ func overlap (a, b) {
 ;; (a tag) in the quadtree of this frame that a overlaps, in the order of the
 ;; quadtree; a itself need not be in it
 func overlap_list (a, group) {
-    val out = []
-    loop _, b in qt_retrieve(Physics.qt, a, []) {
+    pin out = []
+    pin found = []          ;; pinned: a fresh [] would not receive the bodies
+    loop _, b in qt_retrieve(Physics.qt, a, found) {
         if (b.group == group) && (b != a) && overlap(a, b) {
             set out@+ = b
         }
@@ -511,7 +515,7 @@ func overlap_list (a, group) {
 
 ;; the first of them, or nil
 func overlap_any (a, group) {
-    val l = overlap_list(a, group)
+    pin l = overlap_list(a, group)
     if #l > 0 => l@0 => nil
 }
 
@@ -616,7 +620,7 @@ func collide (b1, b2) {
 ;; bottomLeft, bottomRight, as x y pairs
 func sprite_corners (s) {
     val dx, dy, r, sx, sy, fw, fh, ax, ay = (s.dx, s.dy, s.drot, s.dsx, s.dsy, s.img.fw, s.img.fh, s.ax, s.ay)
-    val out = [0, 0, 0, 0, 0, 0, 0, 0]
+    pin out = [0, 0, 0, 0, 0, 0, 0, 0]
     ```
     double o[8];
     phs_corners(a_dbl($dx), a_dbl($dy), a_dbl($r), a_dbl($sx), a_dbl($sy),
@@ -634,7 +638,7 @@ func sprite_corners (s) {
 
 ;; the bounds of the sprite (left, top, right, bottom), from its corners
 func sprite_bounds (s) {
-    val c = sprite_corners(s)
+    pin c = sprite_corners(s)
     (math.min(c@0, c@2, c@4, c@6), math.min(c@1, c@3, c@5, c@7),
      math.max(c@0, c@2, c@4, c@6), math.max(c@1, c@3, c@5, c@7))
 }
@@ -650,7 +654,8 @@ func in_world (s) {
 ;; the quadtree, in its order; true if any was separated
 func collide_group (a, group) {
     var any = false
-    loop _, b in qt_retrieve(Physics.qt, a, []) {
+    pin found = []          ;; pinned: a fresh [] would not receive the bodies
+    loop _, b in qt_retrieve(Physics.qt, a, found) {
         if (b.group == group) && (b != a) {
             if collide(a, b) {
                 set any = true
@@ -665,11 +670,11 @@ func collide_group (a, group) {
 ;; A sprite keeps what it had in its last life (its angle, its frame, the
 ;; size of its body, inWorld), as in Phaser.
 func Group (img, n, tag) {
-    val g = :Group [ slots = [] ]
+    pin g = :Group [ slots = [] ]
     loop _ in n {
-        val s = Sprite(img, 0, 0)
+        val b = Body(Sprite(img, 0, 0), tag)
+        val s = b.spr
         set s.alive, s.exists, s.visible = (false, false, false)
-        val b = Body(s, tag)
         set g.slots@+ = [ s=s, b=b ]
     }
     g
@@ -694,7 +699,7 @@ func group_first_dead (g) {
 
 ;; the slots whose sprites exist
 func group_living (g) {
-    val out = []
+    pin out = []
     loop _, x in g.slots {
         if x.s.exists {
             set out@+ = x

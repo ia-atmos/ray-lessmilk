@@ -31,7 +31,7 @@ eng.rnd_sow(eng.tostring(1000 * eng.random()))
 
 ;; Keys: the frame of the last press of each key (an :rl.key.dn before
 ;; frame f is a keydown before the update of frame f)
-val Keys = [ frame = 0, pressed = [] ]
+pin Keys = [ frame = 0, pressed = [] ]
 
 ;; Cursor(): the keys of a state, as game.input.keyboard.createCursorKeys():
 ;; new keys, which are up until pressed after they were created. A key held
@@ -51,7 +51,7 @@ func cursor_down (c, k) {
 ;; all keys up, the pointer up, the camera at 0. A key or a button held from
 ;; the state before counts again only once pressed again. A screen of a port
 ;; calls input_reset() when it starts, as a state does.
-val Input = [ reset = -1, mouse = -1 ]
+pin Input = [ reset = -1, mouse = -1 ]
 
 func input_reset () {
     set Input.reset = Keys.frame
@@ -112,3 +112,26 @@ task Game (w, h) {
         physics_draw()
     }
 }
+
+;; [trace]
+;; Tracer(f): in test mode (RL_FRAMES), a line per frame, after the frame.
+;; A screen whose line needs what it owns answers :trace, setting
+;; Trace.line (a global cannot hold what a screen owns); else f().
+;;
+;;      spawn {
+;;          loop on :trace {
+;;              set Trace.line = trace([ player=player, score=\{ score } ])
+;;          }
+;;      }
+pin Trace = [ line = nil ]
+
+task Tracer (f) {
+    if os.getenv("RL_FRAMES") {
+        loop on :rl.frame {
+            set Trace.line = nil
+            emit @:global :trace
+            print(Trace.line || f())
+        }
+    }
+}
+;; [/trace]

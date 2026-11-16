@@ -10,7 +10,7 @@ static double spr_wrap_angle (double a) {
 ;; game.camera: its view (x, y), integers (lib/physics.atm sets it, as the
 ;; setter of Phaser does). The world is drawn at -camera: a sprite is drawn at
 ;; its x - camera.x.
-val Camera = :Camera [ x = 0, y = 0, w = 0, h = 0 ]
+pin Camera = :Camera [ x = 0, y = 0, w = 0, h = 0 ]
 
 ;; Sprite: an image or a sheet, with a position, an anchor, an angle, a
 ;; scale, an alpha, and named animations, as a sprite of Phaser 1.1.3.
@@ -85,16 +85,20 @@ func sprite_h (s) { s.img.fh * math.abs(s.sy) }
 ;; becomes the current one, stopped, showing its first frame; with no frames,
 ;; all the frames of the sheet
 func sprite_add (s, name, frames, fps, loop_) {
-    val fs = frames || do {
-        val n = (s.img.w // s.img.fw) * (s.img.h // s.img.fh)
-        val all = []
-        loop i in n {
-            set all@+ = i
-        }
-        all
-    }
-    val a = [ frames=fs, delay=1000/(fps || 60), loop=loop_ || false ]
-    set s.anims@(name) = a
+    set s.anims@(name) = [
+        frames = frames || do {
+            val n = (s.img.w // s.img.fw) * (s.img.h // s.img.fh)
+            pin all = []
+            loop i in n {
+                set all@+ = i
+            }
+            all
+        },
+        delay = 1000 / (fps || 60),
+        loop = loop_ || false,
+    ]
+    val a = s.anims@(name)
+    val fs = a.frames
     set s.cur = a
     set s.playing = false
     set s.index = 0
@@ -152,7 +156,7 @@ func sprite_update (s) {
 }
 
 ;; the alpha of the world (game.world.alpha), which multiplies all
-val World = [ alpha = 1 ]
+pin World = [ alpha = 1 ]
 
 func sprite_draw (s) {
     if s.visible {
