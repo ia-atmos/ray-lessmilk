@@ -15,7 +15,7 @@ val A = "assets/3/"
 var death = 0               ;; the global `death` of the original
 
 ;; the level, and what the trace reads
-val Box = [ level = 0 ]
+pin Box = [ level = 0 ]
 
 ;; [trace]
 var screen = "Play"
@@ -30,13 +30,7 @@ include "end.atm"
 spawn Game(W, H)
 
 ;; [trace]
-spawn {
-    if os.getenv("RL_FRAMES") {
-        loop on :rl.frame {
-            print(trace())
-        }
-    }
-}
+spawn Tracer(trace)
 ;; [/trace]
 
 await Play()
