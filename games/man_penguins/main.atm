@@ -13,7 +13,6 @@ val A = "assets/4/"
 
 ;; [trace]
 var screen = "Menu"
-val Pen = [ play = nil ]
 ;; [/trace]
 
 rl.window [title="Man vs Penguins", width=W, height=H]
@@ -24,13 +23,7 @@ include "play.atm"
 spawn Game(W, H)
 
 ;; [trace]
-spawn {
-    if os.getenv("RL_FRAMES") {
-        loop on :rl.frame {
-            print(trace())
-        }
-    }
-}
+spawn Tracer(trace)
 ;; [/trace]
 
 await Menu()

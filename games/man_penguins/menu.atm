@@ -1,10 +1,10 @@
 ;; Menu: the picture, a label that swings; UP starts.
 
-val IMG_BG = eng.image(A ++ "images/bg.png")
+pin IMG_BG = eng.image(A ++ "images/bg.png")
 
 task Menu () {
-    val keys = Cursor()
-    val label = Text(W/2, H - 50, "press the UP arrow key to start", 25)
+    pin keys = Cursor()
+    pin label = Text(W/2, H - 50, "press the UP arrow key to start", 25)
     set label.ax, label.ay = (0.5, 0.5)
     set label.angle = 0
     spawn {

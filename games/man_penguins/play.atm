@@ -1,9 +1,9 @@
 ;; Play: the man, the penguins (a group of 40), the coin, the level.
 
-val IMG_BRICK  = eng.image(A ++ "images/brick.png")
-val IMG_PLAYER = eng.image(A ++ "images/player.png", 27, 33)
-val IMG_ENEMY  = eng.image(A ++ "images/enemy.png", 18, 27)
-val IMG_COIN   = eng.image(A ++ "images/coin.png")
+pin IMG_BRICK  = eng.image(A ++ "images/brick.png")
+pin IMG_PLAYER = eng.image(A ++ "images/player.png", 27, 33)
+pin IMG_ENEMY  = eng.image(A ++ "images/enemy.png", 18, 27)
+pin IMG_COIN   = eng.image(A ++ "images/coin.png")
 val SND_KILL  = eng.sound(A ++ "sounds/kill.wav")
 val SND_JUMP  = eng.sound(A ++ "sounds/jump.wav")
 val SND_COIN  = eng.sound(A ++ "sounds/coin.wav")
@@ -11,9 +11,9 @@ val SND_DEAD  = eng.sound(A ++ "sounds/dead.wav")
 val SND_MUSIC = eng.sound(A ++ "sounds/music.wav")
 
 ;; the coins, by score
-val COINS0 = [[150, H/2], [W-150, H/2], [50, H-100], [W-50, H-100]]
-val COINS1 = COINS0 ++ [[60, 100], [W-60, 100]]
-val COINS2 = COINS1 ++ [[130, 50], [W-130, 50], [200, H-60], [W-200, H-60]]
+pin COINS0 = [[150, H/2], [W-150, H/2], [50, H-100], [W-50, H-100]]
+pin COINS1 = COINS0 ++ [[60, 100], [W-60, 100]]
+pin COINS2 = COINS1 ++ [[130, 50], [W-130, 50], [200, H-60], [W-200, H-60]]
 
 ;; rand(num) of the original
 func rand (n) {
@@ -21,21 +21,21 @@ func rand (n) {
 }
 
 ;; the level: the bricks, scaled, of two groups (x, y, ax, ay, sx, sy)
-val PLATFORMS = [
+pin PLATFORMS = [
     [0, H, 0, 1, 11, 1], [0, H-20, 0, 1, 4, 1],
     [(W/2)+30, H, 0, 1, 11, 1], [(W/2)+170, H-20, 0, 1, 4, 1],
     [0, 0, 0, 0, 9, 1], [(W/2)+60, 0, 0, 0, 9, 1],
     [W/2, ((H*1)/4)+10, 0.5, 0.5, 14, 1], [W/2, ((H*3)/4)-10, 0.5, 0.5, 14, 1],
     [0, H/2, 0, 0.5, 5, 1], [(W/2)+150, H/2, 0, 0.5, 5, 1],
 ]
-val WALLS = [ [0, 0, 0, 0, 1, 17.5], [W, 0, 1, 0, 1, 17.5] ]
+pin WALLS = [ [0, 0, 0, 0, 1, 17.5], [W, 0, 1, 0, 1, 17.5] ]
 
 ;; a group made with group.create, of sprites that exist
 func Bricks (list, tag) {
-    val g = :Group [ slots = [] ]
+    pin g = :Group [ slots = [] ]
     loop _, d in list {
-        val s = Sprite(IMG_BRICK, d@0, d@1)
-        val b = Body(s, tag)
+        val b = Body(Sprite(IMG_BRICK, d@0, d@1), tag)
+        val s = b.spr
         set s.ax, s.ay, s.sx, s.sy = (d@2, d@3, d@4, d@5)
         set b.immovable = true
         set s.alive, s.exists, s.visible = (true, true, true)
@@ -66,29 +66,29 @@ task Flatten (e) {
 
 task Play () {
     set Physics.x, Physics.y, Physics.w, Physics.h = (-50, -50, 800, 800)     ;; world.setBounds
-    val keys = Cursor()
-    val player = Sprite(IMG_PLAYER, W/2, H/2)
-    val pbody = Body(player, :player)
+    pin keys = Cursor()
+    val pbody = Body(Sprite(IMG_PLAYER, W/2, H/2), :player)
+    val player = pbody.spr
     set pbody.gy = 12
     set player.ax, player.ay = (0.5, 0.5)
     set player.alive = true
     sprite_add(player, :walk, [1, 2], 6, true)
     var jump_count = 1
 
-    val enemies = Group(IMG_ENEMY, 40, :enemy)
+    pin enemies = Group(IMG_ENEMY, 40, :enemy)
     loop _, x in enemies.slots {
         set x.s.oob_kill = true
     }
 
-    val coin = Sprite(IMG_COIN, 150, H/2)
-    val cbody = Body(coin, :coin)
+    val cbody = Body(Sprite(IMG_COIN, 150, H/2), :coin)
+    val coin = cbody.spr
     set cbody.gy, cbody.by = (10, 0.3)
     set coin.ax, coin.ay = (0.5, 0.5)
 
-    val label_score = Text(30, 30, "score: 0", 16)
-    val label_best  = Text(30, 50, "best: 0", 16)
+    pin label_score = Text(30, 30, "score: 0", 16)
+    pin label_best  = Text(30, 50, "best: 0", 16)
     set label_best.sx, label_best.sy = (1, 1)
-    val label_tuto  = Text((W/2) + 0.5, ((H/2) - 20) + 0.5,
+    pin label_tuto  = Text((W/2) + 0.5, ((H/2) - 20) + 0.5,
         "1- arrow keys to move\n2- take coins for score\n3- jump on penguins to kill", 18)
     set label_tuto.ax, label_tuto.ay = (0.5, 0.5)
     var score, best = (0, 0)
@@ -96,8 +96,8 @@ task Play () {
     var half = 1
     var enemy_time = 0
     eng.play(SND_MUSIC, 0.3)
-    val platforms = Bricks(PLATFORMS, :platform)
-    val walls     = Bricks(WALLS, :wall)
+    pin platforms = Bricks(PLATFORMS, :platform)
+    pin walls     = Bricks(WALLS, :wall)
     pin tweens = tasks()
     defer {
         group_remove(enemies)
@@ -108,8 +108,12 @@ task Play () {
     }
 
     ;; [trace]
-    set Pen.play = [ player=player, pbody=pbody, enemies=enemies, coin=coin,
-                     score=\{ score }, best=\{ best }, jump=\{ jump_count } ]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ player=player, pbody=pbody, enemies=enemies, coin=coin,
+                         score=\{ score }, best=\{ best }, jump=\{ jump_count } ])
+        }
+    }
     ;; [/trace]
 
     spawn {
@@ -232,8 +236,8 @@ task Play () {
         ;; overlap(player, enemies): a jump on a penguin, or a death
         loop _, eb in overlap_list(pbody, :enemy) {
             val e = eb.spr
-            val pc = sprite_corners(player)
-            val ec = sprite_corners(e)
+            pin pc = sprite_corners(player)
+            pin ec = sprite_corners(e)
             ;; player.bottomRight.y < enemy.topRight.y + 10
             if !pbody.touching.down && (pc@7 < (ec@3 + 10)) && e.alive && player.alive {
                 set pbody.vy = -150
@@ -332,12 +336,11 @@ task Play () {
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/4.js
-func trace () {
+func trace (p) {
     val f = rl.frame()
     if screen != "Play" {
         return tostring(f) ++ " " ++ screen
     }
-    val p = Pen.play
     var n, a, sx, sy = (0, 0, 0, 0)
     loop _, x in p.enemies.slots {
         if x.s.exists {
