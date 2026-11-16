@@ -1,8 +1,8 @@
 ;; Menu: the princess jumps on a platform; UP (or a press) starts.
 
-val IMG_PRINCESS = eng.image(A ++ "images/princess.png", 52, 72)
-val IMG_PLATFORM = eng.image(A ++ "images/platform.png")
-val IMG_MUTE     = eng.image(A ++ "images/mute.png", 28, 18)
+pin IMG_PRINCESS = eng.image(A ++ "images/princess.png", 52, 72)
+pin IMG_PLATFORM = eng.image(A ++ "images/platform.png")
+pin IMG_MUTE     = eng.image(A ++ "images/mute.png", 28, 18)
 val SND_JUMP     = eng.sound(A ++ "sounds/jump.wav")
 
 ;; a swing of an angle, for ever: .to(1).to(-1).loop()
@@ -28,25 +28,25 @@ task Squash (p, b, sx, flip) {
 
 task Menu () {
     input_reset()
-    val keys = Cursor()
-    val t1 = Text(math.floor(W/2) + 0.5, 50, "Princess Quest", 40)
-    val t2 = Text(math.floor(W/2) + 0.5, 100, "help the princess go as high as possible", 22)
-    val t3 = Text(math.floor(W/2) + 0.5, (H - 40) + 0.5, "press the UP arrow key to start", 25)
+    pin keys = Cursor()
+    pin t1 = Text(math.floor(W/2) + 0.5, 50, "Princess Quest", 40)
+    pin t2 = Text(math.floor(W/2) + 0.5, 100, "help the princess go as high as possible", 22)
+    pin t3 = Text(math.floor(W/2) + 0.5, (H - 40) + 0.5, "press the UP arrow key to start", 25)
     loop _, t in [t1, t2, t3] {
         set t.ax, t.ay = (0.5, 0.5)
     }
     set t3.angle = 0
     spawn Swing(t3, 300)
-    val princess = Sprite(IMG_PRINCESS, W/2, (H/2) - 50)
-    val pb = Body(princess, :princess)
+    val pb = Body(Sprite(IMG_PRINCESS, W/2, (H/2) - 50), :princess)
+    val princess = pb.spr
     set pb.gy = 12
     set princess.ax, princess.ay = (0.5, 1)
     set princess.frame = 1
-    val platform = Sprite(IMG_PLATFORM, W/2, (H/2) + 150)
-    val lb = Body(platform, :platform)
+    val lb = Body(Sprite(IMG_PLATFORM, W/2, (H/2) + 150), :platform)
+    val platform = lb.spr
     set platform.ax, platform.ay = (0.5, 0.5)
     set lb.immovable = true
-    val mute = Sprite(IMG_MUTE, W - 70, 42)
+    pin mute = Sprite(IMG_MUTE, W - 70, 42)
     defer {
         body_remove(pb)
         body_remove(lb)

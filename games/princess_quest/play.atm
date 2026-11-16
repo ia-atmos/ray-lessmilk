@@ -1,10 +1,10 @@
 ;; Play: the platforms, hearts, spikes, and clouds, from groups recycled;
 ;; the screen goes up with the princess.
 
-val IMG_HEART  = eng.image(A ++ "images/heart.png")
-val IMG_SPIKE  = eng.image(A ++ "images/spike.png")
-val IMG_CLOUD  = eng.image(A ++ "images/cloud.png")
-val IMG_GROUND = eng.image(A ++ "images/ground.png")
+pin IMG_HEART  = eng.image(A ++ "images/heart.png")
+pin IMG_SPIKE  = eng.image(A ++ "images/spike.png")
+pin IMG_CLOUD  = eng.image(A ++ "images/cloud.png")
+pin IMG_GROUND = eng.image(A ++ "images/ground.png")
 val SND_HEART = eng.sound(A ++ "sounds/heart.wav")
 val SND_MUSIC = eng.sound(A ++ "sounds/music.wav")
 val SND_HIT   = eng.sound(A ++ "sounds/hit.wav")
@@ -29,8 +29,8 @@ func level_of (s) {
 task Play () {
     input_reset()
     set Physics.x, Physics.y, Physics.w, Physics.h = (0, -100000, W, H + 100000)   ;; world.setBounds
-    val keys = Cursor()
-    val clouds = Group(IMG_CLOUD, 6, :cloud)
+    pin keys = Cursor()
+    pin clouds = Group(IMG_CLOUD, 6, :cloud)
     loop _, x in clouds.slots {
         set x.s.oob_kill = true
     }
@@ -38,32 +38,35 @@ task Play () {
         set best_score = score
     }
     set score = 0
-    val platforms = Group(IMG_PLATFORM, 15, :platform)
+    pin platforms = Group(IMG_PLATFORM, 15, :platform)
     loop _, x in platforms.slots {
         set x.b.immovable = true
         set x.b.allow.down, x.b.allow.right, x.b.allow.left = (false, false, false)
     }
-    val hearts = Group(IMG_HEART, 3, :heart)
-    val spikes = Group(IMG_SPIKE, 5, :spike)
-    val emitter = Emitter(IMG_HEART, 100)
+    pin hearts = Group(IMG_HEART, 3, :heart)
+    pin spikes = Group(IMG_SPIKE, 5, :spike)
+    pin emitter = Emitter(IMG_HEART, 100)
     set emitter.x = -100
     set emitter.on = false
     set emitter.gravity = 10
     emitter_start(emitter, false, 1000, 15, 0)
     set emitter.w = 50
     spawn Emitter_run(emitter)
-    val princess = Sprite(IMG_PRINCESS, (W/2) + 100, H - 200)
-    val pb = Body(princess, :princess)
+    val pb = Body(Sprite(IMG_PRINCESS, (W/2) + 100, H - 200), :princess)
+    val princess = pb.spr
     set pb.gy = 12
     set princess.ax, princess.ay = (0.5, 1)
     set princess.alive = true
-    val ground = Sprite(IMG_GROUND, 0, H - 56)
-    set ground.sx, ground.sy = (15, 1)
-    val gb = Body(ground, :ground)
+    val gb = Body(do {
+        pin ground = Sprite(IMG_GROUND, 0, H - 56)
+        set ground.sx, ground.sy = (15, 1)
+        ground
+    }, :ground)
+    val ground = gb.spr
     set gb.immovable = true
     set ground.alive = true
     set ground.oob_kill = true
-    val score_label = Text(10, 10, "0", 20)
+    pin score_label = Text(10, 10, "0", 20)
     eng.play(SND_MUSIC, 0.2)
     defer {
         group_remove(clouds)
@@ -79,9 +82,13 @@ task Play () {
     pin tweens = tasks()
 
     ;; [trace]
-    set Pq.play = [ princess=princess, pb=pb, platforms=platforms, hearts=hearts,
-                    spikes=spikes, clouds=clouds, emitter=emitter,
-                    next=\{ next_platform }, took=\{ took_heart } ]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ princess=princess, pb=pb, platforms=platforms, hearts=hearts,
+                        spikes=spikes, clouds=clouds, emitter=emitter,
+                        next=\{ next_platform }, took=\{ took_heart } ])
+        }
+    }
     ;; [/trace]
 
     spawn {
@@ -145,7 +152,7 @@ task Play () {
 
     val func generate_level () {
         if next_platform < -Camera.y {
-            val lv = level_of(score)
+            pin lv = level_of(score)
             val kind = lv@(rand(#lv))
             val y = Camera.y - 30
             set next_platform += rand(80) + 70
@@ -280,11 +287,10 @@ task Play () {
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/6.js
-func trace () {
+func trace (p) {
     val f = rl.frame()
     var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(score) ++ " " ++ tostring(best_score)
     if screen == "Play" {
-        val p = Pq.play
         val pr = p.princess
         var n, sx, sy = (0, 0, 0)
         loop _, x in p.platforms.slots {

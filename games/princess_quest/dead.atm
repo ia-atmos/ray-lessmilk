@@ -1,22 +1,22 @@
 ;; Dead: the score, the best; UP (or a press) plays again.
 
-val IMG_ZOOM = eng.image(A ++ "images/princess_zoom.png")
+pin IMG_ZOOM = eng.image(A ++ "images/princess_zoom.png")
 val SND_DEAD = eng.sound(A ++ "sounds/dead.wav")
 
 task Dead () {
     input_reset()
-    val keys = Cursor()
-    val t1 = Text(math.floor(W/2) + 0.5, 50, "oh no, you died", 40)
-    val t2 = Text(math.floor(W/2) + 0.5, 130, "your score: " ++ tostring(score) ++
+    pin keys = Cursor()
+    pin t1 = Text(math.floor(W/2) + 0.5, 50, "oh no, you died", 40)
+    pin t2 = Text(math.floor(W/2) + 0.5, 130, "your score: " ++ tostring(score) ++
                   "\nbest score: " ++ tostring(best_score), 30, 0.5)
-    val t3 = Text(math.floor(W/2) + 0.5, 200, "press the UP arrow key to restart", 25)
-    val t4 = Text(math.floor(W/2) + 0.5, H + 300, "I'm sure you can do better!", 25)
+    pin t3 = Text(math.floor(W/2) + 0.5, 200, "press the UP arrow key to restart", 25)
+    pin t4 = Text(math.floor(W/2) + 0.5, H + 300, "I'm sure you can do better!", 25)
     loop _, t in [t1, t2, t3, t4] {
         set t.ax, t.ay = (0.5, 0.5)
     }
     set t3.angle = 0
     spawn Swing(t3, 300)
-    val zoom = Sprite(IMG_ZOOM, W/2, H + H)
+    pin zoom = Sprite(IMG_ZOOM, W/2, H + H)
     set zoom.ax, zoom.ay = (0.5, 1)
     spawn Motion(t4, [y=300], 2000, Ease.bounce_out)
     spawn Motion(zoom, [y=H], 2000, Ease.bounce_out)

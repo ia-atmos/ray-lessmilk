@@ -17,7 +17,6 @@ var sound = true
 
 ;; [trace]
 var screen = "Menu"
-val Pq = [ play = nil ]
 ;; [/trace]
 
 rl.window [title="Princess Quest", width=W, height=H]
@@ -29,13 +28,7 @@ include "dead.atm"
 spawn Game(W, H)
 
 ;; [trace]
-spawn {
-    if os.getenv("RL_FRAMES") {
-        loop on :rl.frame {
-            print(trace())
-        }
-    }
-}
+spawn Tracer(trace)
 ;; [/trace]
 
 await Menu()
