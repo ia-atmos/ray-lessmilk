@@ -1,9 +1,9 @@
 ;; Play: a grid of 6 x 6 dots of four colors, from a group of 70.
 
-val IMG_BAR      = eng.image(A ++ "images/bar.png")
-val IMG_PROGRESS = eng.image(A ++ "images/progress.png")
-val IMG_TUTO     = eng.image(A ++ "images/tuto.png")
-val IMG_QUESTION = eng.image(A ++ "images/question.png")
+pin IMG_BAR      = eng.image(A ++ "images/bar.png")
+pin IMG_PROGRESS = eng.image(A ++ "images/progress.png")
+pin IMG_TUTO     = eng.image(A ++ "images/tuto.png")
+pin IMG_QUESTION = eng.image(A ++ "images/question.png")
 val SND_TAP2 = eng.sound(A ++ "sounds/tap2.wav")
 val SND_TAP3 = eng.sound(A ++ "sounds/tap3.wav")
 val TILE = 60
@@ -15,24 +15,24 @@ func rand (n) {
 
 ;; the dots that grow, are removed, or fall, and the bar
 task Tween (o, to, ms, delay) {
-    await Motion(o, to, ms, nil, nil, delay)
+    await Motion(o, to, ms, nil, delay)
 }
 
 task Play () {
     input_reset()
-    val dots = Group(IMG_DOT, 70, :dot)
-    val label_score = Text(40, 20, "0", 20)
-    val label_moves = Text(W - 75, 20, "0/20", 20)
+    pin dots = Group(IMG_DOT, 70, :dot)
+    pin label_score = Text(40, 20, "0", 20)
+    pin label_moves = Text(W - 75, 20, "0/20", 20)
     loop _, t in [label_score, label_moves] {
         set t.color = INK
     }
-    val progress = Sprite(IMG_PROGRESS, W/2, H - 50)
+    pin progress = Sprite(IMG_PROGRESS, W/2, H - 50)
     set progress.ax, progress.ay = (0, 0.5)
-    val bar = Sprite(IMG_BAR, W/2, H - 50)
+    pin bar = Sprite(IMG_BAR, W/2, H - 50)
     set bar.ax, bar.ay = (0.5, 0.5)
     prop_set(progress, "width", 0)
     set progress.x -= IMG_BAR.fw / 2
-    val question = Sprite(IMG_QUESTION, W/2, 30)
+    pin question = Sprite(IMG_QUESTION, W/2, 30)
     set question.ax, question.ay = (0.5, 0.5)
     var tuto = nil
     pin tweens = tasks()
@@ -41,7 +41,7 @@ task Play () {
     }
 
     var clicked, count, moves, type = (false, 0, 0, -1)
-    var deleted = []
+    pin deleted = []
     var pos_i, pos_j = (-1, -1)
     val offset_x = ((W - (6 * TILE)) / 2) + (TILE / 2)
     val offset_y = 80
@@ -49,8 +49,12 @@ task Play () {
     set score = 0
 
     ;; [trace]
-    set Con.play = [ dots=dots, progress=progress,
-                     moves=\{ moves }, count=\{ count }, type=\{ type } ]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ dots=dots, progress=progress,
+                         moves=\{ moves }, count=\{ count }, type=\{ type } ])
+        }
+    }
     ;; [/trace]
 
     spawn {
@@ -191,11 +195,11 @@ task Play () {
                 set e.move_y = 0
             }
         }
-        set deleted = []
+        vector.clear(deleted)
     }
 
     val func add_missing () {
-        val min = [6, 6, 6, 6, 6, 6]
+        pin min = [6, 6, 6, 6, 6, 6]
         loop _, x in dots.slots {
             val e = x.s
             if e.alive && (e.pos_i < min@(e.pos_j)) && e.alive2 {
@@ -259,12 +263,11 @@ task Play () {
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/7.js
-func trace () {
+func trace (p) {
     val f = rl.frame()
     if screen != "Play" {
         return tostring(f) ++ " " ++ screen ++ " " ++ tostring(score)
     }
-    val p = Con.play
     var n, fr, sy, sc = (0, 0, 0, 0)
     loop _, x in p.dots.slots {
         if x.s.alive {

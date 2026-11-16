@@ -1,7 +1,7 @@
 ;; Menu: connect the two dots to start.
 
-val IMG_DOT   = eng.image(A ++ "images/dot.png", 50, 50)
-val IMG_SOUND = eng.image(A ++ "images/sound.png", 28, 22)
+pin IMG_DOT   = eng.image(A ++ "images/dot.png", 50, 50)
+pin IMG_SOUND = eng.image(A ++ "images/sound.png", 28, 22)
 val SND_TAP1  = eng.sound(A ++ "sounds/tap1.wav")
 val SND_COMBO = eng.sound(A ++ "sounds/combo.wav")
 
@@ -40,19 +40,19 @@ task Button (s) {
 
 task Menu () {
     input_reset()
-    val title = Text(W/2, 50, "connected", 30)
-    val start = Text(W/2, H - 50, "connect the two dots to start", 20)
+    pin title = Text(W/2, 50, "connected", 30)
+    pin start = Text(W/2, H - 50, "connect the two dots to start", 20)
     loop _, t in [title, start] {
         set t.ax, t.ay, t.color = (0.5, 0.5, INK)
     }
     set start.angle = 0
-    val dot1 = Sprite(IMG_DOT, (W/2) - 25, H/2)
-    val dot2 = Sprite(IMG_DOT, (W/2) + 25, H/2)
-    val b1, b2 = (Body(dot1, :dot), Body(dot2, :dot))
+    val b1 = Body(Sprite(IMG_DOT, (W/2) - 25, H/2), :dot)
+    val b2 = Body(Sprite(IMG_DOT, (W/2) + 25, H/2), :dot)
+    val dot1, dot2 = (b1.spr, b2.spr)
     loop _, d in [dot1, dot2] {
         set d.ax, d.ay = (0.5, 0.5)
     }
-    val snd_btn = Sprite(IMG_SOUND, W - 70, 40)
+    pin snd_btn = Sprite(IMG_SOUND, W - 70, 40)
     defer {
         body_remove(b1)
         body_remove(b2)
