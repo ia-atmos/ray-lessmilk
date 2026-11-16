@@ -54,6 +54,7 @@ Each has the option recommended by this session.
 | 6 | Text: Liberation Sans and Mono for Arial and Courier (SIL OFL, in `lib/fonts/`); the line height and the width are those of Chromium, a vertical correction of `0.12 * size` was measured on two sizes only |
 | 7 | A tween whose task is aborted is deleted; Phaser would go on moving the object. No run shows a difference |
 | 8 | Connected keeps the best score in memory, not in `localStorage` |
+| 10 | The new rules of `pin` (compiler `98ad03a`, approved by the author on 2026-11-15): the port was migrated with the same traces (26 tests on `3a6ffe9`); bodies own their sprites, the list of tweens holds marks and the pass emits `:tween.step`, the traces of the screens answer `:trace`; `ctl` of `Motion` gone (its `pub.stop`). Report sent to the compiler session; in `doc/compiler.md` |
 | 9 | Some flags stay where the order inside a frame or of the random draws requires it (Save the City `keyReset`, Man vs Penguins `enemyTime`, I Hate Rabbits `change_level`), and the recycled groups stay as slots; listed in `doc/state.md` |
 
 ## D. Older items
