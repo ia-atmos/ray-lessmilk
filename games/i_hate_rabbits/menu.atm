@@ -1,7 +1,7 @@
 ;; Menu: the bad one walks, a label pulses; SPACE starts.
 
-val IMG_BAD    = eng.image(A ++ "images/bad.png", 36, 40)
-val IMG_CIRCLE = eng.image(A ++ "images/circle.png")
+pin IMG_BAD    = eng.image(A ++ "images/bad.png", 36, 40)
+pin IMG_CIRCLE = eng.image(A ++ "images/circle.png")
 
 ;; a pulse of a scale, for ever: .to(big).to(1).loop()
 task Pulse (o, big, small, ms) {
@@ -12,15 +12,15 @@ task Pulse (o, big, small, ms) {
 }
 
 task Menu () {
-    val bad = Sprite(IMG_BAD, W/2, (H/2) - 120)
+    pin bad = Sprite(IMG_BAD, W/2, (H/2) - 120)
     set bad.ax, bad.ay = (0.5, 1)
     sprite_add(bad, :walk, [0, 1], 5, true)
     sprite_play(bad, :walk)
-    val circle = Sprite(IMG_CIRCLE, W/2, H/2)
+    pin circle = Sprite(IMG_CIRCLE, W/2, H/2)
     set circle.ax, circle.ay = (0.5, 0.5)
-    val start = Text((W/2) + 0.5, (H/2) + 0.5, "press space to\nstart the game", 20, 0.5)
-    val help  = Text((W/2) + 0.5, H - 30, "try to save the rabbits by pressing space", 20, 0.5)
-    val title = Text((W/2) + 0.5, 30, "I Hate Rabbits!", 30, 0.5)
+    pin start = Text((W/2) + 0.5, (H/2) + 0.5, "press space to\nstart the game", 20, 0.5)
+    pin help  = Text((W/2) + 0.5, H - 30, "try to save the rabbits by pressing space", 20, 0.5)
+    pin title = Text((W/2) + 0.5, 30, "I Hate Rabbits!", 30, 0.5)
     loop _, t in [start, help, title] {
         set t.ax, t.ay = (0.5, 0.5)
     }

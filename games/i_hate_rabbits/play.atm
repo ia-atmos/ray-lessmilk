@@ -1,9 +1,9 @@
 ;; Play: the bad one turns around the circle; a level of rabbits each turn.
 
-val IMG_RABBIT = eng.image(A ++ "images/rabbit2.png")
+pin IMG_RABBIT = eng.image(A ++ "images/rabbit2.png")
 val SND_MUSIC = eng.sound(A ++ "sounds/music.wav")
 val SND_HAHO  = eng.sound(A ++ "sounds/haho.mp3")
-val SND_VOWELS = [
+pin SND_VOWELS = [
     eng.sound(A ++ "sounds/a.mp3"), eng.sound(A ++ "sounds/e.mp3"),
     eng.sound(A ++ "sounds/i.mp3"), eng.sound(A ++ "sounds/o.mp3"),
     eng.sound(A ++ "sounds/u.mp3"),
@@ -29,21 +29,24 @@ task Fade (r) {
 }
 
 task Play () {
-    val rabbits = Group(IMG_RABBIT, 30, :rabbit)
-    val bad = Sprite(IMG_BAD, W/2, H/2)
-    set bad.ax, bad.ay = (0.5, 1)
-    sprite_add(bad, :walk, [0, 1], 5, true)
-    sprite_play(bad, :walk)
-    val bbody = Body(bad, :bad)
-    val circle = Sprite(IMG_CIRCLE, W/2, H/2)
+    pin rabbits = Group(IMG_RABBIT, 30, :rabbit)
+    val bbody = Body(do {
+        pin bad = Sprite(IMG_BAD, W/2, H/2)
+        set bad.ax, bad.ay = (0.5, 1)
+        sprite_add(bad, :walk, [0, 1], 5, true)
+        sprite_play(bad, :walk)
+        bad
+    }, :bad)
+    val bad = bbody.spr
+    pin circle = Sprite(IMG_CIRCLE, W/2, H/2)
     set circle.ax, circle.ay = (0.5, 0.5)
     defer {
         group_remove(rabbits)
         body_remove(bbody)
     }
-    val start = Text((W/2) + 0.5, 30, "try to save the rabbits by pressing space", 20, 0.5)
+    pin start = Text((W/2) + 0.5, 30, "try to save the rabbits by pressing space", 20, 0.5)
     set start.ax, start.ay = (0.5, 0.5)
-    val world = Text(W/2, H/2, "10", 80, 0.5)
+    pin world = Text(W/2, H/2, "10", 80, 0.5)
     set world.ax, world.ay = (0.5, 0.5)
     set score, level = (65, 0)
     eng.play(SND_MUSIC, 0.4)
@@ -51,7 +54,11 @@ task Play () {
     val cw = IMG_CIRCLE.fw          ;; circle.width
 
     ;; [trace]
-    set Rab.play = [ bad=bad, rabbits=rabbits ]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ bad=bad, rabbits=rabbits ])
+        }
+    }
     ;; [/trace]
 
     spawn {
@@ -165,12 +172,11 @@ task Play () {
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/9.js
-func trace () {
+func trace (p) {
     val f = rl.frame()
     var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(score) ++ " " ++
             tostring(level) ++ " " ++ tostring(best_score)
     if screen == "Play" {
-        val p = Rab.play
         var n, sx, sy, sa = (0, 0, 0, 0)
         loop _, x in p.rabbits.slots {
             if x.s.alive {
