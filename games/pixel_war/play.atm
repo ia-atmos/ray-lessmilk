@@ -1,12 +1,12 @@
 ;; Play: the player, and four groups of sprites recycled as in Phaser:
 ;; enemies, fires, bonuses, bullets.
 
-val IMG_PLAYER = eng.image(A ++ "images/player.png")
-val IMG_FIRE   = eng.image(A ++ "images/fire.png")
-val IMG_BONUS  = eng.image(A ++ "images/bonus.png")
-val IMG_PIXEL  = eng.image(A ++ "images/pixel.png")
-val IMG_BULLET = eng.image(A ++ "images/bullet.png", 16, 32)
-val IMG_ENEMY  = eng.image(A ++ "images/enemy.png")
+pin IMG_PLAYER = eng.image(A ++ "images/player.png")
+pin IMG_FIRE   = eng.image(A ++ "images/fire.png")
+pin IMG_BONUS  = eng.image(A ++ "images/bonus.png")
+pin IMG_PIXEL  = eng.image(A ++ "images/pixel.png")
+pin IMG_BULLET = eng.image(A ++ "images/bullet.png", 16, 32)
+pin IMG_ENEMY  = eng.image(A ++ "images/enemy.png")
 val SND_HIT   = eng.sound(A ++ "sounds/hit.wav")
 val SND_FIRE  = eng.sound(A ++ "sounds/fire.wav")
 val SND_EXP   = eng.sound(A ++ "sounds/exp.wav")
@@ -24,22 +24,22 @@ task Bump (p, y0, dy, ms) {
 }
 
 task Play () {
-    val keys = Cursor()
+    pin keys = Cursor()
     val player_y = H - 70
     var lives, evolution = (3, 1)
     set score = 0
 
-    val enemies = Group(IMG_ENEMY, 25, :enemy)
-    val fires   = Group(IMG_FIRE, 25, :fire)
-    val bonuses = Group(IMG_BONUS, 3, :bonus)
-    val bullets = Group(IMG_BULLET, 25, :bullet)
+    pin enemies = Group(IMG_ENEMY, 25, :enemy)
+    pin fires   = Group(IMG_FIRE, 25, :fire)
+    pin bonuses = Group(IMG_BONUS, 3, :bonus)
+    pin bullets = Group(IMG_BULLET, 25, :bullet)
     loop _, g in [enemies, fires, bonuses, bullets] {
         loop _, x in g.slots {
             set x.s.oob_kill = true
         }
     }
-    val player = Sprite(IMG_PLAYER, W/2, player_y)
-    val pbody = Body(player, :player)
+    val pbody = Body(Sprite(IMG_PLAYER, W/2, player_y), :player)
+    val player = pbody.spr
     set pbody.world = true
     defer {
         loop _, g in [enemies, fires, bonuses, bullets] {
@@ -48,18 +48,22 @@ task Play () {
         body_remove(pbody)
     }
 
-    val emitter = Emitter(IMG_PIXEL, 200)
+    pin emitter = Emitter(IMG_PIXEL, 200)
     set emitter.gravity = 0
     spawn Emitter_run(emitter)
 
-    val lives_text = Text(W - 25, 10, "3", 30)
-    val score_text = Text(10, 10, "0", 30)
+    pin lives_text = Text(W - 25, 10, "3", 30)
+    pin score_text = Text(10, 10, "0", 30)
     pin tweens = tasks()
 
     ;; [trace]
-    set Pix.play = [ lives=\{ lives }, evolution=\{ evolution }, player=player,
-                     enemies=enemies, fires=fires, bonuses=bonuses, bullets=bullets,
-                     emitter=emitter ]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ lives=\{ lives }, evolution=\{ evolution }, player=player,
+                         enemies=enemies, fires=fires, bonuses=bonuses, bullets=bullets,
+                         emitter=emitter ])
+        }
+    }
     ;; [/trace]
 
     spawn {
@@ -235,12 +239,11 @@ task Play () {
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/2.js
-func trace () {
+func trace (p) {
     val f = rl.frame()
     if screen != "Play" {
         return tostring(f) ++ " " ++ screen ++ " " ++ tostring(score)
     }
-    val p = Pix.play
     var n, sx, sy = (0, 0, 0)
     loop _, x in group_living(p.enemies) {
         set n += 1

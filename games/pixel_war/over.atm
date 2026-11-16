@@ -3,8 +3,8 @@
 val SND_DEAD = eng.sound(A ++ "sounds/dead.wav")
 
 task Over (shown) {
-    val keys = Cursor()
-    val label = Text(W/2, H/2, "game over\n\nscore: " ++ tostring(shown) ++
+    pin keys = Cursor()
+    pin label = Text(W/2, H/2, "game over\n\nscore: " ++ tostring(shown) ++
                      "\n\npress the UP arrow\nkey to restart", 30, 0.5)
     set label.ax, label.ay = (0.5, 0.5)
     eng.play(SND_DEAD, 0.2)

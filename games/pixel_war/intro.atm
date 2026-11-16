@@ -1,9 +1,9 @@
 ;; Intro: the picture, until UP.
 
-val IMG_BG = eng.image(A ++ "images/bg.png")
+pin IMG_BG = eng.image(A ++ "images/bg.png")
 
 task Intro () {
-    val keys = Cursor()
+    pin keys = Cursor()
     spawn {
         loop on :rl.draw {
             rl.clear(BG)

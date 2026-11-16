@@ -15,7 +15,6 @@ var score = 0               ;; the global `score` of the original
 
 ;; [trace]
 var screen = "Intro"
-val Pix = [ play = nil ]
 ;; [/trace]
 
 rl.window [title="Pixel War", width=W, height=H]
@@ -27,13 +26,7 @@ include "over.atm"
 spawn Game(W, H)
 
 ;; [trace]
-spawn {
-    if os.getenv("RL_FRAMES") {
-        loop on :rl.frame {
-            print(trace())
-        }
-    }
-}
+spawn Tracer(trace)
 ;; [/trace]
 
 await Intro()
