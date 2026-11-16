@@ -109,7 +109,17 @@ ${tags.join('\n')}
     if (run.input[1]) throw new Error('run: no input at frame 1, which runs while loading');
     await pg.evaluate(() => { window.__frame = 1; });
 
+    // BOT=<file.js>: a script that defines window.__bot(game, f), called
+    // after frame f, which returns the ops of frame f+1; they are printed
+    // to stderr as "bot: INPUT=...", to be copied into a run file
+    const botOps = {};
+    const botLog = [];
+    if (process.env.BOT) {
+        await pg.addScriptTag({ path: process.env.BOT });
+    }
+
     for (let f = 1; f <= run.frames; f++) {
+        const ops = (run.input[f] || []).concat(botOps[f] || []);
         const line = await pg.evaluate(([f, ops]) => {
             if (f > 1) {
                 for (const op of ops) window.__input(op);
@@ -119,8 +129,15 @@ ${tags.join('\n')}
             const st = g.state.current;
             const extra = window.__trace ? window.__trace(g, f) : '';
             return f + ' ' + st + (extra !== '' && extra !== undefined ? ' ' + extra : '');
-        }, [f, run.input[f] || []]);
+        }, [f, ops]);
         console.log(line);
+        if (process.env.BOT) {
+            const b = await pg.evaluate((f) => window.__bot(Phaser.GAMES[0], f), f);
+            if (b && b.length) {
+                botOps[f + 1] = b;
+                for (const op of b) botLog.push((f + 1) + ':' + op);
+            }
+        }
         if (run.shots.has(f)) {
             // Phaser 1 paints the background as the style of the canvas
             const data = await pg.evaluate(() => {
@@ -137,5 +154,6 @@ ${tags.join('\n')}
                              Buffer.from(data.split(',')[1], 'base64'));
         }
     }
+    if (process.env.BOT) console.error("bot: INPUT=" + botLog.join(","));
     await browser.close();
 })().catch(e => { console.error(e); process.exit(1); });
