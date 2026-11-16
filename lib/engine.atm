@@ -13,6 +13,7 @@ include "../env/raylib.atm"
 
 ```:prelude
 #include <stdint.h>
+#include "rlgl.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // RANDOM: mulberry32, the generator of tools/original/harness.js
@@ -273,6 +274,24 @@ static double eng_text (const char* path, double asc, double desc, double gap,
     return w;
 }
 
+// Pixi 1.5 (Phaser 2): what is drawn under the transform of the world, a
+// matrix (a, b, c, d, tx, ty) that maps (x, y) to (a*x + b*y + tx,
+// c*x + d*y + ty), the worldTransform of a display object
+static void eng_push_m (double a, double b, double c, double d, double tx, double ty) {
+    float m[16] = { (float)a, (float)c, 0, 0,  (float)b, (float)d, 0, 0,
+                    0, 0, 1, 0,  (float)tx, (float)ty, 0, 1 };
+    rlPushMatrix();
+    rlMultMatrixf(m);
+}
+
+// the frame (sx,sy,fw,fh) of a texture, with its anchor (ax,ay) at the origin
+static void eng_draw_frame (Texture2D t, double sx, double sy, double fw, double fh,
+                            double ax, double ay, Color col) {
+    DrawTexturePro(t, (Rectangle){ (float)sx, (float)sy, (float)fw, (float)fh },
+        (Rectangle){ (float)(-ax*fw), (float)(-ay*fh), (float)fw, (float)fh },
+        (Vector2){ 0, 0 }, 0, col);
+}
+
 ```
 
 ;; The fonts of the originals: they ask for Arial and Courier, which the
@@ -391,6 +410,23 @@ pin eng = [
         val p, as, ds, gp, em = (f.path, f.asc, f.desc, f.gap, f.upem)
         val an = angle || 0
         `eng_text(rl_s($p), a_dbl($as), a_dbl($ds), a_dbl($gp), a_dbl($em), (int)a_dbl($size), rl_s($s), a_dbl($x), a_dbl($y), a_dbl($ax_), a_dbl($ay_), a_dbl($al_), rl_color($c), a_dbl($a), 1, a_dbl($an));`
+    },
+
+    ;; eng.draw_m(img, frame, m, [ax, ay, alpha]): a frame of the sheet, with
+    ;; its anchor (ax,ay) at the origin, under the matrix m = [a, b, c, d,
+    ;; tx, ty] (lib/scene.atm), as Pixi draws a sprite with its worldTransform
+    draw_m = func (img, frame, m, ax, ay, alpha) {
+        val fw, fh = (img.fw, img.fh)
+        val cols = math.max(1, img.w // fw)
+        val fx, fy = ((frame % cols) * fw, (frame // cols) * fh)
+        val al = if alpha == nil => 1 => alpha
+        val k = math.floor((math.max(0, math.min(1, al)) * 255) + 0.5)
+        val t = img.tex
+        val a, b, c, d, tx, ty = (m.a, m.b, m.c, m.d, m.tx, m.ty)
+        val ax_, ay_ = (ax || 0, ay || 0)
+        `eng_push_m(a_dbl($a), a_dbl($b), a_dbl($c), a_dbl($d), a_dbl($tx), a_dbl($ty));`
+        `eng_draw_frame(rl_texture($t), a_dbl($fx), a_dbl($fy), a_dbl($fw), a_dbl($fh), a_dbl($ax_), a_dbl($ay_), (Color){ 255, 255, 255, (unsigned char)a_dbl($k) });`
+        `rlPopMatrix();`
     },
 
     ;; eng.measure(s, size, [font]): the width of the text

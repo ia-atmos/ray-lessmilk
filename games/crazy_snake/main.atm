@@ -1,0 +1,42 @@
+;; Crazy Snake (lessmilk.com, game #12, 2014), by Thomas Palef.
+;; Ported to Atmos from the original (Phaser 2.0.2).
+;;
+;; A snake eats coins on a board; every five coins the board turns, shrinks,
+;; stretches or moves, and from fifty on it turns for good.
+
+include "../../lib/game.atm"
+
+val W, H = (500, 500)
+val A = "assets/12/"
+val INK = 0x2C2C2CFF
+
+var score, best_score = (0, 0)      ;; the globals of the original
+var sound = true
+
+;; [trace]
+var screen = "Menu"
+;; [/trace]
+
+rl.window [title="Crazy Snake", width=W, height=H]
+
+include "menu.atm"
+include "play.atm"
+include "end.atm"
+
+spawn Game(W, H, 2)
+
+;; [trace]
+spawn Tracer(trace)
+;; [/trace]
+
+await Menu()
+loop {
+    ;; [trace]
+    set screen = "Play"
+    ;; [/trace]
+    await Play()
+    ;; [trace]
+    set screen = "End"
+    ;; [/trace]
+    await End()
+}

@@ -58,12 +58,22 @@ func angle_set (s, v) {
     set s.rot = `:number.float spr_wrap_angle(a_dbl($v)) * (M_PI / 180)`
 }
 
+;; the angle of a group of Phaser 2 (lib/scene.atm), as Phaser.Group:
+;; radToDeg(rotation), and rotation = degToRad(value), with no wrap
+func group_angle (g) {
+    g.rot * (180 / math.pi)
+}
+func group_angle_set (g, v) {
+    set g.rot = v * (math.pi / 180)
+}
+
 ;; a field of a sprite, for Motion: `angle` through angle_get and angle_set
 ;; and the camera, whose x and y are set as its setter does (camera_set)
 ;; and sprite.width, as scale.x * the width of a frame
 func prop_get (o, k) {
     ifs {
         (k == "angle") && (o ?? :Sprite) => angle_get(o)
+        (k == "angle") && (o ?? :Group2) => group_angle(o)
         (k == "width") && (o ?? :Sprite) => o.sx * o.img.fw
         else => o@(k)
     }
@@ -71,6 +81,7 @@ func prop_get (o, k) {
 func prop_set (o, k, v) {
     ifs {
         (k == "angle") && (o ?? :Sprite) => angle_set(o, v)
+        (k == "angle") && (o ?? :Group2) => group_angle_set(o, v)
         (k == "width") && (o ?? :Sprite) => set o.sx = v / o.img.fw
         o ?? :Camera => camera_set(k, v)
         else => set o@(k) = v

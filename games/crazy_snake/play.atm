@@ -1,0 +1,250 @@
+;; Play: the snake moves a square every 200 ms (a timer of Phaser), in the
+;; group `level`, which the effects turn, scale and move; the arrows turn it.
+
+pin IMG_PLAYER = eng.image(A ++ "images/player.png")
+pin IMG_COIN   = eng.image(A ++ "images/coin.png")
+pin IMG_BG     = eng.image(A ++ "images/bg.png", 350, 350)
+val SND_MUSIC  = eng.sound(A ++ "sounds/music.wav")
+val SND_COIN   = eng.sound(A ++ "sounds/coin.wav")
+val SND_DEATH  = eng.sound(A ++ "sounds/death.wav")
+
+;; rand(num) of the original
+func rand (n) {
+    eng.rand(n)
+}
+
+;; the death: the level shrinks to nothing, then End (state.start)
+task Vanish (level, over) {
+    await Motion(level, [sx=0, sy=0], 500)
+    set over.dead = true
+}
+
+;; the effect of 30: three tweens chained
+task Jump (level) {
+    await Motion(level, [x=W/2, y=H/2], 5)
+    await Motion(level, [x=W/2, y=H/2], 4000)
+    await Motion(level, [x=(W/2) - 150, y=(H/2) - 150], 5)
+}
+
+task Play () {
+    input_reset()
+
+    ;; the group of the level: the background, the snake, the coin, the score
+    pin level = Group2(W/2, W/2)
+    val bg = node_add(level, Sprite(IMG_BG, 0, 0))
+    set bg.ax, bg.ay = (0.5, 0.5)
+    body2(bg, IMG_BG.fw, IMG_BG.fh)
+    val snake = node_add(level, Group2(0, 0))
+    pin snake_array = []                ;; head first
+    val func new_square (i, j) {
+        val sq = node_add(snake, Sprite(IMG_PLAYER, 0, 0))
+        set sq.ax, sq.ay = (0.5, 0.5)
+        sprite_reset2(sq, i * 20, j * 20)
+        set sq.head = false
+        body2(sq, 2, 2, 0, 0)
+        set snake_array@+ = sq
+    }
+    new_square(0, 2)
+    new_square(0, 3)
+    new_square(0, 4)
+    val coin = node_add(level, Sprite(IMG_COIN, 100, 100))
+    set coin.ax, coin.ay = (0.5, 0.5)
+    body2(coin, 1, 1, 0, 0)
+    val score_label = node_add(level, Text(-160, -160, "0", 20))
+
+    if sound {
+        eng.play(SND_MUSIC, 0.4)
+    }
+    set score = 0
+    var direction, current = (1, nil)
+    var effect = 0
+    val max = 175
+    var is_dead = false
+
+    spawn {
+        loop on :rl.draw {
+            rl.clear(0xFFFFFFFF)
+            scene_draw(level)
+        }
+    }
+    spawn {
+        loop on :pre {
+            scene_pre(level)
+        }
+    }
+    spawn {
+        loop on :render {
+            scene_transform(level)
+        }
+    }
+
+    pin tweens = tasks()
+    pin over = [ dead = false ]         ;; the tween of the death ended
+
+    val func dead () {
+        if !is_dead {
+            set is_dead = true
+            if sound {
+                eng.play(SND_DEATH)
+            }
+            spawn @tweens Vanish(level, over)
+        }
+    }
+
+    ;; the timer: game.time.events.loop(200, this.move)
+    val func move () {
+        if !is_dead {
+            val head = snake_array@0
+            var hx, hy = (head.x, head.y)
+            set head.head = true
+            ifs {
+                direction == 1 => set hy -= 20
+                direction == 2 => set hy += 20
+                direction == 3 => set hx += 20
+                direction == 4 => set hx -= 20
+            }
+            loop _, e in snake.kids {
+                if !e.head && (head.x == e.x) && (head.y == e.y) {
+                    dead()
+                }
+            }
+            set head.head = false
+            set current = direction
+            val tail = vector.remove(snake_array, #snake_array - 1)
+            set tail.x, tail.y = (hx, hy)
+            vector.insert(snake_array, 0, tail)
+        }
+    }
+    spawn Every(200, move)
+
+    val func take_coin () {
+        if sound {
+            eng.play(SND_COIN, 0.3)
+        }
+        var rx, ry = (0, 0)
+        loop {
+            set rx = -160 + (rand(17) * 20)
+            set ry = -160 + (rand(17) * 20)
+            var taken = false
+            loop _, e in snake.kids {
+                if (e.x == rx) && (e.y == ry) {
+                    set taken = true
+                }
+            }
+            until !taken
+        }
+        sprite_reset2(coin, rx, ry)
+        set score += 1
+        set score_label.s = tostring(score)
+        new_square(0, 10)
+        ifs {
+            (score > 20) && (score < 30) => set bg.frame = (bg.frame + 1) % 6
+            score == 30 => set bg.frame = 0
+        }
+        set coin.sx, coin.sy = (0, 0)
+        spawn @tweens Motion(coin, [sx=1, sy=1], 300)
+    }
+
+    ;; [trace]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ dir=\{ direction }, effect=\{ effect }, dead=\{ is_dead },
+                                     snake=snake_array, coin=coin, level=level ])
+        }
+    }
+    ;; [/trace]
+
+    par :any {
+        await :state until over.dead        ;; the switch, in the next frame
+    } with {
+        loop on :update {
+            overlap2(snake, coin, take_coin)
+            val head = snake_array@0
+            if (head.x > max) || (head.x < -max) {
+                dead()
+            }
+            if (head.y > max) || (head.y < -max) {
+                dead()
+            }
+
+            ;; player_movements
+            ifs {
+                key_down('LEFT') && (current != 3) => set direction = 4
+                key_down('RIGHT') && (current != 4) => set direction = 3
+                key_down('UP') && (current != 2) => set direction = 1
+                key_down('DOWN') && (current != 1) => set direction = 2
+            }
+
+            ;; the effects, by score
+            ifs {
+                (score == 5) && (effect == 0) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [angle=30], 5000)
+                }
+                (score == 10) && (effect == 1) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [sx=0.5, sy=0.5], 3000)
+                }
+                (score == 15) && (effect == 2) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
+                    spawn @tweens Motion(level, [sx=0.3, sy=0.9], 5000)
+                    spawn @tweens Motion(level, [angle=0], 5000)
+                }
+                (score == 20) && (effect == 3) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [sx=1, sy=1], 3000)
+                }
+                (score == 25) && (effect == 4) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [sx=0.2, sy=0.2], 5000)
+                    spawn @tweens Motion(level, [x=(W/2) + 150, y=(H/2) + 150], 5000)
+                }
+                (score == 30) && (effect == 5) => {
+                    set effect += 1
+                    spawn @tweens Jump(level)
+                }
+                (score == 35) && (effect == 6) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [sx=1, sy=1], 5000)
+                    spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
+                }
+                (score == 40) && (effect == 7) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [angle=-100], 5000)
+                }
+                (score == 45) && (effect == 8) => {
+                    set effect += 1
+                    spawn @tweens Motion(level, [angle=-190], 3000)
+                }
+                score >= 50 => group_angle_set(level, group_angle(level) - 0.2)
+            }
+
+            if !in_camera(snake_array@0) {
+                dead()
+            }
+        }
+    }
+}
+
+;; [trace]
+;; the line of the trace: as tools/original/trace/12.js
+func trace (p) {
+    val f = rl.frame()
+    var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(score) ++ " " ++ tostring(best_score)
+    if p {
+        val a = p.snake
+        val h, t, L = (a@0, a@(#a - 1), p.level)
+        set r = r ++ " " ++ tostring(p.dir()) ++ " " ++ tostring(p.effect()) ++ " " ++
+            (if p.dead() => "1" => "0") ++ " " ++
+            eng.tostring(h.x) ++ " " ++ eng.tostring(h.y) ++ " " ++
+            eng.tostring(t.x) ++ " " ++ eng.tostring(t.y) ++ " " ++ tostring(#a) ++ " " ++
+            eng.tostring(p.coin.x) ++ " " ++ eng.tostring(p.coin.y) ++ " " ++
+            eng.fixed(L.x, 2) ++ " " ++ eng.fixed(L.y, 2) ++ " " ++
+            eng.fixed(group_angle(L), 2) ++ " " ++
+            eng.fixed(L.sx, 3) ++ " " ++ eng.fixed(L.sy, 3) ++ " " ++
+            eng.fixed(h.body.x, 2) ++ " " ++ eng.fixed(h.body.y, 2)
+    }
+    r
+}
+;; [/trace]

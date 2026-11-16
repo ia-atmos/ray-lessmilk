@@ -1,0 +1,195 @@
+;; Scene: what the games of Phaser 2 (2.0.2) use of its display list and of
+;; its arcade bodies, read from its source (ext/phaser/2.0.2/src/ and the
+;; phaser202.min.js that the originals run). In Phaser 1.1.3 a sprite was
+;; drawn where it was (lib/sprite.atm); in Phaser 2 a group has a position,
+;; a rotation and a scale, which its children follow (Pixi 1.5).
+;;
+;;      pin level = Group2(250, 250)            ;; game.add.group(), x, y
+;;      val bg = node_add(level, Sprite(img, 0, 0))     ;; level.add(...)
+;;      body2(bg, img.fw, img.fh)               ;; physics.arcade.enable
+;;      scene_pre(level)                        ;; in :pre (stage.preUpdate)
+;;      scene_transform(level)                  ;; in :render (Pixi)
+;;      scene_draw(level)                       ;; in :rl.draw
+;;
+;; A node is a group (:Group2, with kids), a sprite (:Sprite) or a text
+;; (:Text). Each has its worldTransform `wt`, the matrix of the last render,
+;; which the bodies read, as in Phaser.
+
+func wt_new () {
+    [ a=1, b=0, c=0, d=1, tx=0, ty=0 ]
+}
+
+;; a group (Phaser.Group): rot in radians, angle in degrees with no wrap
+func Group2 (x, y) {
+    :Group2 [ x=x || 0, y=y || 0, rot=0, sx=1, sy=1, alpha=1, visible=true,
+              kids=[], wt=wt_new() ]
+}
+
+;; group.add(node): a new node (a fresh value) goes to the end of the group,
+;; which owns it; it is "fresh" (_cache[4] of Phaser) until its first
+;; preUpdate. Returns the node.
+func node_add (g, n) {
+    set g.kids@+ = n
+    val k = g.kids@(#g.kids - 1)
+    if !k.wt {
+        set k.wt = wt_new()
+    }
+    set k.fresh = true
+    k
+}
+
+;; Body of Phaser 2.0 (physics.arcade.enable + body.setSize(w, h, ox, oy)):
+;; a box of sw x sh (times the scale of the sprite) at the anchor, moved by
+;; the offset. The games of Phaser 2 that use it move their sprites
+;; themselves: the bodies here have no velocity. Body.postUpdate moves the
+;; sprite by position - prev, and the setter of sprite.x marks the body
+;; (_reset) when it does, so that the next preUpdate makes prev = position:
+;; with no velocity, a body never moves its sprite.
+func body2 (s, sw, sh, ox, oy) {
+    set s.body = [ sw=sw, sh=sh, ox=ox || 0, oy=oy || 0,
+                   w=sw * math.abs(s.sx), h=sh * math.abs(s.sy), x=0, y=0 ]
+    s.body
+}
+
+;; Sprite.reset(x, y): it moves, its body takes the position (with the size
+;; of the body as it was), and it is fresh again
+func sprite_reset2 (s, x, y) {
+    set s.x, s.y = (x, y)
+    set s.fresh = true
+    val b = s.body
+    if b {
+        set b.x = (x - (s.ax * b.w)) + b.ox
+        set b.y = (y - (s.ay * b.h)) + b.oy
+    }
+}
+
+;; stage.preUpdate: Sprite.preUpdate and Body.preUpdate of each sprite of
+;; the tree. The position in the world is that of the last render (camera +
+;; worldTransform), except for a fresh sprite: the position of its parent
+;; plus its own (the parent only, not the groups above it), which also
+;; becomes the translation of its worldTransform until the next render.
+func scene_pre (g) {
+    loop _, k in g.kids {
+        ifs {
+            k ?? :Group2 => scene_pre(k)
+            k ?? :Sprite => {
+                var wx, wy = (0, 0)
+                if k.fresh {
+                    set wx, wy = (g.x + k.x, g.y + k.y)
+                    set k.wt.tx, k.wt.ty = (wx, wy)
+                    set k.fresh = false
+                } else {
+                    set wx, wy = (Camera.x + k.wt.tx, Camera.y + k.wt.ty)
+                }
+                val b = k.body
+                if b {
+                    set b.w = b.sw * math.abs(k.sx)         ;; updateBounds
+                    set b.h = b.sh * math.abs(k.sy)
+                    set b.x = (wx - (k.ax * b.w)) + b.ox
+                    set b.y = (wy - (k.ay * b.h)) + b.oy
+                }
+            }
+            else => nil
+        }
+    }
+}
+
+;; DisplayObject.updateTransform of Pixi 1.5, for the tree, in doubles as
+;; in JavaScript (pivot 0); what is not visible keeps its transform
+func node_transform (n, p) {
+    if n.visible != false {
+        val sr, cr = (math.sin(n.rot || 0), math.cos(n.rot || 0))
+        val sx, sy = (n.sx || 1, n.sy || 1)
+        val e, f, g, h = (cr * sx, (-sr) * sy, sr * sx, cr * sy)
+        val i, j = (n.x, n.y)
+        val w = n.wt
+        set w.a = (p.a * e) + (p.b * g)
+        set w.b = (p.a * f) + (p.b * h)
+        set w.tx = ((p.a * i) + (p.b * j)) + p.tx
+        set w.c = (p.c * e) + (p.d * g)
+        set w.d = (p.c * f) + (p.d * h)
+        set w.ty = ((p.c * i) + (p.d * j)) + p.ty
+        if n.kids {
+            loop _, k in n.kids {
+                node_transform(k, w)
+            }
+        }
+    }
+}
+
+;; the render: the transforms of the tree, under the world (at -camera)
+func scene_transform (g) {
+    pin world = [ a=1, b=0, c=0, d=1, tx=-Camera.x, ty=-Camera.y ]
+    node_transform(g, world)
+}
+
+;; a text with its anchor at the origin, under the matrix m (as eng.draw_m)
+func text_m (s, m, size, color, ax, ay, align, alpha, font) {
+    val a, b, c, d, tx, ty = (m.a, m.b, m.c, m.d, m.tx, m.ty)
+    `eng_push_m(a_dbl($a), a_dbl($b), a_dbl($c), a_dbl($d), a_dbl($tx), a_dbl($ty));`
+    eng.text(s, 0, 0, size, color, ax, ay, align, alpha, font)
+    `rlPopMatrix();`
+}
+
+;; the tree, in order, each node with its worldTransform
+func scene_draw (n, alpha) {
+    val a = (alpha || 1) * (n.alpha || 1)
+    if n.visible != false {
+        ifs {
+            n ?? :Group2 => {
+                loop _, k in n.kids {
+                    scene_draw(k, a)
+                }
+            }
+            n ?? :Sprite => eng.draw_m(n.img, n.frame, n.wt, n.ax, n.ay, a * World.alpha)
+            n ?? :Text => text_m(n.s, n.wt, n.size, n.color, n.ax, n.ay, n.align, a * World.alpha, n.font)
+            else => nil
+        }
+    }
+}
+
+;; physics.arcade.overlap(group, sprite, f) of Phaser 2.0.2
+;; (collideSpriteVsGroup): a quadtree of the world with the bodies of the
+;; group, then each body that it gives for the sprite, in its order, tested
+;; against the body of the sprite as it is then (f may move it)
+func overlap2 (group, s, f) {
+    pin q = qt_node(Physics.x, Physics.y, Physics.w, Physics.h, 0)
+    loop _, k in group.kids {
+        if k.body && (k.exists != false) {
+            qt_insert(q, k.body)
+        }
+    }
+    pin found = []
+    qt_retrieve(q, s.body, found)
+    loop _, b in found {
+        val a = s.body
+        ;; Arcade.intersects
+        val no = (((a.x + a.w) <= b.x) || ((a.y + a.h) <= b.y) ||
+                  (a.x >= (b.x + b.w)) || (a.y >= (b.y + b.h)))
+        if !no {
+            f()
+        }
+    }
+}
+
+;; sprite.inCamera of Phaser 2.0.2: the bounds of the sprite (getBounds,
+;; from its worldTransform and the size of its frame) intersect the view of
+;; the camera (Rectangle.intersects)
+func in_camera (s) {
+    val m = s.wt
+    val fw, fh = (s.img.fw, s.img.fh)
+    val d, e = (fw * (1 - s.ax), fw * (-s.ax))
+    val f, g = (fh * (1 - s.ay), fh * (-s.ay))
+    val o, p = (((m.a * e) + (m.b * g)) + m.tx, ((m.d * g) + (m.c * e)) + m.ty)
+    val q, r = (((m.a * d) + (m.b * g)) + m.tx, ((m.d * g) + (m.c * d)) + m.ty)
+    val t, u = (((m.a * d) + (m.b * f)) + m.tx, ((m.d * f) + (m.c * d)) + m.ty)
+    val v, w = (((m.a * e) + (m.b * f)) + m.tx, ((m.d * f) + (m.c * e)) + m.ty)
+    val x0, y0 = (math.min(o, q, t, v), math.min(p, r, u, w))
+    val bw, bh = (math.max(o, q, t, v) - x0, math.max(p, r, u, w) - y0)
+    val cx, cy, cw, ch = (Camera.x, Camera.y, Camera.w, Camera.h)
+    if (cw <= 0) || (ch <= 0) || (bw <= 0) || (bh <= 0) {
+        false
+    } else {
+        !(((cx + cw) < x0) || ((cy + ch) < y0) || (cx > (x0 + bw)) || (cy > (y0 + bh)))
+    }
+}

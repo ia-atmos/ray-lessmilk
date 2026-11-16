@@ -23,6 +23,7 @@ include "sprite.atm"
 include "physics.atm"
 include "particles.atm"
 include "input.atm"
+include "scene.atm"
 
 ;; Phaser 1.1.3, when it boots, seeds game.rnd with one draw of Math.random:
 ;; new Phaser.RandomDataGenerator([(Date.now() * Math.random()).toString()]),
@@ -73,7 +74,40 @@ task Wait (ms) {
     await :update until eng.now() > t
 }
 
-task Game (w, h) {
+;; Every(ms, f): game.time.events.loop(ms, f) of Phaser 2.0.2 (Timer), on
+;; :time: the first call at now + ms (Timer.create, with the time of the
+;; frame in which it is created), then each call at the time it was due
+;; plus ms, less the delay, as Timer.update computes it
+task Every (ms, f) {
+    var tick = ms + eng.now()
+    loop on :time {
+        val now = eng.now()
+        if now >= tick {
+            val late = now - tick
+            set tick = (now + ms) - late
+            if tick < 0 {
+                set tick = now + ms
+            }
+            f()
+        }
+    }
+}
+
+;; Game(w, h, [ver]): with ver 2, a frame of Phaser 2.0.2 (Game.update):
+;;
+;;      :time           time.update: the timers (Every)
+;;      :state          state.preUpdate: a state started in the frame before
+;;                      begins here (the screen that ends awaits :state)
+;;      :pre            stage.preUpdate: the sprites and their bodies
+;;                      (scene_pre)
+;;      (tweens_pass)   tweens.update
+;;      :update         state.update
+;;      :render         the render: the transforms (scene_transform)
+;;
+;; The tweens that a state starts in its create move from the next frame
+;; (they are added at the end of the pass of the same frame): for the state
+;; created before frame 1, Game adds them before the pass of frame 1.
+task Game (w, h, ver) {
     set Physics.x, Physics.y = (0, 0)
     set Physics.w = w
     set Physics.h = h
@@ -102,6 +136,21 @@ task Game (w, h) {
         set Physics.elapsed = now - prev
         set Physics.dt = Physics.elapsed / 1000
         set prev = now
+        if ver == 2 {
+            emit @:global :time
+            emit @:global :state
+            emit @:global :pre
+            if Keys.frame == 1 {
+                loop _, r in Tweens.add {
+                    set Tweens.list@+ = r
+                }
+                vector.clear(Tweens.add)
+            }
+            tweens_pass()
+            emit @:global :update
+            emit @:global :render
+            skip
+        }
         tweens_pass()
         emit @:global :pre
         physics_pre()
