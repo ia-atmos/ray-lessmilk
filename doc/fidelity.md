@@ -423,3 +423,35 @@ Phaser turns into a scale; the reset of the input when a state starts
 score is kept in `localStorage` by the original; the port keeps it in
 memory (each run of the harness starts with an empty storage, so the runs
 are the same).
+
+## 12. Crazy Snake
+
+The same as the original on its two runs, line by line
+(`tst/crazy_snake/`):
+
+| Run | Frames | Seed | Input | Games |
+|-----|-------:|-----:|-------|------:|
+| `probe` | 400 | 1 | UP on the menu; RIGHT, DOWN, LEFT, UP; no coin; out of the board | 1 |
+| `greedy` | 9400 | 1 | what a player of the original pressed (`tools/original/bot/12.js`, `BOT=` of `tools/original/run.js`): coins to a score of 52, through all the effects of the board, then no key until it dies; UP on End | 2 |
+
+Trace: frame, state, score, best score; in Play, the direction, the
+effect, dead, the head and the tail (x, y), the length, the coin (x, y),
+the group of the level (x, y, angle, scale), and the body of the head.
+
+The first game of Phaser 2 (2.0.2), whose frame has another order
+(`Game(W, H, 2)` in `lib/game.atm`): the timer of the moves first (`Every`,
+`game.time.events.loop`, which keeps its pace by subtracting the delay of
+each call); a state started in one frame begins in the next (a screen that
+ends awaits `:state`, so Play goes on updating in the frame where its
+death ends); the bodies are read in `stage.preUpdate` from the transform of
+the last render, which includes the group of the level that turns, scales
+and moves (`lib/scene.atm`), except for a sprite just made or reset, read
+from the position of its parent (not the groups above) plus its own; the
+overlap of the snake and the coin builds a quadtree for the call; the head
+dies when its bounds, from its transform, leave the camera (`inCamera`).
+The board is drawn under the matrix of its group (`eng.draw_m`), which
+includes the shear of a rotation and an unequal scale (score 15 to 20).
+
+Not emulated: the music loops in the original and stops on the death, and
+the sound of the death stops when End restarts; the port plays each once
+(sounds are silent in the runs).

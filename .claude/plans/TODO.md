@@ -27,7 +27,8 @@ Each has the option recommended by this session.
 |---|------|
 | 3 | Dark Blue (game 10, Phaser 1.1.6): tilemaps of Tiled, collisions with tiles; depends on A2 |
 | 4 | The Three Hearts (game 11, Phaser 2.0.1): depends on A3; the loop of a frame and the physics of Phaser 2 differ from 1.1.3 |
-| 5 | Crazy Snake (game 12, Phaser 2.0.2): `game.time.events`, bodies read from transforms that include a group that turns and scales, `inCamera`, the order of a frame of Phaser 2 |
+| 19 | Crazy Snake: the music loops and stops on the death, and the sound of the death stops when End restarts (`rl.stop_sound` and a looping sound are not in `raylib.atm`); the port plays each once |
+| 20 | Crazy Snake: `doc/games/crazy_snake.md` |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 8 | `doc/games/` for Pixel War, Man vs Penguins, Connected, and I Hate Rabbits (the other documents of these games are done) |

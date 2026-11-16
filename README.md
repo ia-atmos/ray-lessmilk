@@ -69,6 +69,7 @@ original can be compared line by line. See [doc/fidelity.md](doc/fidelity.md).
 | 6 | Princess Quest | `games/princess_quest` | yes, 2 runs |
 | 8 | Save the City | `games/save_the_city` | yes, 2 runs |
 | 9 | I Hate Rabbits | `games/i_hate_rabbits` | yes, 2 runs |
+| 12 | Crazy Snake | `games/crazy_snake` | yes, 2 runs |
 
 Documents: [table](doc/table.md), [state variables](doc/state.md),
 [fidelity](doc/fidelity.md), [compiler](doc/compiler.md),

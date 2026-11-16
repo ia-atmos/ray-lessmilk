@@ -171,3 +171,28 @@ top; `change` makes sure it happens once per turn, and stays: the angle is
 read and written in the same update, and a sequence would have to test the
 same numbers. End's `time` is now part of the `await` of the key, and
 `rabbit.t` became the life of the task `Enter`.
+
+## 12. Crazy Snake
+
+| JavaScript | Kind | Port |
+|------------|------|------|
+| `w`, `h`, `this.max` | constant | `W`, `H`, `max` |
+| `score`, `best_score`, `sound` (globals) | data, shown in Play and End | globals of the port too |
+| `this.direction`, `this.current_direction` (Play) | data: the direction asked, and the one of the last move | `direction`, `current` |
+| `this.effect` (Play) | control: the next effect of the board, once per five coins | `effect`, the same counter (see below) |
+| `this.is_dead` (Play) | control: the death happens once, and the moves stop | `is_dead`, the same flag |
+| `square.head` (each square) | control: the head is left out of the test of collision | `head`, the same field |
+| `this.time` (End) | control: UP is ignored for 500 ms | `time`, in the predicate of the `await` of UP |
+| `this.snake_array`, `this.snake` | the squares, head first, and the group that draws them | `snake_array`, `snake` (a `Group2`) |
+| `this.level`, `this.bg`, `this.coin`, labels | drawn | locals of `Play`, nodes of `level` |
+
+Control: 4 in the JavaScript (`effect`, `is_dead`, `head`, End's `time`), 3
+left, and 1 added. `effect` stays because the effects are tested in each
+update against the score, in the order of the original (a sequence of
+awaits would do the same in the relaxed version); `is_dead` is read by the
+timer of the moves, by `dead`, and by the trace; `head` marks the head
+during the test in `move`, as the original. The port adds `over.dead`, set
+when the tween of the death ends, which Play awaits in the next `:state`
+(Phaser 2 starts End in the next frame). End's `time` is part of the
+`await` of the key.
+
