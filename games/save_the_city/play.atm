@@ -1,14 +1,14 @@
 ;; Play: the sentences, the bomb, and the end of the city.
 
-val IMG_BOMB      = eng.image(A ++ "images/bomb.png")
-val IMG_CITY      = eng.image(A ++ "images/city.png", 400, 48)
-val IMG_EXPLOSION = eng.image(A ++ "images/explosion.png")
-val IMG_RESTART   = eng.image(A ++ "images/restart.png")
+pin IMG_BOMB      = eng.image(A ++ "images/bomb.png")
+pin IMG_CITY      = eng.image(A ++ "images/city.png", 400, 48)
+pin IMG_EXPLOSION = eng.image(A ++ "images/explosion.png")
+pin IMG_RESTART   = eng.image(A ++ "images/restart.png")
 val SND_FIRE = eng.sound(A ++ "sounds/fire.wav")
 val SND_EXP  = eng.sound(A ++ "sounds/exp.wav")
 val SND_HIT  = eng.sound(A ++ "sounds/hit.wav")
 
-val SENTENCES = [
+pin SENTENCES = [
     "type this sentence to start",
     "great now keep typing",
     "save the city from the bomb",
@@ -35,13 +35,15 @@ func key_of (c) {
 
 ;; a letter: it appears, waits to be fired, flies to the bomb, and dies when
 ;; it reaches it (or leaves the top of the screen)
-task Letter (t, i, bomb) {
+task Letter (t0, i, bomb) {
     set Save.letters += 1
     defer {
         set Save.letters -= 1
     }
-    set pub = t
-    spawn Motion(t, [alpha=1], 200, nil, nil, i * 20)
+    set pub = t0                            ;; the task owns its text
+    val t = pub
+    set t.alpha = 0
+    spawn Motion(t, [alpha=1], 200, nil, i * 20)
     await :fire until it.i == i
     eng.play(SND_FIRE, 0.2)
     spawn Motion(t, [y=bomb.y - 20, x=W/2], (H - bomb.y) * 3)
@@ -66,21 +68,30 @@ task Shake (g) {
 
 task Play () {
     input_reset()
-    val city = Sprite(IMG_CITY, W/2, H - 55)
+    pin city = Sprite(IMG_CITY, W/2, H - 55)
     set city.ax, city.ay = (0.5, 1)
-    val bomb = Sprite(IMG_BOMB, W/2, -40)
-    set bomb.ax, bomb.ay = (0.5, 0.5)
-    val body = Body(bomb, :bomb)
+    val body = Body(do {
+        pin bomb = Sprite(IMG_BOMB, W/2, -40)
+        set bomb.ax, bomb.ay = (0.5, 0.5)
+        bomb
+    }, :bomb)
+    val bomb = body.spr
     defer {
         body_remove(body)
     }
-    val tuto = Text(W/2, (H/2) - 80, "use your keyboad\nto type the sentence below", 25, 0.5, FONT_MONO)
+    pin tuto = Text(W/2, (H/2) - 80, "use your keyboad\nto type the sentence below", 25, 0.5, FONT_MONO)
     set tuto.ax, tuto.ay = (0.5, 0.5)
 
     pin letters = tasks()
     pin tweens = tasks()
     set Save.level, Save.i, Save.score, Save.dead = (0, 0, 0, false)
-    set Save.bomb, Save.body, Save.tuto, Save.city = (bomb, body, tuto, city)
+    ;; [trace]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ bomb=bomb, body=body, tuto=tuto, city=city ])
+        }
+    }
+    ;; [/trace]
 
     ;; a letter reached the bomb: it goes up (a tween of Play, which goes on
     ;; after the letter)
@@ -99,15 +110,14 @@ task Play () {
     }
 
     ;; the sprites drawn, in the order of the original
-    val texts = []
-    var grp = nil           ;; the group of the city and the explosion, at the end
-    var exp = nil
-    var gone = nil
-    var button = nil
+    pin texts = []
+    ;; what the end creates: the group of the city and the explosion (grp),
+    ;; the explosion, the text, the button
+    pin fin = [ grp=nil, exp=nil, gone=nil, button=nil ]
     spawn {
         loop on :rl.draw {
             rl.clear(BG)
-            if !grp {
+            if !fin.grp {
                 sprite_draw(city)
             }
             if !Save.dead {
@@ -117,16 +127,16 @@ task Play () {
                 text_draw(l.pub)
             }
             text_draw(tuto)
-            if grp {
-                set exp.oy, city.oy = (grp.y, grp.y)
-                sprite_draw(exp)
+            if fin.grp {
+                set fin.exp.oy, city.oy = (fin.grp.y, fin.grp.y)
+                sprite_draw(fin.exp)
                 sprite_draw(city)
             }
-            if gone {
-                text_draw(gone)
+            if fin.gone {
+                text_draw(fin.gone)
             }
-            if button {
-                sprite_draw(button)
+            if fin.button {
+                sprite_draw(fin.button)
             }
         }
     }
@@ -139,9 +149,7 @@ task Play () {
             val c = string.sub(s, i, i)
             if c != " " {
                 val offset = ((W - (#s * 13)) / 2) + (i * 13)
-                val t = Text(offset, H - 40, c, 20, 0, FONT_MONO)
-                set t.alpha = 0
-                spawn @letters Letter(t, i, bomb)
+                spawn @letters Letter(Text(offset, H - 40, c, 20, 0, FONT_MONO), i, bomb)
             }
         }
         set Save.level += 1
@@ -184,31 +192,31 @@ task Play () {
     set Save.dead = true
     body_remove(body)
     abort letters
-    set exp = Sprite(IMG_EXPLOSION, W/2, H - 55)
-    set exp.ax, exp.ay = (0.5, 1)
-    set exp.sx, exp.sy = (0.3, 0.3)
-    set grp = [ y=0 ]
-    spawn @tweens Motion(exp, [alpha=0], 2000, nil, nil, 1500)
-    spawn @tweens Shake(grp)
-    await Motion(exp, [sx=1, sy=1], 500)
+    set fin.exp = Sprite(IMG_EXPLOSION, W/2, H - 55)
+    set fin.exp.ax, fin.exp.ay = (0.5, 1)
+    set fin.exp.sx, fin.exp.sy = (0.3, 0.3)
+    set fin.grp = [ y=0 ]
+    spawn @tweens Motion(fin.exp, [alpha=0], 2000, nil, 1500)
+    spawn @tweens Shake(fin.grp)
+    await Motion(fin.exp, [sx=1, sy=1], 500)
 
     ;; annimation_ended
     set city.frame = 1
-    set gone = Text(W/2, 100, "the city is gone. you saved " ++ tostring(Save.score) ++ " lives", 18, 0, FONT_MONO)
-    set gone.ax, gone.ay = (0.5, 0)
-    set gone.alpha = 0
-    spawn @tweens Motion(gone, [alpha=1], 1000, nil, nil, 1000)
-    set button = Sprite(IMG_RESTART, W/2, 200)
-    set button.ax, button.ay = (0.5, 0.5)
-    set button.alpha = 0
-    spawn @tweens Motion(button, [alpha=1], 1000, nil, nil, 2000)
+    set fin.gone = Text(W/2, 100, "the city is gone. you saved " ++ tostring(Save.score) ++ " lives", 18, 0, FONT_MONO)
+    set fin.gone.ax, fin.gone.ay = (0.5, 0)
+    set fin.gone.alpha = 0
+    spawn @tweens Motion(fin.gone, [alpha=1], 1000, nil, 1000)
+    set fin.button = Sprite(IMG_RESTART, W/2, 200)
+    set fin.button.ax, fin.button.ay = (0.5, 0.5)
+    set fin.button.alpha = 0
+    spawn @tweens Motion(fin.button, [alpha=1], 1000, nil, 2000)
 
-    ;; the button: pressed and released over it
+    ;; the fin.button: pressed and released over it
     loop {
         val d = await :rl.mouse.dn
-        if over(button, d.x, d.y) {
+        if over(fin.button, d.x, d.y) {
             val u = await :rl.mouse.up
-            until over(button, u.x, u.y)
+            until over(fin.button, u.x, u.y)
         }
     }
 }
@@ -222,15 +230,15 @@ func over (s, x, y) {
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/8.js
-func trace () {
+func trace (q) {
     val f = rl.frame()
-    if !Save.bomb {
+    if !q {
         return tostring(f) ++ " Play"
     }
     tostring(f) ++ " Play " ++ tostring(Save.level) ++ " " ++ tostring(Save.i) ++ " " ++
-        tostring(Save.score) ++ " " ++ eng.fixed(Save.bomb.y, 2) ++ " " ++
-        eng.fixed(Save.body.vy, 2) ++ " " ++ (if Save.dead => "1" => "0") ++ " " ++
-        tostring(Save.letters) ++ " " ++ eng.fixed(Save.tuto.alpha, 3) ++ " " ++
-        tostring(Save.city.frame)
+        tostring(Save.score) ++ " " ++ eng.fixed(q.bomb.y, 2) ++ " " ++
+        eng.fixed(q.body.vy, 2) ++ " " ++ (if Save.dead => "1" => "0") ++ " " ++
+        tostring(Save.letters) ++ " " ++ eng.fixed(q.tuto.alpha, 3) ++ " " ++
+        tostring(q.city.frame)
 }
 ;; [/trace]
