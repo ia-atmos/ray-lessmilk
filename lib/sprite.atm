@@ -99,7 +99,7 @@ func sprite_add (s, name, frames, fps, loop_) {
     set s.anims@(name) = [
         frames = frames || do {
             val n = (s.img.w // s.img.fw) * (s.img.h // s.img.fh)
-            val all = []
+            pin all = []
             loop i in n {
                 set all@+ = i
             }

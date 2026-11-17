@@ -24,7 +24,7 @@ pin CUBES = [
 task Cube (x, kind) {
     val c = CUBES@(kind)
     val b = Body(do {
-        val s = Sprite(IMG_CUBE, x, if c.air => ((H * 2) / 3) - 22 => (H * 2) / 3)
+        pin s = Sprite(IMG_CUBE, x, if c.air => ((H * 2) / 3) - 22 => (H * 2) / 3)
         set s.ax, s.ay = (0, 1)
         set s.sy = 0
         s
@@ -42,7 +42,7 @@ task Play () {
     pin keys = Cursor()
 
     val body = Body(do {
-        val player = Sprite(IMG_PLAYER, 80, ((H * 2) / 3) - 20)
+        pin player = Sprite(IMG_PLAYER, 80, ((H * 2) / 3) - 20)
         set player.ax, player.ay = (0.5, 0.5)
         set player.alive = true
         player
@@ -55,7 +55,7 @@ task Play () {
     pin cubes = tasks(20)
 
     val lbody = Body(do {
-        val line = Sprite(IMG_LINE, W/2, math.floor((H * 2) / 3))
+        pin line = Sprite(IMG_LINE, W/2, math.floor((H * 2) / 3))
         set line.ax, line.ay = (0.5, 0.5)
         line
     }, :line)

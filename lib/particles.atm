@@ -20,7 +20,7 @@
 ;; Phaser does; a particle takes the first slot that is free, and its image.
 func Emitter (img, max) {
     val many = (img ?? :table) && !(img ?? :Image)
-    val keys = []
+    pin keys = []
     if many {
         loop _ in max {
             set keys@+ = img@(eng.rnd_integer_in_range(0, #img))      ;; rnd.pick

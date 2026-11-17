@@ -32,7 +32,7 @@ pin WALLS = [ [0, 0, 0, 0, 1, 17.5], [W, 0, 1, 0, 1, 17.5] ]
 
 ;; a group made with group.create, of sprites that exist
 func Bricks (list, tag) {
-    val g = :Group [ slots = [] ]
+    pin g = :Group [ slots = [] ]
     loop _, d in list {
         val b = Body(Sprite(IMG_BRICK, d@0, d@1), tag)
         val s = b.spr
