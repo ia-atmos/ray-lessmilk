@@ -137,6 +137,16 @@ pin Physics = [
 ;; the world (Camera.checkBounds, with view.floor()), as the setter does
 func camera_set (k, v) {
     set Camera@(k) = v
+    if Camera.v2 {
+        ;; Phaser 2: Camera.checkBounds
+        if Camera.x <= Physics.x { set Camera.x = Physics.x }
+        if (Camera.x + Camera.w) >= (Physics.x + Physics.w) { set Camera.x = (Physics.x + Physics.w) - Camera.w }
+        if Camera.y <= Physics.y { set Camera.y = Physics.y }
+        if (Camera.y + Camera.h) >= (Physics.y + Physics.h) { set Camera.y = (Physics.y + Physics.h) - Camera.h }
+        set Camera.x = math.floor(Camera.x)
+        set Camera.y = math.floor(Camera.y)
+        return nil
+    }
     if Camera.x < Physics.x {
         set Camera.x = Physics.x
     }
