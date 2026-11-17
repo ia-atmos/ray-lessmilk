@@ -196,3 +196,25 @@ when the tween of the death ends, which Play awaits in the next `:state`
 (Phaser 2 starts End in the next frame). End's `time` is part of the
 `await` of the key.
 
+## 10. Dark Blue
+
+| JavaScript | Kind | Port |
+|------------|------|------|
+| `w`, `h` | constant | `W`, `H` |
+| `dead`, `sound` (globals) | data, shown in Endd | globals of the port too |
+| `this.level`, `this.coins_taken`, `this.total_coins` (Play) | data: the level, and the coins of the level | `st.level`, `st.taken`, `st.total` |
+| `this.playerJumpCount` (Play) | control: the frames of a jump while UP is held | `st.jump`, the same counter |
+| `e.direction` (each enemy) | control: where the enemy goes, flipped when it hits a tile | `e.dir`, the same field |
+| `player.alive` used as a flag (Play) | control: the end of a level runs once, and the player does not move meanwhile | `player.alive`, the same (see below) |
+| `this.time` (Endd) | control: UP is ignored for 500 ms | `time`, in the predicate of the `await` of UP |
+| `this.map`, `this.layer`, groups, sounds | the level and what it holds | `st.map`, `st.lv`, `st.coins`, `st.enemies`, `st.labels` |
+
+Control: 4 in the JavaScript (`playerJumpCount`, `direction`, `alive` as a
+flag, End's `time`), 3 left. The jump counts frames in each update, as the
+original, since its height depends on it; the direction of an enemy is
+flipped in the callback of a tile, which can come more than once per
+frame; `alive` stops the update of the player and the next level while the
+player turns. End's `time` is part of the `await` of the key. The port adds
+`over.done`, set when the turn of the last level ends (Endd), which the
+update awaits.
+

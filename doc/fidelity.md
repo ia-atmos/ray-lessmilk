@@ -455,3 +455,43 @@ includes the shear of a rotation and an unequal scale (score 15 to 20).
 Not emulated: the music loops in the original and stops on the death, and
 the sound of the death stops when End restarts; the port plays each once
 (sounds are silent in the runs).
+
+## 10. Dark Blue
+
+The same as the original on its three runs, line by line
+(`tst/dark_blue/`):
+
+| Run | Frames | FPS | Seed | Input | Levels |
+|-----|-------:|----:|-----:|-------|-------:|
+| `probe` | 300 | 60 | 1 | UP on the menu; RIGHT, a jump, LEFT | 1 |
+| `random` | 3600 | 60 | 2 | RIGHT (mostly), LEFT or nothing, with jumps, at random (Python's generator, seed 10) | 1 |
+| `bot` | 6000 | 30 | 1 | what a player of the original pressed (`tools/original/bot/10.js`, `BOT=`): toward the nearest coin, jumping at walls, gaps and red tiles | 2 (30 deaths) |
+
+Trace: frame, state, deaths; in Play, the level, the coins taken and in
+all, the player (x, y, velocity, gravity, blocked below, alive, frame,
+scale, angle), the camera, the coins and the enemies alive (how many, sums
+of x and y).
+
+The tiles are drawn from a placeholder of `tiles.png`, lost (see
+`assets/README.md`); the original draws the same placeholder.
+
+What it took: the arcade physics of Phaser 1.1.6 (`lib/arcade116.atm`),
+which is not that of 1.1.3: a body is a polygon of SAT (the box of the
+sprite when it was made, flipped with the sprite), pushed back by walls out
+of the bounds of the world, `blocked` on a side until it moves away from
+where it was blocked, and it does not move toward a side where it is
+blocked or touching; the tiles push bodies out by their faces (the faces
+between two tiles that collide do not count), after their callback. The
+callback of the red tiles is `player_dead`, also when an enemy touches
+them (as in the original). The frame of 1.1.6 has another order
+(`Game(W, H, 116)`): the bodies, then the tweens, the update, then the
+postUpdate of the player, the camera that follows it, and the others.
+
+**The frame rate.** The jump of Dark Blue lasts 12 frames, not a time: at
+60 frames per second it rises about 107 px, and the first wall of level 1
+is 140 px tall, so a run at 60 frames per second cannot leave the start
+(the runs `probe` and `random`). The run `bot` steps the clock 1000/30 ms
+per frame (`FPS=30` in the run, `RL_FPS` for the port), where the jump is
+higher and level 1 can be done, as on a slower browser of 2014.
+
+Not reached: levels 3 to 5 and the screen Endd.
