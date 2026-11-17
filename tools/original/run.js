@@ -3,7 +3,8 @@
 //   node tools/original/run.js <n> <file.run> [outdir]
 //
 // <n> is the game (1 to 12), read from ext/originals (tools/setup.sh).
-// The run file has FRAMES, SEED, INPUT (as RL_INPUT: "f:op,...", applied
+// The run file has FRAMES, SEED, FPS (60 by default: the clock goes
+// 1000/FPS ms per frame), INPUT (as RL_INPUT: "f:op,...", applied
 // before frame f, the first frame being 1), and SHOTS ("f f ...", saved as
 // <outdir>/<f>.png at the end of frame f).
 //
@@ -27,7 +28,7 @@ if (!n || !runFile) {
 }
 
 function parseRun (file) {
-    const r = { FRAMES: 60, SEED: 1, INPUT: '', SHOTS: '' };
+    const r = { FRAMES: 60, SEED: 1, INPUT: '', SHOTS: '', FPS: 60 };
     for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
         const m = line.match(/^\s*([A-Z_]+)=(.*)$/);
         if (m) r[m[1]] = m[2].trim().replace(/^"(.*)"$/, '$1');
@@ -39,7 +40,7 @@ function parseRun (file) {
         (input[f] = input[f] || []).push(it.slice(i + 1));
     }
     const shots = new Set(r.SHOTS.split(/\s+/).filter(x => x).map(Number));
-    return { frames: +r.FRAMES, seed: +r.SEED, input, shots };
+    return { frames: +r.FRAMES, seed: +r.SEED, fps: +r.FPS, input, shots };
 }
 
 // a page next to the game, with the scripts of its index.html, without the
@@ -86,7 +87,7 @@ ${tags.join('\n')}
     pg.on('requestfailed', r => console.error('missing:', r.url()));
     pg.on('pageerror', e => console.error('page error:', e.message));
     pg.on('console', m => { if (m.type() === 'error') console.error('console:', m.text()); });
-    await pg.addInitScript(p => { window.__params = p; }, { seed: run.seed });
+    await pg.addInitScript(p => { window.__params = p; }, { seed: run.seed, step: 1000 / run.fps });
     await pg.goto('file://' + page);
 
     // loading: frames with the clock stopped at T0, until a frame starts in

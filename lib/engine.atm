@@ -306,7 +306,7 @@ pin FONT_MONO = [ path="lib/fonts/LiberationMono-Regular.ttf", asc=1705, desc=61
 pin ENG_IMAGES = []
 pin ENG_SOUNDS = []
 pin ENG_AUDIO  = [ tried = false ]
-pin ENG_CLOCK  = [ now = 1000 ]
+pin ENG_CLOCK  = [ now = 1000, fps = 60 ]
 
 pin eng = [
 
@@ -357,10 +357,10 @@ pin eng = [
 
     ;; eng.tick(): the time of this frame. In test mode, the clock of the
     ;; harness of the originals, computed the same way: frame f is at
-    ;; 1000 + (f-1) * 1000/60. Otherwise, from GetTime.
+    ;; 1000 + (f-1) * 1000/fps, with fps from RL_FPS (60 by default). Otherwise, from GetTime.
     tick = func () {
         val f = rl.frame()
-        set ENG_CLOCK.now = if f >= 1 => 1000 + ((f - 1) * (1000 / 60)) => 1000 + (rl.time() * 1000)
+        set ENG_CLOCK.now = if f >= 1 => 1000 + ((f - 1) * (1000 / ENG_CLOCK.fps)) => 1000 + (rl.time() * 1000)
     },
 
     ;; eng.fixed(x, n): x with n decimals, as Number.toFixed in the traces
@@ -457,6 +457,12 @@ pin eng = [
     },
 ]
 
+do {
+    val fps = os.getenv("RL_FPS")
+    if fps {
+        set ENG_CLOCK.fps = tonumber(fps)
+    }
+}
 do {
     val s = os.getenv("RL_SEED")
     eng.seed(if s => tonumber(s) => 1)

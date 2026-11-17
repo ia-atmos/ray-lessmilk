@@ -68,9 +68,9 @@ for dir in games/*/; do
     tools/atmos.sh games/$g/main.atm "$OUT/$g" || { fail "$g (build)"; continue; }
     for run in tst/$g/*.run; do
         r=$(basename $run .run)
-        FRAMES=600; SEED=1; INPUT=; SHOTS=
+        FRAMES=600; SEED=1; FPS=60; INPUT=; SHOTS=
         . "./$run"
-        RL_FRAMES=$FRAMES RL_SEED=$SEED RL_INPUT=$INPUT "$OUT/$g" 2>"$OUT/$g-$r.err" > "$OUT/$g-$r.out"
+        RL_FRAMES=$FRAMES RL_SEED=$SEED RL_FPS=$FPS RL_INPUT=$INPUT "$OUT/$g" 2>"$OUT/$g-$r.err" > "$OUT/$g-$r.out"
         st=$?
         if [ $st = 0 ] && cmp -s tst/$g/$r.out "$OUT/$g-$r.out"; then
             ok "$g $r"

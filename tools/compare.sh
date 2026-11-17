@@ -13,14 +13,14 @@ g=$1; r=$2
 n=$(cat tst/$g/N)
 O=out/compare/$g/$r
 rm -rf $O; mkdir -p $O/orig $O/port
-FRAMES=600; SEED=1; INPUT=; SHOTS=
+FRAMES=600; SEED=1; FPS=60; INPUT=; SHOTS=
 . tst/$g/$r.run
 
 node tools/original/run.js $n tst/$g/$r.run $O/orig > $O/orig.out 2> $O/orig.err
 
 tools/atmos.sh games/$g/main.atm out/$g
 shots=$(for f in $SHOTS; do printf "%s:$O/port/%s.png," $f $f; done)
-RL_FRAMES=$FRAMES RL_SEED=$SEED RL_INPUT=$INPUT RL_SHOT=${shots%,} out/$g > $O/port.out 2> $O/port.err
+RL_FRAMES=$FRAMES RL_SEED=$SEED RL_FPS=$FPS RL_INPUT=$INPUT RL_SHOT=${shots%,} out/$g > $O/port.out 2> $O/port.err
 
 python3 - "$O" $SHOTS <<'PY'
 import sys
