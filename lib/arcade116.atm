@@ -1,0 +1,590 @@
+;; Arcade116: the arcade physics of Phaser 1.1.6, which Dark Blue uses, read
+;; from its source (ext/phaser/1.1.6/src/physics/arcade/, Body.js, SAT.js,
+;; ArcadePhysics.js; tilemap/). It is not the physics of 1.1.3
+;; (lib/physics.atm): a body is a polygon of SAT, the box of the sprite at
+;; its creation, kept flipped and scaled with the sprite; the world has
+;; walls (boxes of 100 px out of its bounds) that push the bodies back and
+;; mark them `blocked`; a body blocked or touching on a side does not move
+;; toward it; tiles push bodies out by their faces.
+;;
+;;      pin b = Body6(spr)                      ;; the sprite at its size
+;;      body6_pre(b)    body6_post(b)           ;; Sprite.preUpdate, postUpdate
+;;      tiles6_collide(map, b, f)               ;; physics.collide(layer, sprite)
+;;      overlap6(a, list, f)                    ;; physics.overlap(sprite, group)
+;;
+;; The numbers are the doubles of JavaScript, in the order of the original.
+
+;; the world: gravity, and its walls (setBoundsToWorld), and the response
+;; of SAT, which some calls do not clear
+pin Arcade6 = [
+    gx = 0, gy = 0,
+    walls = [],                 ;; left, right, top, bottom
+    r = [ overlap = 0, nx = 0, ny = 0, ain = true, bin = true, vx = 0, vy = 0 ],
+]
+
+;; SAT.Polygon: a position and points; the normals of its edges, as recalc
+;; computes them: the edge turned (perp: x, y = y, -x) and normalized
+func poly6 (x, y, pts0) {
+    pin pts = pts0
+    pin ns = []
+    loop i in #pts {
+        val p1 = pts@i
+        val p2 = if i < (#pts - 1) => pts@(i + 1) => pts@0
+        val ex, ey = (p2@0 - p1@0, p2@1 - p1@1)
+        var nx, ny = (ey, -ex)
+        val d = math.sqrt((nx * nx) + (ny * ny))
+        if d > 0 {
+            set nx, ny = (nx / d, ny / d)
+        }
+        set ns@+ = [nx, ny]
+    }
+    [ x=x, y=y, pts=pts, ns=ns ]
+}
+
+;; SAT.Box.toPolygon
+func box6 (x, y, w, h) {
+    poly6(x, y, [[0, 0], [w, 0], [w, h], [0, h]])
+}
+
+;; Polygon.scale: the points and the normals, scaled (not normalized again)
+func poly6_scale (p, sx, sy) {
+    loop _, q in p.pts {
+        set q@0 = q@0 * sx
+        set q@1 = q@1 * sy
+    }
+    loop _, n in p.ns {
+        set n@0 = n@0 * sx
+        set n@1 = n@1 * sy
+    }
+}
+
+;; Response.clear
+func sat6_clear () {
+    val r = Arcade6.r
+    set r.ain, r.bin = (true, true)
+    set r.overlap = `:number.float 1.7976931348623157e308`
+}
+
+;; flattenPointsOn: the smallest and the largest projections
+func sat6_flatten (pts, nx, ny) {
+    var mn = `:number.float 1.7976931348623157e308`
+    var mx = `:number.float (-1.7976931348623157e308)`
+    loop _, p in pts {
+        val d = (p@0 * nx) + (p@1 * ny)
+        if d < mn { set mn = d }
+        if d > mx { set mx = d }
+    }
+    (mn, mx)
+}
+
+;; isSeparatingAxis, with the response
+func sat6_axis (a, b, nx, ny) {
+    val r = Arcade6.r
+    val off = ((b.x - a.x) * nx) + ((b.y - a.y) * ny)
+    val a0, a1 = sat6_flatten(a.pts, nx, ny)
+    var b0, b1 = sat6_flatten(b.pts, nx, ny)
+    set b0 += off
+    set b1 += off
+    if (a0 > b1) || (b0 > a1) {
+        true
+    } else {
+        var o = 0
+        if a0 < b0 {
+            set r.ain = false
+            if a1 < b1 {
+                set o = a1 - b0
+                set r.bin = false
+            } else {
+                val o1, o2 = (a1 - b0, b1 - a0)
+                set o = if o1 < o2 => o1 => -o2
+            }
+        } else {
+            set r.bin = false
+            if a1 > b1 {
+                set o = a0 - b1
+                set r.ain = false
+            } else {
+                val o1, o2 = (a1 - b0, b1 - a0)
+                set o = if o1 < o2 => o1 => -o2
+            }
+        }
+        val ab = math.abs(o)
+        if ab < r.overlap {
+            set r.overlap = ab
+            set r.nx, r.ny = (nx, ny)
+            if o < 0 {
+                set r.nx, r.ny = (-nx, -ny)
+            }
+        }
+        false
+    }
+}
+
+;; testPolygonPolygon: true if they overlap (touching counts); the vector
+;; that takes b out of a in (r.vx, r.vy)
+func sat6_test (a, b) {
+    val r = Arcade6.r
+    var sep = false
+    loop _, n in a.ns {
+        set sep = sat6_axis(a, b, n@0, n@1)
+        until sep
+    }
+    if !sep {
+        loop _, n in b.ns {
+            set sep = sat6_axis(a, b, n@0, n@1)
+            until sep
+        }
+    }
+    if !sep {
+        set r.vx, r.vy = (r.nx * r.overlap, r.ny * r.overlap)
+    }
+    !sep
+}
+
+;; physics.setBounds(x, y, w, h): the four walls, 100 px thick
+func walls6 (x, y, w, h) {
+    vector.clear(Arcade6.walls)
+    set Arcade6.walls@+ = box6(x - 100, y, 100, h)
+    set Arcade6.walls@+ = box6(x + w, y, 100, h)
+    set Arcade6.walls@+ = box6(x, y - 100, w, 100)
+    set Arcade6.walls@+ = box6(x, y + h, w, 100)
+}
+
+;; Body of 1.1.6, for a sprite (lib/sprite.atm) that has `dx`, `dy` (the
+;; transform drawn, lib/physics.atm) and `fresh` (its first preUpdate)
+func Body6 (spr) {
+    val w, h = (sprite_w6(spr), sprite_h6(spr))
+    :Body6 [
+        spr = spr,
+        poly = box6(spr.x, spr.y, w, h),      ;; setRectangle: at the world, moved later
+        prex = spr.x, prey = spr.y,             ;; the world of a new sprite
+        vx = 0, vy = 0, pvx = 0, pvy = 0,     ;; velocity, and _vx _vy
+        gx = 0, gy = 0,                       ;; gravity of the body
+        bx = 0, by = 0,                       ;; bounce
+        minvx = 0, minvy = 0,                 ;; minVelocity (reset(true) makes it 5)
+        maxv = 1000,
+        moves = true, allow_gravity = true, world = false,   ;; collideWorldBounds
+        none = false,                         ;; checkCollision.none
+        blocked = [ x=0, y=0, up=false, down=false, left=false, right=false ],
+        touching = [ up=false, down=false, left=false, right=false ],
+        left = 0, right = 0, top = 0, bottom = 0, width = 0, height = 0,
+        sx = spr.sx, sy = spr.sy,             ;; _sx _sy
+        ox = 0, oy = 0,                       ;; overlapX, overlapY
+    ]
+}
+
+;; sprite.width: the scale times the frame, negative when flipped
+func sprite_w6 (s) { s.sx * s.img.fw }
+func sprite_h6 (s) { s.sy * s.img.fh }
+
+;; updateBounds: from the points
+func body6_bounds (b) {
+    val p = b.poly
+    var x0, x1 = (p.pts@0@0, p.pts@0@0)
+    var y0, y1 = (p.pts@0@1, p.pts@0@1)
+    loop _, q in p.pts {
+        if q@0 < x0 { set x0 = q@0 }
+        if q@0 > x1 { set x1 = q@0 }
+        if q@1 < y0 { set y0 = q@1 }
+        if q@1 > y1 { set y1 = q@1 }
+    }
+    set b.left, b.right = (x0 + p.x, x1 + p.x)
+    set b.top, b.bottom = (y0 + p.y, y1 + p.y)
+    set b.width = b.right - b.left
+    set b.height = b.bottom - b.top
+}
+
+;; checkBlocked: blocked ends when the body is not where it was blocked
+func body6_check_blocked (b) {
+    val k = b.blocked
+    val fx, fy = (math.floor(b.poly.x), math.floor(b.poly.y))
+    if (k.left || k.right) && ((fx != k.x) || (fy != k.y)) {
+        set k.left, k.right = (false, false)
+    }
+    if (k.up || k.down) && ((fx != k.x) || (fy != k.y)) {
+        set k.up, k.down = (false, false)
+    }
+}
+
+;; updateScale: the polygon follows the scale of the sprite
+func body6_scale (b) {
+    poly6_scale(b.poly, b.spr.sx / b.sx, b.spr.sy / b.sy)
+    set b.sx, b.sy = (b.spr.sx, b.spr.sy)
+}
+
+;; ArcadePhysics.checkBounds: the walls push the body back, and block it
+func body6_walls (b) {
+    if !b.world || (#Arcade6.walls == 0) {
+        false
+    } else {
+        val k = b.blocked
+        val p = b.poly
+        val r = Arcade6.r
+        val ws = Arcade6.walls
+        var hit = false
+        sat6_clear()
+        ifs {
+            sat6_test(ws@0, p) => {
+                set k.left = true
+                set p.x, p.y = (p.x + r.vx, p.y + r.vy)
+                set k.x, k.y = (math.floor(p.x), math.floor(p.y))
+                set hit = true
+            }
+            sat6_test(ws@1, p) => {
+                set k.right = true
+                set p.x, p.y = (p.x + r.vx, p.y + r.vy)
+                set k.x, k.y = (math.floor(p.x), math.floor(p.y))
+                set hit = true
+            }
+        }
+        sat6_clear()
+        ifs {
+            sat6_test(ws@2, p) => {
+                set k.up = true
+                set p.x, p.y = (p.x + r.vx, p.y + r.vy)
+                set k.x, k.y = (math.floor(p.x), math.floor(p.y))
+                set hit = true
+            }
+            sat6_test(ws@3, p) => {
+                set k.down = true
+                set p.x, p.y = (p.x + r.vx, p.y + r.vy)
+                set k.x, k.y = (math.floor(p.x), math.floor(p.y))
+                set hit = true
+            }
+        }
+        hit
+    }
+}
+
+func body6_up_force (b) {
+    if b.allow_gravity => (b.gx + Arcade6.gx) + b.vx => b.gx + b.vx
+}
+func body6_down_force (b) {
+    if b.allow_gravity => (b.gy + Arcade6.gy) + b.vy => b.gy + b.vy
+}
+
+;; reboundCheck(x, y, rebound)
+func body6_rebound (b, x, y, rebound) {
+    val k, t = (b.blocked, b.touching)
+    if x {
+        if rebound && (b.bx != 0) && (k.left || k.right || t.left || t.right) {
+            if !((b.pvx <= 0) && (b.vx > 0)) && !((b.pvx >= 0) && (b.vx < 0)) {
+                set b.vx = b.vx * (-b.bx)
+            }
+        }
+        if (b.bx == 0) || (math.abs(b.vx) < b.minvx) {
+            val g = body6_up_force(b)
+            if ((k.left || t.left) && ((g < 0) || (b.vx < 0))) || ((k.right || t.right) && ((g > 0) || (b.vx > 0))) {
+                set b.vx = 0
+            }
+        }
+    }
+    if y {
+        if rebound && (b.by != 0) && (k.up || k.down || t.up || t.down) {
+            if !((b.pvy <= 0) && (b.vy > 0)) && !((b.pvy >= 0) && (b.vy < 0)) {
+                set b.vy = b.vy * (-b.by)
+            }
+        }
+        if (b.by == 0) || (math.abs(b.vy) < b.minvy) {
+            val g = body6_down_force(b)
+            if ((k.up || t.up) && ((g < 0) || (b.vy < 0))) || ((k.down || t.down) && ((g > 0) || (b.vy > 0))) {
+                set b.vy = 0
+            }
+        }
+    }
+}
+
+;; updateMotion and integrateVelocity: the gravity (none toward a side
+;; where the body is blocked), then the move, unless blocked or touching
+func body6_integrate (b) {
+    val k, t = (b.blocked, b.touching)
+    var gx, gy = (b.gx, b.gy)
+    if b.allow_gravity {
+        set gx, gy = (Arcade6.gx + b.gx, Arcade6.gy + b.gy)
+    }
+    if ((gx < 0) && k.left) || ((gx > 0) && k.right) { set gx = 0 }
+    if ((gy < 0) && k.up) || ((gy > 0) && k.down) { set gy = 0 }
+    val dt = Physics.dt
+    val tx, ty = (gx * dt, gy * dt)         ;; (acceleration + gravity) * dt
+    val dx = dt * (b.vx + (tx / 2))
+    val dy = dt * (b.vy + (ty / 2))
+    val p = b.poly
+    if ((dx < 0) && !k.left && !t.left) || ((dx > 0) && !k.right && !t.right) {
+        set p.x += dx
+        set b.vx += tx
+    }
+    if ((dy < 0) && !k.up && !t.up) || ((dy > 0) && !k.down && !t.down) {
+        set p.y += dy
+        set b.vy += ty
+    }
+    ifs {
+        b.vx > b.maxv => set b.vx = b.maxv
+        b.vx < -b.maxv => set b.vx = -b.maxv
+    }
+    ifs {
+        b.vy > b.maxv => set b.vy = b.maxv
+        b.vy < -b.maxv => set b.vy = -b.maxv
+    }
+}
+
+;; Sprite.preUpdate and Body.preUpdate. The position in the world is that
+;; of the last render (camera + the 32-bit transform drawn), except for a
+;; fresh sprite: the position of its parent (px, py) plus its own.
+func body6_pre (b, px, py) {
+    val s = b.spr
+    val p = b.poly
+    if s.fresh {
+        set s.fresh = false
+        set s.wx, s.wy = ((px || 0) + s.x, (py || 0) + s.y)
+        set p.x = s.wx - (s.ax * sprite_w6(s))
+        set p.y = s.wy - (s.ay * sprite_h6(s))
+        set b.prex, b.prey = (p.x, p.y)
+    } else {
+        if s.exists != false {
+            set s.wx, s.wy = (Camera.x + s.dx, Camera.y + s.dy)
+            set p.x = s.wx - (s.ax * sprite_w6(s))
+            set p.y = s.wy - (s.ay * sprite_h6(s))
+            set b.prex, b.prey = (p.x, p.y)
+            if (s.sx != b.sx) || (s.sy != b.sy) {
+                body6_scale(b)
+            }
+            body6_check_blocked(b)
+            set b.touching.up, b.touching.down = (false, false)
+            set b.touching.left, b.touching.right = (false, false)
+            if b.moves {
+                set b.pvx, b.pvy = (b.vx, b.vy)
+                if body6_walls(b) {
+                    body6_rebound(b, true, true, true)
+                }
+                body6_integrate(b)
+                body6_bounds(b)
+                body6_check_blocked(b)
+            } else {
+                body6_bounds(b)
+            }
+        }
+    }
+}
+
+;; Body.postUpdate: the walls again, then the sprite follows its body
+func body6_post (b) {
+    val s = b.spr
+    if (s.exists != false) && b.moves {
+        body6_walls(b)
+        body6_rebound(b, true, true, true)
+        val dx, dy = (b.poly.x - b.prex, b.poly.y - b.prey)
+        if (dx != 0) || (dy != 0) {
+            set s.x += dx
+            set s.y += dy
+        }
+        if (s.sx != b.sx) || (s.sy != b.sy) {
+            body6_scale(b)
+        }
+    }
+}
+
+;; Body.reset(false), for Sprite.reset(x, y): the body at the sprite, still
+func body6_reset (b, x, y) {
+    val s = b.spr
+    set s.x, s.y = (x, y)
+    set s.wx, s.wy = (x, y)
+    set s.alive, s.exists, s.visible = (true, true, true)
+    set b.vx, b.vy = (0, 0)
+    val k = b.blocked
+    set k.x, k.y = (0, 0)
+    set k.up, k.down, k.left, k.right = (false, false, false, false)
+    set b.poly.x = s.wx - (s.ax * sprite_w6(s))
+    set b.poly.y = s.wy - (s.ay * sprite_h6(s))
+    set b.prex, b.prey = (b.poly.x, b.poly.y)
+    body6_bounds(b)
+}
+
+;; physics.overlap(sprite, group, f) (collideSpriteVsGroup with overlap
+;; only): a quadtree of the world with the bodies of the group that are
+;; alive, then each of them that it gives, in its order: their boxes meet
+;; (edges included), and SAT says they overlap; f(other)
+func overlap6 (a, list, f) {
+    pin q = qt_node(Physics.x, Physics.y, Physics.w, Physics.h, 0)
+    pin box = [ x=a.poly.x, y=a.poly.y, w=a.right - a.poly.x, h=a.bottom - a.poly.y ]
+    loop _, b in list {
+        if (b.spr.alive != false) && !b.none {
+            qt_insert(q, [ x=b.poly.x, y=b.poly.y, w=b.right - b.poly.x, h=b.bottom - b.poly.y, b=b ])
+        }
+    }
+    pin found = []
+    qt_retrieve(q, box, found)
+    loop _, e in found {
+        val b = e.b
+        if (b != a) && (a.width > 0) && (a.height > 0) && (b.width > 0) && (b.height > 0) &&
+           !((a.right < b.left) || (a.bottom < b.top) || (a.left > b.right) || (a.top > b.bottom)) {
+            sat6_clear()
+            if sat6_test(a.poly, b.poly) {
+                f(b)
+            }
+        }
+    }
+}
+
+;; A tilemap of 1.1.6, from a level of Tiled: the indices, from a string per
+;; row with a digit per tile (0 is no tile), the tiles that collide (setCollisionBetween), their faces
+;; (calculateFaces), and the callbacks by index (setTileIndexCallback)
+func Tilemap6 (rows, tw, th) {
+    pin data = []
+    loop _, row in rows {
+        loop i in #row {
+            set data@+ = string.byte(row, i, i) - 48        ;; a digit per tile
+        }
+    }
+    :Tilemap6 [ data=data, w=#rows@0, h=#rows, tw=tw, th=th, collides=[], faces=[], callbacks=[] ]
+}
+
+func map6_at (m, x, y) {
+    if (x >= 0) && (x < m.w) && (y >= 0) && (y < m.h) => m.data@((y * m.w) + x) => 0
+}
+
+;; a tile there (0 is none, as null in Phaser) that collides
+func map6_collides (m, x, y) {
+    val t = map6_at(m, x, y)
+    (t != 0) && (m.collides@t == true)
+}
+
+;; setCollisionBetween(a, b): the tiles of these indices collide, with their
+;; four faces, except where the next tile collides too
+func map6_collision (m, a, b) {
+    var i = a
+    loop {
+        while i <= b
+        set m.collides@i = true
+        set i += 1
+    }
+    loop y in m.h {
+        loop x in m.w {
+            val t = map6_at(m, x, y)
+            if (t != 0) && m.collides@t {
+                val n = (y * m.w) + x
+                set m.faces@n = [
+                    top    = !map6_collides(m, x, y - 1),
+                    bottom = !map6_collides(m, x, y + 1),
+                    left   = !map6_collides(m, x - 1, y),
+                    right  = !map6_collides(m, x + 1, y),
+                ]
+            }
+        }
+    }
+}
+
+;; TilemapLayer.getTiles(x, y, w, h, true): the tiles that may collide (that
+;; collide, or have a callback) under the box, a column more each way
+func map6_tiles (m, x0, y0, w0, h0) {
+    val x = math.max(0, x0)
+    val y = math.max(0, y0)
+    val w = math.min(w0, m.w * m.tw)
+    val h = math.min(h0, m.h * m.th)
+    val tx = (m.tw * math.floor(x / m.tw)) / m.tw
+    val ty = (m.th * math.floor(y / m.th)) / m.th
+    val tw = ((m.tw * math.ceil(w / m.tw)) + m.tw) / m.tw
+    val th = ((m.th * math.ceil(h / m.th)) + m.th) / m.th
+    pin out = []
+    var wy = ty
+    loop {
+        while wy < (ty + th)
+        var wx = tx
+        loop {
+            while wx < (tx + tw)
+            if (wy < m.h) && (wx < m.w) {
+                val t = map6_at(m, wx, wy)
+                if (t != 0) && (m.collides@t || m.callbacks@t) {
+                    set out@+ = [ x=wx * m.tw, y=wy * m.th, right=(wx * m.tw) + m.tw,
+                                  bottom=(wy * m.th) + m.th, index=t,
+                                  face=m.faces@((wy * m.w) + wx) ]
+                }
+            }
+            set wx += 1
+        }
+        set wy += 1
+    }
+    out
+}
+
+;; separateTile and processTileSeparation: the callback of the index first
+;; (it may move the body); then the body, moving toward a face of the tile
+;; that it overlaps, is pushed out by the smaller overlap, and blocked
+func tile6_separate (m, b, t) {
+    if (b.width <= 0) || (b.height <= 0) {
+        return false
+    }
+    if (b.right < t.x) || (b.bottom < t.y) || (b.left > t.right) || (b.top > t.bottom) {
+        return false
+    }
+    val iw = math.min(b.right, t.right) - math.max(b.left, t.x)
+    val ih = math.min(b.bottom, t.bottom) - math.max(b.top, t.y)
+    if (iw == 0) || (ih == 0) {
+        return false
+    }
+    val cb = m.callbacks@(t.index)
+    if cb && (cb(b, t) == false) {
+        return false
+    }
+    val f = t.face || [ top=false, bottom=false, left=false, right=false ]
+    val k = b.blocked
+    val p = b.poly
+    set b.ox, b.oy = (0, 0)
+    var process = false
+    val dx, dy = (p.x - b.prex, p.y - b.prey)
+    ifs {
+        (dx < 0) && f.right && !k.left => {
+            set b.ox = b.left - t.right
+            if b.ox < 0 { set process = true } else { set b.ox = 0 }
+        }
+        (dx > 0) && f.left && !k.right => {
+            set b.ox = b.right - t.x
+            if b.ox > 0 { set process = true } else { set b.ox = 0 }
+        }
+    }
+    ifs {
+        (dy < 0) && f.bottom && !k.up => {
+            set b.oy = b.top - t.bottom
+            if b.oy < 0 { set process = true } else { set b.oy = 0 }
+        }
+        (dy > 0) && f.top && !k.down => {
+            set b.oy = b.bottom - t.y
+            if b.oy > 0 { set process = true } else { set b.oy = 0 }
+        }
+    }
+    if (b.ox != 0) && (b.oy != 0) {
+        if math.abs(b.ox) > math.abs(b.oy) {
+            set b.ox = 0
+        } else {
+            set b.oy = 0
+        }
+    }
+    if !process {
+        return false
+    }
+    if b.ox != 0 {
+        set p.x -= b.ox
+        set b.left -= b.ox
+        set b.right -= b.ox
+        set k.x, k.y = (math.floor(p.x), math.floor(p.y))
+        if b.ox < 0 { set k.left = true } else { set k.right = true }
+    }
+    if b.oy != 0 {
+        set p.y -= b.oy
+        set b.top -= b.oy
+        set b.bottom -= b.oy
+        set k.x, k.y = (math.floor(p.x), math.floor(p.y))
+        if b.oy < 0 { set k.up = true } else { set k.down = true }
+    }
+    body6_rebound(b, b.ox != 0, b.oy != 0, true)
+    true
+}
+
+;; collideSpriteVsTilemapLayer: each tile under the body, in order; f(t)
+;; for each tile that separated it
+func tiles6_collide (m, b, f) {
+    loop _, t in map6_tiles(m, b.left, b.top, b.width, b.height) {
+        if tile6_separate(m, b, t) && f {
+            f(t)
+        }
+    }
+}
