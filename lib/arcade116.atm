@@ -506,6 +506,9 @@ func map6_tiles (m, x0, y0, w0, h0) {
     out
 }
 
+;; the faces of a tile that does not collide (Tile of Phaser: all false)
+pin NO_FACES = [ top=false, bottom=false, left=false, right=false ]
+
 ;; separateTile and processTileSeparation: the callback of the index first
 ;; (it may move the body); then the body, moving toward a face of the tile
 ;; that it overlaps, is pushed out by the smaller overlap, and blocked
@@ -525,7 +528,7 @@ func tile6_separate (m, b, t) {
     if cb && (cb(b, t) == false) {
         return false
     }
-    val f = t.face || [ top=false, bottom=false, left=false, right=false ]
+    val f = t.face || NO_FACES
     val k = b.blocked
     val p = b.poly
     set b.ox, b.oy = (0, 0)
