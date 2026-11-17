@@ -29,7 +29,7 @@ Each has the option recommended by this session.
 | 23 | Dark Blue: `doc/games/dark_blue.md`; the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 25 | All twelve are identical on their runs: tag `exact` on `main` (item 15) once the author has seen the state |
-| 26 | The new rules of `pin` (2026-11-17): the suite passes with the compiler at `f3389f6`; going back on the rewrites of the image cache, `sprite_add` and the text of a letter (allowed, not required) is for the author to decide |
+| 26 | The second migration of `pin` (guide `261117-pin-migration-2.md`, compiler 5da4b8e): blocked by the case the guide leaves open (an unpinned list that receives pinned values and is given away: `overlap_list`, `Group`, `node_add`); reverted, the port stays on f3389f6; reported to the compiler session. Redo when that case is settled: 20 `pin` -> `val` (10 in lib, 10 in games), and `poly6` takes its points as they come |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 8 | `doc/games/` for Pixel War, Man vs Penguins, Connected, and I Hate Rabbits (the other documents of these games are done) |
