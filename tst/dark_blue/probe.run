@@ -1,0 +1,5 @@
+# Dark Blue: UP on the menu; right, a jump, left.
+FRAMES=300
+SEED=1
+INPUT=20:dn:UP,22:up:UP,40:dn:RIGHT,100:dn:UP,110:up:UP,150:up:RIGHT,160:dn:LEFT,220:up:LEFT
+SHOTS="10 120 250"

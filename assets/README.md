@@ -20,5 +20,12 @@ container):
 |------|------|----------|
 | 5, 6, 7, 10, 11, 12 | `images/loading.png`, `images/loading2.png` | the loading bar |
 | 6 | `images/orientation.png` | the message to turn a phone |
-| 10 | `images/tiles.png` | the tiles of the levels (drawing only) |
+| 10 | `images/tiles.png` | the tiles of the levels (drawing only): **a placeholder** of this port, not his (see below) |
 | 11 | `levels/map.json` | the map: tiles and objects |
+
+`10/images/tiles.png` is a placeholder made by this port (decided by the
+author, 2026-11-17): plain squares of 20 x 20 in a sheet of 140 x 20, as the
+levels declare it, grey (#52555B, the grey of the logo) for the walls (tile 1)
+and red (#E74C3C) for the tiles that kill (tile 3), the others transparent.
+The original and the port both draw it, so that their screens can be
+compared.
