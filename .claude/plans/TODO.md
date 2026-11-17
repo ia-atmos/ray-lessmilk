@@ -23,7 +23,6 @@ Each has the option recommended by this session.
 
 | # | Work |
 |---|------|
-| 3 | Dark Blue (game 10, Phaser 1.1.6): tilemaps of Tiled, collisions with tiles; depends on A2 |
 | 19 | Crazy Snake: the music loops and stops on the death, and the sound of the death stops when End restarts (`rl.stop_sound` and a looping sound are not in `raylib.atm`); the port plays each once |
 | 20 | Crazy Snake: `doc/games/crazy_snake.md` |
 | 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
