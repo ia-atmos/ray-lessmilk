@@ -1,0 +1,356 @@
+;; Play: the maze. The camera shows a room of the map and slides to the next
+;; one when the player leaves it; keys open doors; the enemies go back and
+;; forth between walls (invisible); an enemy sends the player back to the
+;; start; three hearts open the last door.
+
+pin IMG_TILES  = eng.image(A ++ "images/tiles4.png", 40, 40)
+pin IMG_DEAD   = eng.image(A ++ "images/dead.png")
+pin IMG_PLAYER = eng.image(A ++ "images/player.png", 40, 40)
+pin IMG_ENEMY  = eng.image(A ++ "images/enemy.png")
+pin IMG_KEY    = eng.image(A ++ "images/key.png")
+pin IMG_DOOR   = eng.image(A ++ "images/door.png")
+pin IMG_HEART  = eng.image(A ++ "images/heart.png")
+;; the image of a sprite with no key: the image of Phaser for a missing one,
+;; 32 x 32 (the walls are invisible)
+pin IMG_NONE   = [ w=32, h=32, fw=32, fh=32 ]
+val SND_MUSIC  = eng.sound(A ++ "sounds/music.wav")
+val SND_KEY    = eng.sound(A ++ "sounds/key.wav")
+val SND_HEART  = eng.sound(A ++ "sounds/heart.wav")
+val SND_DEAD   = eng.sound(A ++ "sounds/dead.wav")
+
+;; a door that opens: it shrinks, then is killed
+task Open (d) {
+    await Motion(d, [sx=0, sy=0], 300)
+    set d.alive, d.exists, d.visible = (false, false, false)
+}
+
+task Play () {
+    input_reset()
+
+    ;; load_map: the tiles; the world of 48 x 40 tiles
+    pin data = []
+    loop _, row in MAP.rows {
+        loop _, t in row {
+            set data@+ = t
+        }
+    }
+    pin map = Tilemap201(data, 48, 40, 40, 40)
+    map201_collision(map, 1, 6)
+    set Physics.x, Physics.y, Physics.w, Physics.h = (0, 0, 48 * 40, 40 * 40)
+    set Camera.v2 = true
+
+    ;; the world: the groups, then the player and the screen of death
+    pin world = Group2(0, 0)
+    val enemies = node_add(world, Group2(0, 0))
+    val keys    = node_add(world, Group2(0, 0))
+    val doors   = node_add(world, Group2(0, 0))
+    val hearts  = node_add(world, Group2(0, 0))
+    val walls   = node_add(world, Group2(0, 0))
+
+    ;; createFromObjects: a sprite at the object, moved up by its height
+    val func create (gid, img, g) {
+        loop _, o in MAP.objects {
+            if o@0 == gid {
+                val s = node_add(g, Sprite(img, o@1, o@2))
+                set s.y -= img.fh
+                set s.visible = o@3
+                set s.move, s.key_id = (o@4, o@5)
+            }
+        }
+    }
+    create(16, IMG_ENEMY, enemies)
+    create(24, IMG_KEY, keys)
+    create(25, IMG_DOOR, doors)
+    create(22, IMG_NONE, walls)
+    create(23, IMG_HEART, hearts)
+    loop _, k in keys.kids {
+        body201(k)
+    }
+    loop _, e in enemies.kids {
+        body201(e)
+        if e.move == 1 {
+            set e.body.vx = 200
+        } else {
+            set e.body.vy = 200
+        }
+    }
+    loop _, w in walls.kids {
+        body201(w)
+    }
+    loop _, h in hearts.kids {
+        body201(h)
+        set h.ax, h.ay = (0.5, 0.5)
+        set h.x += IMG_HEART.fw / 2
+        set h.y += IMG_HEART.fh / 2
+        set h.alive = true
+    }
+    loop _, d in doors.kids {
+        body201(d)
+        set d.body.immovable = true
+        set d.ax, d.ay = (0.5, 0.5)
+        set d.x += IMG_DOOR.fw / 2
+        set d.y += IMG_DOOR.fh / 2
+    }
+
+    val player = node_add(world, Sprite(IMG_PLAYER, W/2, 80))
+    set player.ax, player.ay = (0.5, 0.5)
+    set player.direction = 2
+    set player.fidx = 0             ;; animations.frame, as the game sets it
+    sprite_add(player, :down, [1, 2], 6, true)
+    sprite_add(player, :up, [4, 5], 6, true)
+    sprite_add(player, :right, [7, 8], 6, true)
+    sprite_add(player, :left, [10, 11], 6, true)
+    set player.alive = true
+    body201(player)
+
+    if sound {
+        eng.play(SND_MUSIC, 0.4)
+    }
+    pin st = [ tween = false, cx = 0, cy = 0, hearts = 0 ]
+    val dead = node_add(world, Sprite(IMG_DEAD, 0, 0))
+    set dead.alpha = 0
+    pin tweens = tasks()
+    pin labels = []
+
+    val func open_door (id) {
+        loop _, d in doors.kids {
+            if d.key_id == id {
+                spawn @tweens Open(d)
+            }
+        }
+    }
+
+    ;; the death: the screen goes dark, then the player is back at the start
+    val task Death () {
+        await Motion(dead, [alpha=1], 100)
+        sprite_reset201(player, W/2, 80)
+        set Camera.x, Camera.y = (0, 0)         ;; camera.reset()
+        set st.cx, st.cy = (0, 0)
+        spawn @tweens Motion(dead, [alpha=0], 1200)
+        set player.alive = true
+    }
+    val func player_dead () {
+        if player.alive {
+            ;; `this.sound` of the original is never set: no sound
+            set player.alive = false
+            spawn @tweens Death()
+        }
+    }
+
+    val func touched_door () {
+        val t = player.body.touching
+        ifs {
+            t.down => set player.y -= 1
+            t.up => set player.y += 1
+            t.left => set player.x += 1
+            t.right => set player.x -= 1
+        }
+    }
+
+    val func take_key (k) {
+        open_door(k.key_id)
+        if sound {
+            eng.play(SND_KEY, 0.3)
+        }
+        set k.alive, k.exists, k.visible = (false, false, false)
+    }
+
+    val func game_finished () {
+        open_door(4)
+        set labels@+ = Text((st.cx * W) + (W/2), (st.cy * H) + (H/2), "congratulation!\nnow go to the South-East", 25, 0.5)
+        val l = labels@(#labels - 1)
+        set l.ax, l.ay = (0.5, 0.5)
+        set l.sx, l.sy = (0, 0)
+        spawn @tweens Motion(l, [sx=1, sy=1], 1500, Ease.bounce_out)
+        ;; the emitter of hearts is not ported (no run reaches it)
+    }
+
+    val func take_heart (h) {
+        if h.alive {
+            set h.alive = false
+            spawn @tweens Motion(h, [sx=2, sy=2], 200)
+            spawn @tweens Motion(h, [alpha=0], 300)
+            if sound {
+                eng.play(SND_HEART, 0.3)
+            }
+            set st.hearts += 1
+            if st.hearts == 3 {
+                game_finished()
+            }
+        }
+    }
+
+    val func enemy_wall (e) {
+        val b = e.body
+        ifs {
+            b.vx > 0 => { set b.vx = -200 ; set e.x -= 10 }
+            b.vx < 0 => { set b.vx = 200 ; set e.x += 10 }
+            b.vy > 0 => { set b.vy = -200 ; set e.y -= 10 }
+            b.vy < 0 => { set b.vy = 200 ; set e.y += 10 }
+        }
+    }
+
+    val task Slide () {
+        await Motion(Camera, [x=st.cx * W, y=st.cy * H], 600)
+        set st.tween = false
+    }
+    val func camera_movements () {
+        if !st.tween {
+            set st.tween = true
+            var move = true
+            ifs {
+                player.y > (Camera.y + H) => set st.cy += 1
+                player.y < Camera.y => set st.cy -= 1
+                player.x > (Camera.x + W) => set st.cx += 1
+                player.x < Camera.x => set st.cx -= 1
+                else => set move = false
+            }
+            if move {
+                spawn @tweens Slide()
+            } else {
+                set st.tween = false
+            }
+        }
+    }
+
+    val func movements () {
+        val b = player.body
+        set b.vx, b.vy = (0, 0)
+        if player.alive {
+            val speed = if st.tween => 50 => 230
+            ifs {
+                key_down('LEFT') => {
+                    set b.vx = -speed
+                    set player.direction = 4
+                    sprite_play(player, :left)
+                }
+                key_down('RIGHT') => {
+                    set b.vx = speed
+                    set player.direction = 3
+                    sprite_play(player, :right)
+                }
+                key_down('UP') => {
+                    set b.vy = -speed
+                    set player.direction = 1
+                    sprite_play(player, :up)
+                }
+                key_down('DOWN') => {
+                    set b.vy = speed
+                    set player.direction = 2
+                    sprite_play(player, :down)
+                }
+                else => {
+                    ifs {
+                        player.direction == 1 => set player.fidx = 3
+                        player.direction == 2 => set player.fidx = 0
+                        player.direction == 3 => set player.fidx = 6
+                        player.direction == 4 => set player.fidx = 9
+                    }
+                    set player.frame = player.fidx
+                    sprite_stop(player)
+                }
+            }
+        }
+    }
+
+    ;; the frame: the bodies (stage.preUpdate), the camera and the bodies
+    ;; again (stage.postUpdate), the transforms drawn
+    spawn {
+        loop on :pre {
+            scene_pre201(world)
+        }
+    }
+    spawn {
+        loop on :post {
+            camera_set("x", Camera.x)           ;; camera.update: its bounds
+            scene_post201(world)
+        }
+    }
+    spawn {
+        loop on :render {
+            scene_transform(world)
+        }
+    }
+    spawn {
+        loop on :rl.draw {
+            rl.clear(BG)
+            ;; the layer of tiles, under the sprites
+            val c0, r0 = (math.floor(Camera.x / 40), math.floor(Camera.y / 40))
+            loop j in (H / 40) + 1 {
+                loop i in (W / 40) + 1 {
+                    val t = map201_at(map, c0 + i, r0 + j)
+                    if t != 0 {
+                        eng.draw(IMG_TILES, t - 1, ((c0 + i) * 40) - Camera.x, ((r0 + j) * 40) - Camera.y)
+                    }
+                }
+            }
+            scene_draw(world)
+            loop _, l in labels {
+                text_draw(l)
+            }
+        }
+    }
+
+    ;; [trace]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ st=st, player=player, enemies=enemies, keys=keys,
+                                     doors=doors, hearts=hearts, dead=dead ])
+        }
+    }
+    ;; [/trace]
+
+    loop on :update {
+        tiles201_collide(map, player)
+        collide201(player, doors, \(d) { touched_door() })
+        overlap201(player, keys, take_key)
+        overlap201(player, hearts, take_heart)
+        overlap201(player, enemies, \(e) { player_dead() })
+        loop _, e in enemies.kids {
+            if e.exists != false {
+                overlap201(e, walls, \(w) { enemy_wall(e) })
+            }
+        }
+        movements()
+        camera_movements()
+    }
+}
+
+;; [trace]
+;; the line of the trace: as tools/original/trace/11.js
+func trace (q) {
+    val f = rl.frame()
+    var r = tostring(f) ++ " " ++ screen
+    if q {
+        val st, p, b = (q.st, q.player, q.player.body)
+        var ex, ey, nk, nd, ds, nh, ha = (0, 0, 0, 0, 0, 0, 0)
+        loop _, e in q.enemies.kids {
+            set ex += e.x
+            set ey += e.y
+        }
+        loop _, k in q.keys.kids {
+            if k.exists != false { set nk += 1 }
+        }
+        loop _, d in q.doors.kids {
+            if d.exists != false {
+                set nd += 1
+                set ds += d.sx
+            }
+        }
+        loop _, h in q.hearts.kids {
+            if h.exists != false {
+                set nh += 1
+                set ha += h.alpha
+            }
+        }
+        set r = r ++ " " ++ tostring(st.hearts) ++ " " ++
+            eng.fixed(p.x, 2) ++ " " ++ eng.fixed(p.y, 2) ++ " " ++ eng.fixed(b.vx, 2) ++ " " ++ eng.fixed(b.vy, 2) ++ " " ++
+            (if p.alive => "1" => "0") ++ " " ++ tostring(p.fidx) ++ " " ++ tostring(p.direction) ++ " " ++
+            eng.fixed(Camera.x, 2) ++ " " ++ eng.fixed(Camera.y, 2) ++ " " ++ tostring(st.cx) ++ " " ++ tostring(st.cy) ++ " " ++
+            (if st.tween => "1" => "0") ++ " " ++ eng.fixed(q.dead.alpha, 3) ++ " " ++
+            eng.fixed(ex, 2) ++ " " ++ eng.fixed(ey, 2) ++ " " ++ tostring(nk) ++ " " ++ tostring(nd) ++ " " ++
+            eng.fixed(ds, 3) ++ " " ++ tostring(nh) ++ " " ++ eng.fixed(ha, 3)
+    }
+    r
+}
+;; [/trace]

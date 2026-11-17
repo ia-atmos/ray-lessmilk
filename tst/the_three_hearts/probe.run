@@ -1,0 +1,5 @@
+# The Three Hearts: UP on the menu; down to the room below, and around.
+FRAMES=600
+SEED=1
+INPUT=20:dn:UP,23:up:UP,40:dn:DOWN,160:up:DOWN,170:dn:RIGHT,260:up:RIGHT,270:dn:DOWN,400:up:DOWN,410:dn:LEFT,500:up:LEFT
+SHOTS="10 100 300 450"
