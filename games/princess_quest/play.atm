@@ -58,7 +58,7 @@ task Play () {
     set princess.ax, princess.ay = (0.5, 1)
     set princess.alive = true
     val gb = Body(do {
-        val ground = Sprite(IMG_GROUND, 0, H - 56)
+        pin ground = Sprite(IMG_GROUND, 0, H - 56)
         set ground.sx, ground.sy = (15, 1)
         ground
     }, :ground)
