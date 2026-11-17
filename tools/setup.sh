@@ -53,5 +53,10 @@ make -s -C ext/raylib/src PLATFORM=PLATFORM_MEMORY CUSTOM_CFLAGS=-O2 \
 for n in $(seq 1 12); do
     cp -r assets/$n/. ext/originals/www.lessmilk.com/games/$n/
 done
+# The Three Hearts: its lost levels/map.json, rebuilt from the student's map
+# (decided by the author; next to the original only, see tools/map11.py)
+mkdir -p ext/originals/www.lessmilk.com/games/11/levels
+python3 tools/map11.py ext/student/the_three_hearts/map.atm \
+    ext/originals/www.lessmilk.com/games/11/levels/map.json >/dev/null
 
 echo "setup: ok"
