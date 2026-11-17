@@ -218,3 +218,22 @@ player turns. End's `time` is part of the `await` of the key. The port adds
 `over.done`, set when the turn of the last level ends (Endd), which the
 update awaits.
 
+## 11. The Three Hearts
+
+| JavaScript | Kind | Port |
+|------------|------|------|
+| `w`, `h`, `tile_size` | constant | `W`, `H`, 40 |
+| `sound` (global) | data | a global of the port too |
+| `this.camera` (Play) | data: the room shown | `st.cx`, `st.cy` |
+| `this.number_hearts` (Play) | data | `st.hearts` |
+| `this.tween` (Play) | control: the camera slides to the next room, once at a time; the player is slow meanwhile | `st.tween`, the same flag |
+| `player.alive` used as a flag (Play) | control: a death runs once, and the player does not move meanwhile | `player.alive`, the same |
+| `heart.alive` used as a flag (each heart) | control: a heart is taken once | `h.alive`, the same |
+| `player.direction` | data: the frame when it stops | `player.direction` |
+| the groups, the map, the sprite of death | drawn | locals of `Play`, nodes of `world` |
+
+Control: 3 in the JavaScript, 3 left. `st.tween` is read by the movement
+of the player while the slide runs and by the next test of the rooms in
+the same update; `alive` of the player and of the hearts are read by the
+overlaps of each frame, which Phaser calls whatever the state.
+

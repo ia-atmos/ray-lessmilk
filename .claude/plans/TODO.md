@@ -17,7 +17,6 @@ Each has the option recommended by this session.
 
 | # | Decision | Recommended |
 |---|----------|-------------|
-| 3 | `levels/map.json` of The Three Hearts (game 11) exists in no copy found; without it the original does not get past its menu | Rebuild it from the student's `the_three_hearts/map.atm` (tiles and objects), put it next to the original in `ext/` only (not in `assets/`, since it is not Thomas Palef's), and compare the port with that |
 | 4 | The harness sends no key repeat: a key held from one state into the next stays up in Phaser until pressed again; in a browser the keyboard would send it again after about half a second | Keep it so (deterministic, and the same in the port, `Cursor`/`key_down`); it is written in `doc/fidelity.md` |
 
 ## B. Work known and not done
@@ -25,11 +24,12 @@ Each has the option recommended by this session.
 | # | Work |
 |---|------|
 | 3 | Dark Blue (game 10, Phaser 1.1.6): tilemaps of Tiled, collisions with tiles; depends on A2 |
-| 4 | The Three Hearts (game 11, Phaser 2.0.1): depends on A3; the loop of a frame and the physics of Phaser 2 differ from 1.1.3 |
 | 19 | Crazy Snake: the music loops and stops on the death, and the sound of the death stops when End restarts (`rl.stop_sound` and a looping sound are not in `raylib.atm`); the port plays each once |
 | 20 | Crazy Snake: `doc/games/crazy_snake.md` |
 | 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
 | 23 | Dark Blue: `doc/games/dark_blue.md`; the music (loop, stop) as in Crazy Snake (19) |
+| 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
+| 25 | All twelve are identical on their runs: tag `exact` on `main` (item 15) once the author has seen the state |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 8 | `doc/games/` for Pixel War, Man vs Penguins, Connected, and I Hate Rabbits (the other documents of these games are done) |
@@ -64,6 +64,10 @@ Each has the option recommended by this session.
 None.
 
 ## Settled
+
+- The Three Hearts (A3, the author, 2026-11-17): the lost `levels/map.json`
+  is rebuilt from the student's map (`tools/map11.py`), next to the
+  original only; the port reads the same map.
 
 - Dark Blue (A2, the author, 2026-11-17): the lost `tiles.png` is replaced
   by a placeholder of plain squares (`assets/10/images/tiles.png`, see

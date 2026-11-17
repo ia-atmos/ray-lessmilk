@@ -70,6 +70,7 @@ original can be compared line by line. See [doc/fidelity.md](doc/fidelity.md).
 | 8 | Save the City | `games/save_the_city` | yes, 2 runs |
 | 9 | I Hate Rabbits | `games/i_hate_rabbits` | yes, 2 runs |
 | 10 | Dark Blue | `games/dark_blue` | yes, 3 runs (tiles: a placeholder) |
+| 11 | The Three Hearts | `games/the_three_hearts` | yes, 2 runs (map: rebuilt) |
 | 12 | Crazy Snake | `games/crazy_snake` | yes, 2 runs |
 
 Documents: [table](doc/table.md), [state variables](doc/state.md),

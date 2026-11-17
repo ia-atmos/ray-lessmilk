@@ -495,3 +495,38 @@ per frame (`FPS=30` in the run, `RL_FPS` for the port), where the jump is
 higher and level 1 can be done, as on a slower browser of 2014.
 
 Not reached: levels 3 to 5 and the screen Endd.
+
+## 11. The Three Hearts
+
+The same as the original on its two runs, line by line
+(`tst/the_three_hearts/`):
+
+| Run | Frames | Seed | Input | Rooms |
+|-----|-------:|-----:|-------|------:|
+| `probe` | 600 | 1 | UP on the menu; DOWN, RIGHT, DOWN, LEFT | 1 |
+| `bot` | 1300 | 1 | what a player of the original pressed (`tools/original/bot/11.js`, `BOT=`): into an enemy first (a death), then by the shortest paths to a key (four doors open) and a heart | 3 |
+
+Trace: frame, state; in Play, the hearts, the player (x, y, velocity,
+alive, frame, direction), the camera and the room, the slide of the
+camera, the screen of death, the enemies (sums of x and y), the keys,
+doors and hearts that exist.
+
+The map, `levels/map.json`, is lost; the runs use one rebuilt from the
+port of Jessica Oliveira (`tools/map11.py`, decided by the author), next
+to the original only (see `assets/README.md`).
+
+What it took: the arcade physics of Phaser 2.0.1 (`lib/arcade201.atm`) as
+the `phaser201.min.js` that the original runs has it, which is not the
+source of the tag 2.0.1 (`ext/phaser/2.0.1/`): there, `separate` tests
+the boxes without their edges and tries Y before X, and a body keeps its
+previous position across frames; in the minified file, edges count, X is
+tried first, and the previous position is read again in each frame, as
+in 2.0.2. A body keeps the size of its sprite when it was enabled (a door
+that shrinks keeps its body until it is killed). The walls that turn the
+enemies are sprites with no image: `createFromObjects` sets `exists`
+after `visible`, which makes them visible, so Pixi keeps their transforms
+(an invisible one would keep the transform of its first frame, and drift
+while the camera slides); nothing of them shows in the screens.
+
+Not reached: the second and third hearts, the end (the emitter of hearts
+is not ported), the last door.
