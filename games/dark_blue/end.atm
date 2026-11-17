@@ -1,0 +1,27 @@
+;; Endd: the deaths; UP starts again, after 500 ms.
+
+pin IMG_SUCCESS = eng.image(A ++ "images/success2.png")
+
+task End () {
+    input_reset()
+    set Camera.x, Camera.y = (0, 0)     ;; camera.follow(null), setPosition(0, 0)
+    pin keys = Cursor()
+    pin logo = Sprite(IMG_SUCCESS, W/2, 150)
+    set logo.ax, logo.ay = (0.5, 0.5)
+    set logo.sx, logo.sy = (0, 0)
+    spawn Motion(logo, [sx=1, sy=1], 1000, Ease.bounce_out)
+    pin label = Text(W/2, H - 100, "you died " ++ tostring(dead) ++ " times\n\npress the UP arrow key to restart", 25, 0.5)
+    set label.ax, label.ay, label.angle = (0.5, 0.5, 0)
+    set label.alpha = 0
+    spawn Motion(label, [alpha=1], 500, nil, 500)
+    spawn Swing(label)
+    val time = eng.now() + 500
+    spawn {
+        loop on :rl.draw {
+            rl.clear(BG)
+            sprite_draw(logo)
+            text_draw(label)
+        }
+    }
+    await :update until cursor_down(keys, 'UP') && (time < eng.now())
+}

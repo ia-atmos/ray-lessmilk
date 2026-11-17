@@ -1,0 +1,45 @@
+;; Dark Blue (lessmilk.com, game #10, 2014), by Thomas Palef.
+;; Ported to Atmos from the original (Phaser 1.1.6) and from the port of
+;; Jessica Oliveira (jessicacoliveira/atmos-lessmilk, dark_blue).
+;;
+;; A platformer of five levels: take all the coins of a level to go to the
+;; next; the red tiles and the enemies send the player back to the start.
+;; The tiles are a placeholder (assets/README.md).
+
+include "../../lib/game.atm"
+
+val W, H = (600, 400)
+val BG = 0x00A2FFFF
+val A = "assets/10/"
+
+var dead = 0                ;; the globals of the original
+var sound = true
+
+;; [trace]
+var screen = "Menu"
+;; [/trace]
+
+rl.window [title="Dark Blue", width=W, height=H]
+
+include "levels.atm"
+include "menu.atm"
+include "play.atm"
+include "end.atm"
+
+spawn Game(W, H, 116)
+
+;; [trace]
+spawn Tracer(trace)
+;; [/trace]
+
+await Menu()
+loop {
+    ;; [trace]
+    set screen = "Play"
+    ;; [/trace]
+    await Play()
+    ;; [trace]
+    set screen = "Endd"
+    ;; [/trace]
+    await End()
+}

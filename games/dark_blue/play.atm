@@ -1,0 +1,409 @@
+;; Play: the five levels. The player runs and jumps on the tiles; the coins
+;; of a level, all taken, open the next one; a red tile or an enemy sends
+;; the player back to the start of the level, with all its coins again.
+
+pin IMG_PLAYER = eng.image(A ++ "images/player3.png", 24, 30)
+pin IMG_COIN   = eng.image(A ++ "images/coin.png")
+pin IMG_ENEMY  = eng.image(A ++ "images/enemy.png")
+pin IMG_TILES  = eng.image(A ++ "images/tiles.png", 20, 20)
+val SND_COIN   = eng.sound(A ++ "sounds/coin.wav")
+val SND_DEAD   = eng.sound(A ++ "sounds/dead.wav")
+val SND_YEAH   = eng.sound(A ++ "sounds/yeah.mp3")
+val SND_JUMP   = eng.sound(A ++ "sounds/jump.wav")
+val SND_MUSIC  = eng.sound(A ++ "sounds/music.wav")
+
+;; a coin floats: .to({y:"-5"}, 300).to({y:"+5"}, 300).loop()
+task Float (c) {
+    loop {
+        await Motion(c, [y="-5"], 300)
+        await Motion(c, [y="+5"], 300)
+    }
+}
+
+;; a coin taken shrinks, then is killed
+task Shrink (c) {
+    await Motion(c, [sx=0, sy=0], 200)
+    set c.exists, c.visible = (false, false)
+}
+
+;; the camera that follows the player (FOLLOW_PLATFORMER): a dead zone of
+;; 1/8 of the width and 1/3 of the height, a little above the middle; the
+;; view stays in the world, at whole pixels
+pin Follow = [ dw = W / 8, dh = H / 3, bw = W, bh = H ]
+func follow (p) {
+    val dw, dh = (Follow.dw, Follow.dh)
+    val dx, dy = ((W - dw) / 2, ((H - dh) / 2) - (dh * 0.25))
+    val pw, ph = (sprite_w6(p), sprite_h6(p))
+    var vx, vy = (Camera.x, Camera.y)
+    if vx > (p.x - dx) { set vx = p.x - dx }
+    if vx < (((p.x + pw) - dx) - dw) { set vx = ((p.x + pw) - dx) - dw }
+    if vy > (p.y - dy) { set vy = p.y - dy }
+    if vy < (((p.y + ph) - dy) - dh) { set vy = ((p.y + ph) - dy) - dh }
+    if vx < 0 { set vx = 0 }
+    if (vx + W) > Follow.bw { set vx = Follow.bw - W }
+    if vy < 0 { set vy = 0 }
+    if (vy + H) > Follow.bh { set vy = Follow.bh - H }
+    set Camera.x, Camera.y = (math.floor(vx), math.floor(vy))
+}
+
+task Play () {
+    input_reset()
+    pin keys = Cursor()
+
+    pin player = Sprite(IMG_PLAYER, (W/2) - 50, H/2)
+    set player.fresh = true
+    pin pbody = Body6(player)
+    set pbody.world = true
+    set player.ax, player.ay = (0.5, 0.5)
+
+    pin st = [
+        level = 1, taken = 0, total = 0, jump = 0,
+        map = nil, lv = nil,    ;; the tilemap and the level it comes from
+        coins = [],         ;; [s=, b=], all that the levels made, in order
+        enemies = [],       ;; [s=, b=, move=, dir=]
+        labels = [],        ;; the texts of the level
+    ]
+    set dead = 0
+    pin tweens = tasks()
+    pin over = [ done = false ]     ;; the last level ended: Endd
+
+    if sound {
+        eng.play(SND_MUSIC, 0.2)
+    }
+
+    ;; createFromObjects of the coins: new sprites at the end of the group,
+    ;; which float (add_objects)
+    val func add_coins () {
+        loop _, o in st.lv.objects {
+            if o@0 == 2 {
+                set st.coins@+ = [ s=Sprite(IMG_COIN, o@1, o@2) ]
+                val c = st.coins@(#st.coins - 1)
+                set c.s.fresh = true
+                set c.s.ax, c.s.ay = (0, 1)
+                set c.b = Body6(c.s)
+            }
+        }
+    }
+    val func float_coins () {
+        loop _, c in st.coins {
+            if c.s.alive != false {
+                set c.s.ax, c.s.ay = (0.5, 0.5)
+                set c.s.x += sprite_w6(c.s) / 2
+                set c.s.y -= sprite_w6(c.s) / 2
+                spawn @tweens Float(c.s)
+            }
+        }
+    }
+
+    val func player_dead () {
+        set dead += 1
+        if sound {
+            eng.play(SND_DEAD, 0.3)
+        }
+        if st.level == 6 {
+            body6_reset(pbody, (W/2) - 50, (H/2) - 100)
+        } else {
+            body6_reset(pbody, (W/2) - 50, H/2)
+        }
+        set pbody.gy = 0
+        loop _, c in st.coins {
+            set c.s.alive, c.s.exists, c.s.visible = (false, false, false)
+        }
+        set st.taken = 0
+        add_coins()
+        float_coins()
+        nil
+    }
+
+    val func load_map () {
+        ;; clear_map
+        loop _, c in st.coins {
+            set c.s.alive, c.s.exists, c.s.visible = (false, false, false)
+        }
+        loop _, e in st.enemies {
+            set e.s.alive, e.s.exists, e.s.visible = (false, false, false)
+        }
+        vector.clear(st.labels)
+
+        set st.lv = LEVELS@(st.level - 1)
+        val lv = st.lv
+        set st.map = Tilemap6(lv.rows, 20, 20)
+        map6_collision(st.map, 0, 1)
+        set st.map.callbacks@3 = \(b, t) { player_dead() }
+        add_coins()
+        loop _, gid in [4, 5] {
+            loop _, o in lv.objects {
+                if o@0 == gid {
+                    set st.enemies@+ = [ s=Sprite(IMG_ENEMY, o@1, o@2), move=o@3, dir=nil ]
+                    val e = st.enemies@(#st.enemies - 1)
+                    set e.s.fresh = true
+                    set e.s.ax, e.s.ay = (0, 1)
+                    set e.b = Body6(e.s)
+                }
+            }
+        }
+        ;; resizeWorld: the world, the bounds of the camera, the walls
+        val ww, wh = (st.map.w * 20, st.map.h * 20)
+        set Physics.w, Physics.h = (ww, wh)
+        set Follow.bw, Follow.bh = (ww, wh)
+        walls6(0, 0, ww, wh)
+
+        body6_reset(pbody, (W/2) - 50, H/2)
+        if st.level == 5 {
+            set player.y -= 100
+        }
+        set st.level += 1
+        set player.alive = true
+        set st.total, st.taken = (0, 0)
+
+        ;; add_objects
+        loop _, c in st.coins {
+            if c.s.alive != false {
+                set st.total += 1
+            }
+        }
+        float_coins()
+        loop _, e in st.enemies {
+            if e.s.alive != false {
+                ifs {
+                    e.move == 1 => { set e.b.vx = 100 ; set e.dir = 1 }
+                    e.move == 2 => { set e.b.vy = 100 ; set e.dir = 1 }
+                }
+            }
+        }
+        loop _, o in lv.objects {
+            if o@0 == 7 {
+                set st.labels@+ = Text(o@1 + 10, o@2, o@4, 22)
+                val l = st.labels@(#st.labels - 1)
+                set l.ax, l.ay = (0.5, 1)
+            }
+        }
+    }
+
+    ;; the end of the turn of a level: the next one, or Endd
+    val task Next () {
+        await Motion(player, [angle=360], 600)
+        if st.level == 6 {
+            set over.done = true
+        } else {
+            load_map()
+        }
+    }
+
+    val func next_level () {
+        if player.alive != false {
+            set player.alive = false
+            if st.level == 1 {
+                load_map()
+            } else {
+                if sound {
+                    eng.play(SND_YEAH, 0.3)
+                }
+                set pbody.gy, pbody.vx, pbody.vy = (0, 0, 0)
+                spawn @tweens Next()
+            }
+        }
+    }
+
+    val func take_coin (cb) {
+        val c = cb.spr
+        if c.alive != false {
+            set c.alive = false
+            spawn @tweens Shrink(c)
+            set st.taken += 1
+            if sound {
+                eng.play(SND_COIN, 0.2)
+            }
+        }
+    }
+
+    val func enemy_collide (e) {
+        ifs {
+            e.move == 1 => set e.b.vx = if e.dir < 0 => 100 => -100
+            e.move == 2 => set e.b.vy = if e.dir < 0 => 100 => -100
+        }
+        set e.dir = e.dir * -1
+    }
+
+    val func movements () {
+        set pbody.vx = 0
+        if player.alive != false {
+            val down = pbody.blocked.down
+            ifs {
+                cursor_down(keys, 'LEFT') => {
+                    if (player.sx == 1) || (player.frame == 0) {
+                        set player.sx, player.sy = (-1, 1)
+                        set player.frame = 1
+                    }
+                    set pbody.vx = if down => -250 => -200
+                }
+                cursor_down(keys, 'RIGHT') => {
+                    if (player.sx == -1) || (player.frame == 0) {
+                        set player.sx, player.sy = (1, 1)
+                        set player.frame = 1
+                    }
+                    set pbody.vx = if down => 250 => 200
+                }
+                else => set player.frame = 0
+            }
+            set pbody.gy = if pbody.blocked.down => 200 => 500
+            val up = cursor_down(keys, 'UP')
+            ifs {
+                up && pbody.blocked.down => {
+                    set pbody.vy = -200
+                    if sound {
+                        eng.play(SND_JUMP, 0.2)
+                    }
+                    set st.jump = 1
+                }
+                up && (st.jump < 12) && (st.jump != 0) => {
+                    set st.jump += 1
+                    set pbody.vy = -250
+                }
+                else => set st.jump = 0
+            }
+        }
+    }
+
+    next_level()
+
+    ;; the frame: preUpdate of the sprites in the order of the world (the
+    ;; player, the coins, the enemies), postUpdate with the camera after the
+    ;; player, and the transforms drawn
+    spawn {
+        loop on :pre {
+            body6_pre(pbody)
+            loop _, c in st.coins {
+                body6_pre(c.b)
+            }
+            loop _, e in st.enemies {
+                body6_pre(e.b)
+            }
+        }
+    }
+    spawn {
+        loop on :post {
+            body6_post(pbody)
+            follow(player)
+            loop _, c in st.coins {
+                body6_post(c.b)
+            }
+            loop _, e in st.enemies {
+                body6_post(e.b)
+            }
+        }
+    }
+    spawn {
+        loop on :render {
+            sprite_drawn(player)
+            loop _, c in st.coins {
+                if c.s.visible != false {
+                    sprite_drawn(c.s)
+                }
+            }
+            loop _, e in st.enemies {
+                if e.s.visible != false {
+                    sprite_drawn(e.s)
+                }
+            }
+        }
+    }
+    spawn {
+        loop on :rl.draw {
+            rl.clear(BG)
+            sprite_draw(player)
+            loop _, c in st.coins {
+                sprite_draw(c.s)
+            }
+            loop _, e in st.enemies {
+                sprite_draw(e.s)
+            }
+            ;; the layer of tiles, over the sprites
+            val m = st.map
+            val c0, r0 = (math.floor(Camera.x / 20), math.floor(Camera.y / 20))
+            loop j in (H / 20) + 1 {
+                loop i in (W / 20) + 1 {
+                    val t = map6_at(m, c0 + i, r0 + j)
+                    if t != 0 {
+                        eng.draw(IMG_TILES, t - 1, ((c0 + i) * 20) - Camera.x, ((r0 + j) * 20) - Camera.y)
+                    }
+                }
+            }
+            loop _, l in st.labels {
+                text_draw(l)
+            }
+        }
+    }
+
+    ;; [trace]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace([ st=st, player=player, pbody=pbody ])
+        }
+    }
+    ;; [/trace]
+
+    par :any {
+        await :update until over.done
+    } with {
+        loop on :update {
+            tiles6_collide(st.map, pbody, nil)
+            overlap6(pbody, do {
+                pin bs = []
+                loop _, c in st.coins { set bs@+ = c.b }
+                bs
+            }, take_coin)
+            loop _, e in st.enemies {
+                if e.s.exists != false {
+                    tiles6_collide(st.map, e.b, \(t) { enemy_collide(e) })
+                }
+            }
+            overlap6(pbody, do {
+                pin bs = []
+                loop _, e in st.enemies { set bs@+ = e.b }
+                bs
+            }, \(b) { player_dead() })
+            movements()
+            if player.y < -30 {
+                player_dead()
+            }
+            if st.total == st.taken {
+                next_level()
+            }
+        }
+    }
+}
+
+;; [trace]
+;; the line of the trace: as tools/original/trace/10.js
+func trace (q) {
+    val f = rl.frame()
+    var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(dead)
+    if q {
+        val st, p, b = (q.st, q.player, q.pbody)
+        var nc, cx, cy, ne, ex, ey = (0, 0, 0, 0, 0, 0)
+        loop _, c in st.coins {
+            if c.s.alive != false {
+                set nc += 1
+                set cx += c.s.x
+                set cy += c.s.y
+            }
+        }
+        loop _, e in st.enemies {
+            if e.s.alive != false {
+                set ne += 1
+                set ex += e.s.x
+                set ey += e.s.y
+            }
+        }
+        set r = r ++ " " ++ tostring(st.level) ++ " " ++ tostring(st.taken) ++ " " ++ tostring(st.total) ++ " " ++
+            eng.fixed(p.x, 2) ++ " " ++ eng.fixed(p.y, 2) ++ " " ++ eng.fixed(b.vx, 2) ++ " " ++ eng.fixed(b.vy, 2) ++ " " ++
+            eng.tostring(b.gy) ++ " " ++ (if b.blocked.down => "1" => "0") ++ " " ++ (if p.alive != false => "1" => "0") ++ " " ++
+            tostring(p.frame) ++ " " ++ eng.tostring(p.sx) ++ " " ++ eng.fixed(angle_get(p), 2) ++ " " ++
+            eng.tostring(Camera.x) ++ " " ++ eng.tostring(Camera.y) ++ " " ++
+            tostring(nc) ++ " " ++ eng.fixed(cx, 2) ++ " " ++ eng.fixed(cy, 2) ++ " " ++
+            tostring(ne) ++ " " ++ eng.fixed(ex, 2) ++ " " ++ eng.fixed(ey, 2)
+    }
+    r
+}
+;; [/trace]

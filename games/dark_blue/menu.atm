@@ -1,0 +1,60 @@
+;; Menu: the logo falls, UP starts.
+
+pin IMG_LOGO  = eng.image(A ++ "images/logo2.png")
+pin IMG_SOUND = eng.image(A ++ "images/sound4.png", 28, 22)
+
+;; a button: pressed and released over it (the box of its frame)
+func over (s, x, y) {
+    val w, h = (s.img.fw * s.sx, s.img.fh * s.sy)
+    val l, t = (s.x - (s.ax * w), s.y - (s.ay * h))
+    (x >= l) && (x <= (l + w)) && (y >= t) && (y <= (t + h))
+}
+task Button (s) {
+    loop {
+        val d = await :rl.mouse.dn
+        if over(s, d.x, d.y) {
+            val u = await :rl.mouse.up
+            until over(s, u.x, u.y)
+        }
+    }
+}
+
+;; a swing of an angle, for ever: .to(1).to(-1).loop()
+task Swing (t) {
+    loop {
+        await Motion(t, [angle=1], 500)
+        await Motion(t, [angle=-1], 500)
+    }
+}
+
+task Menu () {
+    input_reset()
+    pin keys = Cursor()
+    pin logo = Sprite(IMG_LOGO, W/2, -150)
+    set logo.ax, logo.ay = (0.5, 0.5)
+    spawn Motion(logo, [y=150], 1000, Ease.bounce_out)
+    pin start = Text(W/2, H - 50, "press the UP arrow key to start", 25)
+    set start.ax, start.ay, start.angle = (0.5, 0.5, 0)
+    set start.alpha = 0
+    spawn Motion(start, [alpha=1], 500, nil, 500)
+    pin snd_btn = Sprite(IMG_SOUND, W - 70, 50)
+    set snd_btn.alpha = 0
+    spawn Motion(snd_btn, [alpha=1], 500, nil, 500)
+    spawn Swing(start)
+    spawn {
+        loop {
+            await Button(snd_btn)
+            set snd_btn.frame = if snd_btn.frame == 0 => 1 => 0
+            set sound = snd_btn.frame == 0
+        }
+    }
+    spawn {
+        loop on :rl.draw {
+            rl.clear(BG)
+            sprite_draw(logo)
+            text_draw(start)
+            sprite_draw(snd_btn)
+        }
+    }
+    await :update until cursor_down(keys, 'UP')
+}
