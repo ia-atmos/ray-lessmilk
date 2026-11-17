@@ -7,8 +7,8 @@
 # 22, hearts 23, keys 24, doors 25, with their properties `move` and
 # `key_id`). Her objects are at their top-left corner; Tiled keeps the
 # bottom of a tile object, which Phaser moves up by the height of the sprite
-# (createFromObjects, adjustY): here y + 40. The walls are invisible (their
-# sprite has no image, which Phaser draws as its image of a missing one).
+# (createFromObjects, adjustY): here y + 40. The walls have no image:
+# Phaser draws them with its image of a missing one.
 # Not Thomas Palef's file: it goes
 # next to the original in ext/ only (tools/setup.sh), never in assets/.
 #
@@ -32,7 +32,7 @@ for name in ['enemies', 'walls', 'hearts', 'keys', 'doors']:
         props = {}
         if 'move' in f: props['move'] = f['move']
         if 'key_id' in f: props['key_id'] = f['key_id']
-        objects.append({ 'gid': GID[name], 'name': '', 'type': '', 'visible': name != 'walls',
+        objects.append({ 'gid': GID[name], 'name': '', 'type': '', 'visible': True,
                          'x': int(f['x']), 'y': int(f['y']) + 40, 'width': 0, 'height': 0,
                          'properties': props })
 

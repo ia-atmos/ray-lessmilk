@@ -141,7 +141,7 @@ func scene_draw (n, alpha) {
                     scene_draw(k, a)
                 }
             }
-            n ?? :Sprite => eng.draw_m(n.img, n.frame, n.wt, n.ax, n.ay, a * World.alpha)
+            (n ?? :Sprite) && n.img.tex => eng.draw_m(n.img, n.frame, n.wt, n.ax, n.ay, a * World.alpha)
             n ?? :Text => text_m(n.s, n.wt, n.size, n.color, n.ax, n.ay, n.align, a * World.alpha, n.font)
             else => nil
         }

@@ -10,8 +10,10 @@ pin IMG_ENEMY  = eng.image(A ++ "images/enemy.png")
 pin IMG_KEY    = eng.image(A ++ "images/key.png")
 pin IMG_DOOR   = eng.image(A ++ "images/door.png")
 pin IMG_HEART  = eng.image(A ++ "images/heart.png")
-;; the image of a sprite with no key: the image of Phaser for a missing one,
-;; 32 x 32 (the walls are invisible)
+;; the image of a sprite with no key, as the walls: 32 x 32, with no texture.
+;; The walls are visible (`exists`, set after `visible` in createFromObjects,
+;; makes them so), so Pixi keeps their transforms; nothing of them shows in
+;; the screens of the original, and the port draws nothing
 pin IMG_NONE   = [ w=32, h=32, fw=32, fh=32 ]
 val SND_MUSIC  = eng.sound(A ++ "sounds/music.wav")
 val SND_KEY    = eng.sound(A ++ "sounds/key.wav")
