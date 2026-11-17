@@ -31,7 +31,7 @@ task Fade (r) {
 task Play () {
     pin rabbits = Group(IMG_RABBIT, 30, :rabbit)
     val bbody = Body(do {
-        pin bad = Sprite(IMG_BAD, W/2, H/2)
+        val bad = Sprite(IMG_BAD, W/2, H/2)
         set bad.ax, bad.ay = (0.5, 1)
         sprite_add(bad, :walk, [0, 1], 5, true)
         sprite_play(bad, :walk)

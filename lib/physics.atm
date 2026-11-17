@@ -513,7 +513,7 @@ func overlap (a, b) {
 ;; (a tag) in the quadtree of this frame that a overlaps, in the order of the
 ;; quadtree; a itself need not be in it
 func overlap_list (a, group) {
-    pin out = []
+    val out = []
     pin found = []          ;; pinned: a fresh [] would not receive the bodies
     loop _, b in qt_retrieve(Physics.qt, a, found) {
         if (b.group == group) && (b != a) && overlap(a, b) {
@@ -630,7 +630,7 @@ func collide (b1, b2) {
 ;; bottomLeft, bottomRight, as x y pairs
 func sprite_corners (s) {
     val dx, dy, r, sx, sy, fw, fh, ax, ay = (s.dx, s.dy, s.drot, s.dsx, s.dsy, s.img.fw, s.img.fh, s.ax, s.ay)
-    pin out = [0, 0, 0, 0, 0, 0, 0, 0]
+    val out = [0, 0, 0, 0, 0, 0, 0, 0]
     ```
     double o[8];
     phs_corners(a_dbl($dx), a_dbl($dy), a_dbl($r), a_dbl($sx), a_dbl($sy),
@@ -680,7 +680,7 @@ func collide_group (a, group) {
 ;; A sprite keeps what it had in its last life (its angle, its frame, the
 ;; size of its body, inWorld), as in Phaser.
 func Group (img, n, tag) {
-    pin g = :Group [ slots = [] ]
+    val g = :Group [ slots = [] ]
     loop _ in n {
         val b = Body(Sprite(img, 0, 0), tag)
         val s = b.spr
@@ -709,7 +709,7 @@ func group_first_dead (g) {
 
 ;; the slots whose sprites exist
 func group_living (g) {
-    pin out = []
+    val out = []
     loop _, x in g.slots {
         if x.s.exists {
             set out@+ = x
