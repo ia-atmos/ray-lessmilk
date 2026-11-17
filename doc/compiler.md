@@ -1,7 +1,7 @@
 # The compiler
 
 What this port found in the compiler `ia-atmos/lang` (branch `main`,
-from `9ec67ec`; the port now builds with `3a6ffe9`), reported to the session
+from `9ec67ec`; the port now builds with `f3389f6`), reported to the session
 that maintains it, and what became of each. Nothing here blocked the port.
 
 ## Semantics the port relies on
@@ -105,6 +105,12 @@ the same traces as before.
   proposed refinement (the floor may rise to the outermost block). In
   `lib/physics.atm`, `overlap_list` and `collide_group` give `qt_retrieve`
   a pinned vector (`pin found = []`).
+
+Then the rules changed again (2026-11-17: `val`/`var` may hold a fresh
+value, and a place that owns its value may be assigned): the 33 tests give
+the same traces with the compiler at `f3389f6`; nothing needed a change.
+The rewrites of the image cache, `sprite_add`, and the text of a letter
+could go back to their first form (allowed, not required).
 
 ## Pitfalls met again
 
