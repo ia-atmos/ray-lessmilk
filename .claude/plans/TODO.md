@@ -28,7 +28,6 @@ Each has the option recommended by this session.
 | 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
 | 23 | Dark Blue: `doc/games/dark_blue.md`; the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
-| 25 | Tag `exact` (approved by the author, 2026-11-18) on eadb181: made here, but this session cannot push tags (the push of a tag is refused, HTTP 403; branches go). To push from a machine with access: `git tag -a exact eadb181 -m "The twelve ports identical to their originals" && git push origin exact` |
 | 26 | The second migration of `pin`: on ba28459, 16 of 33 runs still fail (storing into an unpinned table that another value holds: `node_add` of lib/scene.atm, `Group` of lib/physics.atm); reverted again (f2fa10c), the port stays on f3389f6; asked the compiler session for the intended form of a tree that grows. The 20 `pin` -> `val` are commit 6a468c1 |
 | 27 | The vocabulary of events of all environments (env-ray 4d5f5b5, 2026-11-17): `ray.atm` and the table `ray` (was `raylib.atm`, `rl`), `:key.dn [key=name, code=]`, `:mouse.button.dn/up`, `:frame [n=, us=]`, the compiler `atmos-ray`. Needs the compiler at 1746969 or later: do it with the second migration of `pin` (26), once that is unblocked; our copy of the binding has nothing to merge back (only `pin rl`, which env-ray has) |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
@@ -65,6 +64,9 @@ Each has the option recommended by this session.
 None.
 
 ## Settled
+
+- The tag `exact` (the author, 2026-11-18): on eadb181, the twelve ports
+  identical to their originals on their runs; the relaxed ports go on top.
 
 - The Three Hearts (A3, the author, 2026-11-17): a map rebuilt from the
   student's port; replaced on 2026-11-18 by the real `levels/map.json`, from
