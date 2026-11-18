@@ -1,7 +1,7 @@
 # The compiler
 
 What this port found in the compiler `ia-atmos/lang` (branch `main`,
-from `9ec67ec`; the port now builds with `94aedf1`), reported to the session
+from `9ec67ec`; the port now builds with `8c9453c`), reported to the session
 that maintains it (`atmos-lang`), and what became of each. Nothing here blocked the port.
 
 ## Semantics the port relies on
@@ -117,8 +117,10 @@ The second migration (guide `261117-pin-migration-2.md`, compiler
 library, 10 in the games); two shapes needed a rewrite: `Group` fills a
 list held only by its name and makes the group at the end (an unpinned
 table that another value holds cannot receive pinned values), and
-`node_add(g, mk)` takes a maker, so that the group adopts the node unnamed
-(a node passed by parameter is only referenced). The 33 tests give the
+`node_add(g, mk)` took a maker, so that the group adopted the node unnamed
+(a node passed by parameter was only referenced); since `8c9453c` a named
+value stored in a pinned value of its block or an outer one is adopted, and
+`node_add(g, n)` is back. The 33 tests give the
 same traces. Twice before (on `5da4b8e` and `ba28459`) the migration was
 reverted, until the compiler settled these cases.
 

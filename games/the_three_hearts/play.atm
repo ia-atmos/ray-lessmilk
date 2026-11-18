@@ -43,17 +43,17 @@ task Play () {
 
     ;; the world: the groups, then the player and the screen of death
     pin world = Group2(0, 0)
-    val enemies = node_add(world, \{ Group2(0, 0) })
-    val keys    = node_add(world, \{ Group2(0, 0) })
-    val doors   = node_add(world, \{ Group2(0, 0) })
-    val hearts  = node_add(world, \{ Group2(0, 0) })
-    val walls   = node_add(world, \{ Group2(0, 0) })
+    val enemies = node_add(world, Group2(0, 0))
+    val keys    = node_add(world, Group2(0, 0))
+    val doors   = node_add(world, Group2(0, 0))
+    val hearts  = node_add(world, Group2(0, 0))
+    val walls   = node_add(world, Group2(0, 0))
 
     ;; createFromObjects: a sprite at the object, moved up by its height
     val func create (gid, img, g) {
         loop _, o in MAP.objects {
             if o@0 == gid {
-                val s = node_add(g, \{ Sprite(img, o@1, o@2) })
+                val s = node_add(g, Sprite(img, o@1, o@2))
                 set s.y -= img.fh
                 set s.visible = o@3
                 set s.move, s.key_id = (o@4, o@5)
@@ -94,7 +94,7 @@ task Play () {
         set d.y += IMG_DOOR.fh / 2
     }
 
-    val player = node_add(world, \{ Sprite(IMG_PLAYER, W/2, 80) })
+    val player = node_add(world, Sprite(IMG_PLAYER, W/2, 80))
     set player.ax, player.ay = (0.5, 0.5)
     set player.direction = 2
     set player.fidx = 0             ;; animations.frame, as the game sets it
@@ -109,7 +109,7 @@ task Play () {
         eng.play(SND_MUSIC, 0.4)
     }
     pin st = [ tween = false, cx = 0, cy = 0, hearts = 0 ]
-    val dead = node_add(world, \{ Sprite(IMG_DEAD, 0, 0) })
+    val dead = node_add(world, Sprite(IMG_DEAD, 0, 0))
     set dead.alpha = 0
     pin tweens = tasks()
     pin labels = []
