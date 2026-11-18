@@ -4,7 +4,6 @@
 ;;
 ;; A platformer of five levels: take all the coins of a level to go to the
 ;; next; the red tiles and the enemies send the player back to the start.
-;; The tiles are a placeholder (assets/README.md).
 
 include "../../lib/game.atm"
 

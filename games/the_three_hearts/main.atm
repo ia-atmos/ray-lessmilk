@@ -3,8 +3,8 @@
 ;; Jessica Oliveira (jessicacoliveira/atmos-lessmilk, the_three_hearts).
 ;;
 ;; A maze of rooms, seen one at a time: keys open doors, enemies go back
-;; and forth, and three hearts end the game. The map is rebuilt from the
-;; port of Jessica Oliveira (assets/README.md, tools/map11.py).
+;; and forth, and three hearts end the game. The map is assets/11/levels/
+;; map.json, as Atmos data (map.atm, tools/map11.py).
 
 include "../../lib/game.atm"
 
