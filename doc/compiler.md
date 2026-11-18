@@ -1,8 +1,8 @@
 # The compiler
 
 What this port found in the compiler `ia-atmos/lang` (branch `main`,
-from `9ec67ec`; the port now builds with `f3389f6`), reported to the session
-that maintains it, and what became of each. Nothing here blocked the port.
+from `9ec67ec`; the port now builds with `94aedf1`), reported to the session
+that maintains it (`atmos-lang`), and what became of each. Nothing here blocked the port.
 
 ## Semantics the port relies on
 
@@ -111,6 +111,24 @@ value, and a place that owns its value may be assigned): the 33 tests give
 the same traces with the compiler at `f3389f6`; nothing needed a change.
 The rewrites of the image cache, `sprite_add`, and the text of a letter
 could go back to their first form (allowed, not required).
+
+The second migration (guide `261117-pin-migration-2.md`, compiler
+`94aedf1`): 20 values given away by their block became `val` (10 in the
+library, 10 in the games); two shapes needed a rewrite: `Group` fills a
+list held only by its name and makes the group at the end (an unpinned
+table that another value holds cannot receive pinned values), and
+`node_add(g, mk)` takes a maker, so that the group adopts the node unnamed
+(a node passed by parameter is only referenced). The 33 tests give the
+same traces. Twice before (on `5da4b8e` and `ba28459`) the migration was
+reverted, until the compiler settled these cases.
+
+An experiment of a context per screen (branch `exp-screen-context`, asked
+by the session `atmos-pin`): the bodies, tweens and inputs of a screen in
+a table that its task pins, in place of the global lists of Phaser. Same
+traces; 16 of the 22 bodies that owned their sprites go back to a `pin` of
+the screen; the sprites of entities, the end of a tween and the events of
+the mouse still cannot be named by what outlives them. Not merged: it
+moves the port away from the structure of the original.
 
 ## Pitfalls met again
 
