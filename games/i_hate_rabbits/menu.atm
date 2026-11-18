@@ -4,14 +4,16 @@ pin IMG_BAD    = eng.image(A ++ "images/bad.png", 36, 40)
 pin IMG_CIRCLE = eng.image(A ++ "images/circle.png")
 
 ;; a pulse of a scale, for ever: .to(big).to(1).loop()
-task Pulse (o, big, small, ms) {
+task Pulse (ctx, o, big, small, ms) {
     loop {
-        await Motion(o, [sx=big, sy=big], ms)
-        await Motion(o, [sx=small, sy=small], ms)
+        await Motion(ctx, o, [sx=big, sy=big], ms)
+        await Motion(ctx, o, [sx=small, sy=small], ms)
     }
 }
 
 task Menu () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     pin bad = Sprite(IMG_BAD, W/2, (H/2) - 120)
     set bad.ax, bad.ay = (0.5, 1)
     sprite_add(bad, :walk, [0, 1], 5, true)
@@ -25,7 +27,7 @@ task Menu () {
         set t.ax, t.ay = (0.5, 0.5)
     }
     set start.sx, start.sy = (1, 1)
-    spawn Pulse(start, 1.1, 1, 300)
+    spawn Pulse(ctx, start, 1.1, 1, 300)
     spawn {
         loop on :pre {
             sprite_update(bad)

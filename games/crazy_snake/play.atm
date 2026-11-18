@@ -14,19 +14,21 @@ func rand (n) {
 }
 
 ;; the death: the level shrinks to nothing, then End (state.start)
-task Vanish (level, over) {
-    await Motion(level, [sx=0, sy=0], 500)
+task Vanish (ctx, level, over) {
+    await Motion(ctx, level, [sx=0, sy=0], 500)
     set over.dead = true
 }
 
 ;; the effect of 30: three tweens chained
-task Jump (level) {
-    await Motion(level, [x=W/2, y=H/2], 5)
-    await Motion(level, [x=W/2, y=H/2], 4000)
-    await Motion(level, [x=(W/2) - 150, y=(H/2) - 150], 5)
+task Jump (ctx, level) {
+    await Motion(ctx, level, [x=W/2, y=H/2], 5)
+    await Motion(ctx, level, [x=W/2, y=H/2], 4000)
+    await Motion(ctx, level, [x=(W/2) - 150, y=(H/2) - 150], 5)
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
 
     ;; the group of the level: the background, the snake, the coin, the score
@@ -87,7 +89,7 @@ task Play () {
             if sound {
                 eng.play(SND_DEATH)
             }
-            spawn @tweens Vanish(level, over)
+            spawn @tweens Vanish(ctx, level, over)
         }
     }
 
@@ -142,7 +144,7 @@ task Play () {
             score == 30 => set bg.frame = 0
         }
         set coin.sx, coin.sy = (0, 0)
-        spawn @tweens Motion(coin, [sx=1, sy=1], 300)
+        spawn @tweens Motion(ctx, coin, [sx=1, sy=1], 300)
     }
 
     ;; [trace]
@@ -179,43 +181,43 @@ task Play () {
             ifs {
                 (score == 5) && (effect == 0) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [angle=30], 5000)
+                    spawn @tweens Motion(ctx, level, [angle=30], 5000)
                 }
                 (score == 10) && (effect == 1) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [sx=0.5, sy=0.5], 3000)
+                    spawn @tweens Motion(ctx, level, [sx=0.5, sy=0.5], 3000)
                 }
                 (score == 15) && (effect == 2) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
-                    spawn @tweens Motion(level, [sx=0.3, sy=0.9], 5000)
-                    spawn @tweens Motion(level, [angle=0], 5000)
+                    spawn @tweens Motion(ctx, level, [x=W/2, y=H/2], 5000)
+                    spawn @tweens Motion(ctx, level, [sx=0.3, sy=0.9], 5000)
+                    spawn @tweens Motion(ctx, level, [angle=0], 5000)
                 }
                 (score == 20) && (effect == 3) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [sx=1, sy=1], 3000)
+                    spawn @tweens Motion(ctx, level, [sx=1, sy=1], 3000)
                 }
                 (score == 25) && (effect == 4) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [sx=0.2, sy=0.2], 5000)
-                    spawn @tweens Motion(level, [x=(W/2) + 150, y=(H/2) + 150], 5000)
+                    spawn @tweens Motion(ctx, level, [sx=0.2, sy=0.2], 5000)
+                    spawn @tweens Motion(ctx, level, [x=(W/2) + 150, y=(H/2) + 150], 5000)
                 }
                 (score == 30) && (effect == 5) => {
                     set effect += 1
-                    spawn @tweens Jump(level)
+                    spawn @tweens Jump(ctx, level)
                 }
                 (score == 35) && (effect == 6) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [sx=1, sy=1], 5000)
-                    spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
+                    spawn @tweens Motion(ctx, level, [sx=1, sy=1], 5000)
+                    spawn @tweens Motion(ctx, level, [x=W/2, y=H/2], 5000)
                 }
                 (score == 40) && (effect == 7) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [angle=-100], 5000)
+                    spawn @tweens Motion(ctx, level, [angle=-100], 5000)
                 }
                 (score == 45) && (effect == 8) => {
                     set effect += 1
-                    spawn @tweens Motion(level, [angle=-190], 3000)
+                    spawn @tweens Motion(ctx, level, [angle=-190], 3000)
                 }
                 score >= 50 => group_angle_set(level, group_angle(level) - 0.2)
             }

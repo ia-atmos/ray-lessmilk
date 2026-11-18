@@ -20,27 +20,29 @@ task Button (s) {
 }
 
 ;; a swing of an angle, for ever: .to(1).to(-1).loop()
-task Swing (t) {
+task Swing (ctx, t) {
     loop {
-        await Motion(t, [angle=1], 500)
-        await Motion(t, [angle=-1], 500)
+        await Motion(ctx, t, [angle=1], 500)
+        await Motion(ctx, t, [angle=-1], 500)
     }
 }
 
 task Menu () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin keys = Cursor()
     pin logo = Sprite(IMG_LOGO, W/2, -150)
     set logo.ax, logo.ay = (0.5, 0.5)
-    spawn Motion(logo, [y=150], 1000, Ease.bounce_out)
+    spawn Motion(ctx, logo, [y=150], 1000, Ease.bounce_out)
     pin start = Text(W/2, H - 50, "press the UP arrow key to start", 25)
     set start.ax, start.ay, start.angle = (0.5, 0.5, 0)
     set start.alpha = 0
-    spawn Motion(start, [alpha=1], 500, nil, 500)
+    spawn Motion(ctx, start, [alpha=1], 500, nil, 500)
     pin snd_btn = Sprite(IMG_SOUND, W - 70, 50)
     set snd_btn.alpha = 0
-    spawn Motion(snd_btn, [alpha=1], 500, nil, 500)
-    spawn Swing(start)
+    spawn Motion(ctx, snd_btn, [alpha=1], 500, nil, 500)
+    spawn Swing(ctx, start)
     spawn {
         loop {
             await Button(snd_btn)

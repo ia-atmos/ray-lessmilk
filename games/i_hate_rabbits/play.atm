@@ -10,27 +10,29 @@ pin SND_VOWELS = [
 ]
 
 ;; a rabbit comes to the circle: its tween is running until it is there
-task Enter (r, x, y) {
+task Enter (ctx, r, x, y) {
     set r.entering = true
-    await Motion(r, [x=x, y=y], 300)
+    await Motion(ctx, r, [x=x, y=y], 300)
     set r.entering = false
 }
 
 ;; a rabbit jumps over the bad one and comes back: two tweens, chained
-task Jump (r, x, y, bx, by) {
-    await Motion(r, [x=x, y=y], 400)
-    await Motion(r, [x=bx, y=by], 600)
+task Jump (ctx, r, x, y, bx, by) {
+    await Motion(ctx, r, [x=x, y=y], 400)
+    await Motion(ctx, r, [x=bx, y=by], 600)
 }
 
 ;; a rabbit of the last level fades, and then dies
-task Fade (r) {
-    await Motion(r, [alpha=0], 300)
+task Fade (ctx, r) {
+    await Motion(ctx, r, [alpha=0], 300)
     sprite_kill(r)
 }
 
 task Play () {
-    pin rabbits = Group(IMG_RABBIT, 30, :rabbit)
-    val bbody = Body(do {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
+    pin rabbits = Group(ctx, IMG_RABBIT, 30, :rabbit)
+    val bbody = Body(ctx, do {
         val bad = Sprite(IMG_BAD, W/2, H/2)
         set bad.ax, bad.ay = (0.5, 1)
         sprite_add(bad, :walk, [0, 1], 5, true)
@@ -41,8 +43,8 @@ task Play () {
     pin circle = Sprite(IMG_CIRCLE, W/2, H/2)
     set circle.ax, circle.ay = (0.5, 0.5)
     defer {
-        group_remove(rabbits)
-        body_remove(bbody)
+        group_remove(ctx, rabbits)
+        body_remove(ctx, bbody)
     }
     pin start = Text((W/2) + 0.5, 30, "try to save the rabbits by pressing space", 20, 0.5)
     set start.ax, start.ay = (0.5, 0.5)
@@ -91,14 +93,14 @@ task Play () {
         set r.pos = i
         sprite_reset(r, x.b, x_out, y_out)
         set r.ax, r.ay = (0.5, 1)
-        spawn @tweens Enter(r, x_in, y_in)
+        spawn @tweens Enter(ctx, r, x_in, y_in)
     }
 
     ;; draw_level: the rabbits left fade; :end after the last level
     val func draw_level () {
         loop _, x in rabbits.slots {
             if x.s.alive {
-                spawn @tweens Fade(x.s)
+                spawn @tweens Fade(ctx, x.s)
             }
         }
         set world.s = tostring(9 - level)
@@ -106,7 +108,7 @@ task Play () {
             return :end
         }
         if level == 1 {
-            spawn @tweens Motion(start, [alpha=0], 500)
+            spawn @tweens Motion(ctx, start, [alpha=0], 500)
         }
         loop i, k in MAP@(level) {
             if k != 0 {
@@ -134,7 +136,7 @@ task Play () {
                     val d = (cw / 2) + 90
                     val jx = (W/2) + (d * math.cos(r.rot - (math.pi / 2)))
                     val jy = (H/2) + (d * math.sin(r.rot - (math.pi / 2)))
-                    spawn @tweens Jump(r, jx, jy, r.x, r.y)
+                    spawn @tweens Jump(ctx, r, jx, jy, r.x, r.y)
                     set r.jump = true
                 }
             }
@@ -147,7 +149,7 @@ task Play () {
     var change = true
     do :play {
         loop on :update {
-            loop _, b in overlap_list(bbody, :rabbit) {
+            loop _, b in overlap_list(ctx, bbody, :rabbit) {
                 sprite_kill(b.spr)
                 set score -= 1
                 eng.play(SND_HAHO, 0.5)

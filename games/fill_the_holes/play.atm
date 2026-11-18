@@ -5,35 +5,37 @@ val SND_NEXT = eng.sound(A ++ "sounds/next.wav")
 val SND_MUSIC = eng.sound(A ++ "sounds/music.wav")
 
 ;; remove_from_board: a tween of nothing (alpha to 1) then out to the left
-task Remove (o) {
-    await Motion(o, [alpha=1], 500)
-    await Motion(o, [x="-500"], 500, Ease.quad_in)
+task Remove (ctx, o) {
+    await Motion(ctx, o, [alpha=1], 500)
+    await Motion(ctx, o, [x="-500"], 500, Ease.quad_in)
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
-    pin holes = Group(IMG_HOLE, 10, :hole)
-    pin boxes = Group(IMG_BOX, 10, :box)
-    pin walls = Group(IMG_WALL, 10, :wall)
+    pin holes = Group(ctx, IMG_HOLE, 10, :hole)
+    pin boxes = Group(ctx, IMG_BOX, 10, :box)
+    pin walls = Group(ctx, IMG_WALL, 10, :wall)
     loop _, x in boxes.slots {
         set x.s.oob_kill = true
-        input_enable(x.s)
+        input_enable(ctx, x.s)
         set x.s.listeners = 0           ;; onInputUp.add of box_clicked
     }
     loop _, x in walls.slots {
         set x.b.immovable = true
     }
-    val rbody = Body(Sprite(IMG_WALL, W - 80, 0), :button)
+    val rbody = Body(ctx, Sprite(IMG_WALL, W - 80, 0), :button)
     val reset_button = rbody.spr
     set reset_button.alpha = 0
     set reset_button.sx, reset_button.sy = (1.5, 0.8)
-    input_enable(reset_button)
+    input_enable(ctx, reset_button)
     defer {
-        group_remove(holes)
-        group_remove(boxes)
-        group_remove(walls)
-        body_remove(rbody)
-        input_disable_all()
+        group_remove(ctx, holes)
+        group_remove(ctx, boxes)
+        group_remove(ctx, walls)
+        body_remove(ctx, rbody)
+        input_disable_all(ctx, ctx)
     }
     pin title = Text(10, 10, "Fill the Holes", 20)
     pin level_label = Text(W/2, 10, "1/" ++ tostring(#MAP), 20)
@@ -87,7 +89,7 @@ task Play () {
         set t.s.ax, t.s.ay = (0.5, 0.5)
         sprite_reset(t.s, t.b, x + (IMG_BOX.fw / 2), y + (IMG_BOX.fh / 2))
         set t.s.sx, t.s.sy = (0.1, 0.1)
-        spawn @tweens Motion(t.s, [sx=1, sy=1], 1000, Ease.bounce_out)
+        spawn @tweens Motion(ctx, t.s, [sx=1, sy=1], 1000, Ease.bounce_out)
     }
 
     val func draw_level () {
@@ -102,7 +104,7 @@ task Play () {
         set expl.x, expl.y = (W/2, H - 35)
         set expl.s = TEXT@(level)
         set expl.sx, expl.sy = (0.1, 0.1)
-        spawn @tweens Motion(expl, [sx=1, sy=1], 1000, Ease.bounce_out)
+        spawn @tweens Motion(ctx, expl, [sx=1, sy=1], 1000, Ease.bounce_out)
     }
 
     val func clear_level () {
@@ -148,7 +150,7 @@ task Play () {
         var hit = false
         loop _, x in boxes.slots {
             if x.s.exists {
-                if collide_group(x.b, :wall) {
+                if collide_group(ctx, x.b, :wall) {
                     set hit = true
                 }
             }
@@ -159,7 +161,7 @@ task Play () {
         ;; overlap(boxes, holes): collide_box_hole
         loop _, x in boxes.slots {
             if x.s.exists {
-                loop _, hb in overlap_list(x.b, :hole) {
+                loop _, hb in overlap_list(ctx, x.b, :hole) {
                     val box, hole = (x.s, hb.spr)
                     if box.alive && hole.alive &&
                        (box.x > (hole.x - 15)) && (box.x < (hole.x + 15)) &&
@@ -171,7 +173,7 @@ task Play () {
                         set box.alive = false
                         set hole.alive = false
                         eng.play(SND_HIT, 0.3)
-                        spawn @tweens Motion(box, [sx=0.8, sy=0.8], 300)
+                        spawn @tweens Motion(ctx, box, [sx=0.8, sy=0.8], 300)
                     }
                 }
             }
@@ -182,10 +184,10 @@ task Play () {
             ;; clear_level2
             loop _, g in [boxes, walls, holes] {
                 loop _, x in g.slots {
-                    spawn @tweens Remove(x.s)
+                    spawn @tweens Remove(ctx, x.s)
                 }
             }
-            spawn @tweens Remove(expl)
+            spawn @tweens Remove(ctx, expl)
         }
         if (timer_end != 0) && (timer_end < eng.now()) {
             set timer_end = 0

@@ -23,8 +23,8 @@ func new_enemy () {
     (kind, x, y, tox, toy)
 }
 
-task Enemy (kind, x, y, tox, toy) {
-    val body = Body(do {
+task Enemy (ctx, kind, x, y, tox, toy) {
+    val body = Body(ctx, do {
         val spr = Sprite(IMG_ENEMY@kind, x, y)
         set spr.ax, spr.ay = (0.5, 0.5)
         angle_set(spr, 90 + ((math.atan2(y - toy, x - tox) * 180) / math.pi))
@@ -33,13 +33,13 @@ task Enemy (kind, x, y, tox, toy) {
     val spr = body.spr
     set pub = spr
     defer {
-        body_remove(body)
+        body_remove(ctx, body)
     }
     sprite_add(spr, :move)
     sprite_play(spr, :move, 5, true)
 
     par :any {
-        await Motion(spr, [x=tox, y=toy], 3000)
+        await Motion(ctx, spr, [x=tox, y=toy], 3000)
         await false                         ;; stays where it stopped
     } with {
         await :pre until !in_world(spr)     ;; outOfBoundsKill

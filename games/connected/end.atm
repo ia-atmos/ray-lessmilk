@@ -1,6 +1,8 @@
 ;; End: the score of the twenty moves; dots fall; a click plays again.
 
 task End () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin text = Text(W/2, H/2, "you ended your 20 turns\n\nyou scored: " ++ tostring(score) ++
                     "\nyour best score: " ++ tostring(best_score), 30, 0.5)
@@ -11,8 +13,8 @@ task End () {
     pin restart = Text(W/2, H - 50, "click anywhere to restart", 20)
     set restart.ax, restart.ay, restart.color = (0.5, 0.5, INK)
     set restart.angle = 0
-    spawn Swing(restart, 300)
-    pin emitter = Emitter(IMG_DOT, 100)
+    spawn Swing(ctx, restart, 300)
+    pin emitter = Emitter(ctx, IMG_DOT, 100)
     set emitter.x, emitter.y = (W/2, -200)
     spawn Emitter_run(emitter)
     emitter_start(emitter, false, 5000, 200)

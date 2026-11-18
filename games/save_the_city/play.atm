@@ -35,7 +35,7 @@ func key_of (c) {
 
 ;; a letter: it appears, waits to be fired, flies to the bomb, and dies when
 ;; it reaches it (or leaves the top of the screen)
-task Letter (t0, i, bomb) {
+task Letter (ctx, t0, i, bomb) {
     set Save.letters += 1
     defer {
         set Save.letters -= 1
@@ -43,10 +43,10 @@ task Letter (t0, i, bomb) {
     set pub = t0                            ;; the task owns its text
     val t = pub
     set t.alpha = 0
-    spawn Motion(t, [alpha=1], 200, nil, i * 20)
+    spawn Motion(ctx, t, [alpha=1], 200, nil, i * 20)
     await :fire until it.i == i
     eng.play(SND_FIRE, 0.2)
-    spawn Motion(t, [y=bomb.y - 20, x=W/2], (H - bomb.y) * 3)
+    spawn Motion(ctx, t, [y=bomb.y - 20, x=W/2], (H - bomb.y) * 3)
     await :update until ((t.y + 20) < 0) || ((t.alpha > 0) && ((t.y + 20) < Save.bomb_bottom))
     if (t.y + 20) >= 0 {
         ;; it reached the bomb, which goes up
@@ -57,27 +57,29 @@ task Letter (t0, i, bomb) {
 }
 
 ;; shake_effect: nine tweens of the group, chained, relative to where it is
-task Shake (g) {
+task Shake (ctx, g) {
     val m, t = (15, 50)
     loop _, d in [ [-m, t], [m*2, t*2], [-m, t],
                    [-m, t], [m*2, t*2], [-m, t],
                    [-m/2, t], [m, t*2], [-m/2, t] ] {
-        await Motion(g, [y=(if d@0 >= 0 => "+" => "") ++ tostring(d@0)], d@1)
+        await Motion(ctx, g, [y=(if d@0 >= 0 => "+" => "") ++ tostring(d@0)], d@1)
     }
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin city = Sprite(IMG_CITY, W/2, H - 55)
     set city.ax, city.ay = (0.5, 1)
-    val body = Body(do {
+    val body = Body(ctx, do {
         val bomb = Sprite(IMG_BOMB, W/2, -40)
         set bomb.ax, bomb.ay = (0.5, 0.5)
         bomb
     }, :bomb)
     val bomb = body.spr
     defer {
-        body_remove(body)
+        body_remove(ctx, body)
     }
     pin tuto = Text(W/2, (H/2) - 80, "use your keyboad\nto type the sentence below", 25, 0.5, FONT_MONO)
     set tuto.ax, tuto.ay = (0.5, 0.5)
@@ -97,7 +99,7 @@ task Play () {
     ;; after the letter)
     spawn {
         loop on :hit {
-            spawn @tweens Motion(bomb, [y="-20"], 50)
+            spawn @tweens Motion(ctx, bomb, [y="-20"], 50)
         }
     }
 
@@ -149,7 +151,7 @@ task Play () {
             val c = string.sub(s, i, i)
             if c != " " {
                 val offset = ((W - (#s * 13)) / 2) + (i * 13)
-                spawn @letters Letter(Text(offset, H - 40, c, 20, 0, FONT_MONO), i, bomb)
+                spawn @letters Letter(ctx, Text(offset, H - 40, c, 20, 0, FONT_MONO), i, bomb)
             }
         }
         set Save.level += 1
@@ -165,7 +167,7 @@ task Play () {
     var reset = false
     loop on :update {
         if (Save.level == 1) && (Save.i == 1) {
-            spawn @tweens Motion(tuto, [alpha=0], 500)
+            spawn @tweens Motion(ctx, tuto, [alpha=0], 500)
         }
         if string.sub(s, Save.i, Save.i) == " " {
             set Save.i += 1
@@ -190,26 +192,26 @@ task Play () {
     ;; end: the city is gone
     eng.play(SND_EXP, 0.3)
     set Save.dead = true
-    body_remove(body)
+    body_remove(ctx, body)
     abort letters
     set fin.exp = Sprite(IMG_EXPLOSION, W/2, H - 55)
     set fin.exp.ax, fin.exp.ay = (0.5, 1)
     set fin.exp.sx, fin.exp.sy = (0.3, 0.3)
     set fin.grp = [ y=0 ]
-    spawn @tweens Motion(fin.exp, [alpha=0], 2000, nil, 1500)
-    spawn @tweens Shake(fin.grp)
-    await Motion(fin.exp, [sx=1, sy=1], 500)
+    spawn @tweens Motion(ctx, fin.exp, [alpha=0], 2000, nil, 1500)
+    spawn @tweens Shake(ctx, fin.grp)
+    await Motion(ctx, fin.exp, [sx=1, sy=1], 500)
 
     ;; annimation_ended
     set city.frame = 1
     set fin.gone = Text(W/2, 100, "the city is gone. you saved " ++ tostring(Save.score) ++ " lives", 18, 0, FONT_MONO)
     set fin.gone.ax, fin.gone.ay = (0.5, 0)
     set fin.gone.alpha = 0
-    spawn @tweens Motion(fin.gone, [alpha=1], 1000, nil, 1000)
+    spawn @tweens Motion(ctx, fin.gone, [alpha=1], 1000, nil, 1000)
     set fin.button = Sprite(IMG_RESTART, W/2, 200)
     set fin.button.ax, fin.button.ay = (0.5, 0.5)
     set fin.button.alpha = 0
-    spawn @tweens Motion(fin.button, [alpha=1], 1000, nil, 2000)
+    spawn @tweens Motion(ctx, fin.button, [alpha=1], 1000, nil, 2000)
 
     ;; the fin.button: pressed and released over it
     loop {

@@ -4,6 +4,8 @@ pin IMG_TWEET = eng.image(A ++ "images/tweet.png")
 val SND_YEAH  = eng.sound(A ++ "sounds/yeah.mp3")
 
 task End () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     if score > best_score {
         set best_score = score
     }
@@ -19,13 +21,13 @@ task End () {
     pin tweet = Sprite(IMG_TWEET, (W/2) + 135, H - 50)
     set tweet.sx, tweet.sy = (0.8, 0.8)
     set tweet.ax, tweet.ay = (0.5, 0.5)
-    spawn Pulse(tweet, 0.85, 0.8, 300)
+    spawn Pulse(ctx, tweet, 0.85, 0.8, 300)
     val time = eng.now() + 500
     if level == 9 {
         eng.play(SND_YEAH, 0.5)
     }
     set World.alpha = 0
-    spawn Motion(World, [alpha=1], 1000)
+    spawn Motion(ctx, World, [alpha=1], 1000)
     spawn {
         loop on :rl.draw {
             rl.clear(BG)

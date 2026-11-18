@@ -4,7 +4,7 @@
 ;; A body belongs to a sprite. It has a box of the size of a frame, placed by
 ;; the anchor of the sprite, and the fields of Phaser.Physics.Arcade.Body:
 ;;
-;;      val b = Body(Sprite(img, x, y), :enemy)     ;; in Physics.bodies
+;;      val b = Body(ctx, spr, :enemy)  ;; in the bodies of the screen (Screen)
 ;;      val spr = b.spr                     ;; the sprite, which the body owns
 ;;      set b.vx = -300                     ;; px/s, as body.velocity.x
 ;;      set b.gy = 12                       ;; body.gravity.y
@@ -129,8 +129,6 @@ pin Physics = [
     elapsed = 0,            ;; game.time.elapsed, in ms
     dt = 0,                 ;; game.time.physicsElapsed, in seconds
     gx = 0, gy = 0,         ;; game.physics.gravity
-    bodies = [],            ;; the bodies, in the order they were created
-    qt = nil,               ;; the quadtree of the frame
 ]
 
 ;; camera.x and camera.y set (Camera in lib/sprite.atm): kept in the bounds of
@@ -191,10 +189,10 @@ func sprite_drawn (s) {
 ;; A body for the sprite, with the size of its frame, in a group (a tag, to
 ;; test overlaps against). It starts where the sprite is, and is in the
 ;; world only after its first preUpdate.
-func Body (spr, group) {
-    ;; Physics.bodies owns the body and its sprite (a new one): a body is in
-    ;; the list of all bodies, which outlives the screens
-    set Physics.bodies@+ = :Body [
+func Body (ctx, spr, group) {
+    ;; the bodies of the screen (ctx, lib/game.atm), in the order they were
+    ;; made; the screen owns them, and refers to its sprites
+    set ctx.bodies@+ = :Body [
         spr = spr,
         group = group,
         w = spr.img.fw * spr.sx, h = spr.img.fh * spr.sy,
@@ -220,15 +218,15 @@ func Body (spr, group) {
         allow = [ up=true, down=true, left=true, right=true ],  ;; allowCollision
         live = false,                   ;; in the quadtree of this frame
     ]
-    val b = Physics.bodies@(#Physics.bodies - 1)
+    val b = ctx.bodies@(#ctx.bodies - 1)
     sprite_drawn(b.spr)
     b
 }
 
-func body_remove (b) {
-    loop i, v in Physics.bodies {
+func body_remove (ctx, b) {
+    loop i, v in ctx.bodies {
         if v == b {
-            vector.remove(Physics.bodies, i)
+            vector.remove(ctx.bodies, i)
             break
         }
     }
@@ -306,10 +304,10 @@ func update_motion (b) {
 
 ;; Sprite.preUpdate and Body.preUpdate, for all bodies, in order; then the
 ;; quadtree of the frame, with the bodies that may collide
-func physics_pre () {
-    qt_clear()
+func physics_pre (ctx) {
+    qt_clear(ctx)
     var order = 0
-    loop _, b in Physics.bodies {
+    loop _, b in ctx.bodies {
         val s = b.spr
         ;; renderOrderID: the order of the sprites updated in this frame
         ifs {
@@ -367,7 +365,7 @@ func physics_pre () {
             }
             set b.live = !b.none && (s.visible != false) && (s.alive != false)
             if b.live {
-                qt_insert(Physics.qt, b)
+                qt_insert(ctx.qt, b)
             }
         } else {
             set b.live = false
@@ -376,8 +374,8 @@ func physics_pre () {
 }
 
 ;; Body.postUpdate, for all bodies of sprites that exist
-func physics_post () {
-    loop _, b in Physics.bodies {
+func physics_post (ctx) {
+    loop _, b in ctx.bodies {
         if b.spr.exists != false {
             val dx = b.x - b.px
             val dy = b.y - b.py
@@ -394,8 +392,8 @@ func physics_post () {
 
 ;; The render: the transforms drawn, which the next preUpdate reads; Pixi
 ;; does not update the transform of what is not visible
-func physics_draw () {
-    loop _, b in Physics.bodies {
+func physics_draw (ctx) {
+    loop _, b in ctx.bodies {
         if b.spr.visible != false {
             sprite_drawn(b.spr)
         }
@@ -428,8 +426,8 @@ func qt_node (x, y, w, h, level) {
     ]
 }
 
-func qt_clear () {
-    set Physics.qt = qt_node(Physics.x, Physics.y, Physics.w, Physics.h, 0)
+func qt_clear (ctx) {
+    set ctx.qt = qt_node(Physics.x, Physics.y, Physics.w, Physics.h, 0)
 }
 
 func qt_index (q, r) {
@@ -512,10 +510,10 @@ func overlap (a, b) {
 ;; physics.overlap(a, group) (overlapSpriteVsGroup): the bodies of the group
 ;; (a tag) in the quadtree of this frame that a overlaps, in the order of the
 ;; quadtree; a itself need not be in it
-func overlap_list (a, group) {
+func overlap_list (ctx, a, group) {
     val out = []
     pin found = []          ;; pinned: a fresh [] would not receive the bodies
-    loop _, b in qt_retrieve(Physics.qt, a, found) {
+    loop _, b in qt_retrieve(ctx.qt, a, found) {
         if (b.group == group) && (b != a) && overlap(a, b) {
             set out@+ = b
         }
@@ -524,8 +522,8 @@ func overlap_list (a, group) {
 }
 
 ;; the first of them, or nil
-func overlap_any (a, group) {
-    pin l = overlap_list(a, group)
+func overlap_any (ctx, a, group) {
+    pin l = overlap_list(ctx, a, group)
     if #l > 0 => l@0 => nil
 }
 
@@ -662,10 +660,10 @@ func in_world (s) {
 
 ;; collideSpriteVsGroup: the body against the bodies of a group (a tag) in
 ;; the quadtree, in its order; true if any was separated
-func collide_group (a, group) {
+func collide_group (ctx, a, group) {
     var any = false
     pin found = []          ;; pinned: a fresh [] would not receive the bodies
-    loop _, b in qt_retrieve(Physics.qt, a, found) {
+    loop _, b in qt_retrieve(ctx.qt, a, found) {
         if (b.group == group) && (b != a) {
             if collide(a, b) {
                 set any = true
@@ -679,10 +677,10 @@ func collide_group (a, group) {
 ;; dead, in slots, recycled with group_first_dead (getFirstExists(false)).
 ;; A sprite keeps what it had in its last life (its angle, its frame, the
 ;; size of its body, inWorld), as in Phaser.
-func Group (img, n, tag) {
+func Group (ctx, img, n, tag) {
     val g = :Group [ slots = [] ]
     loop _ in n {
-        val b = Body(Sprite(img, 0, 0), tag)
+        val b = Body(ctx, Sprite(img, 0, 0), tag)
         val s = b.spr
         set s.alive, s.exists, s.visible = (false, false, false)
         set g.slots@+ = [ s=s, b=b ]
@@ -691,9 +689,9 @@ func Group (img, n, tag) {
 }
 
 ;; the bodies of the group leave the physics (at the end of a state)
-func group_remove (g) {
+func group_remove (ctx, g) {
     loop _, x in g.slots {
-        body_remove(x.b)
+        body_remove(ctx, x.b)
     }
 }
 

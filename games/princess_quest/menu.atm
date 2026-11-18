@@ -6,18 +6,18 @@ pin IMG_MUTE     = eng.image(A ++ "images/mute.png", 28, 18)
 val SND_JUMP     = eng.sound(A ++ "sounds/jump.wav")
 
 ;; a swing of an angle, for ever: .to(1).to(-1).loop()
-task Swing (t, ms) {
+task Swing (ctx, t, ms) {
     loop {
-        await Motion(t, [angle=1], ms)
-        await Motion(t, [angle=-1], ms)
+        await Motion(ctx, t, [angle=1], ms)
+        await Motion(ctx, t, [angle=-1], ms)
     }
 }
 
 ;; the squash of a jump, then (onComplete) the jump: the scale is set again
 ;; to (1, 1) in the menu; in Play to (-1, 1) when scale.x is not 1, which it
 ;; never is after the tween (1.3 or -1.3): she always ends facing left
-task Squash (p, b, sx, flip) {
-    await Motion(p, [sy=0.7, sx=sx], 150)
+task Squash (ctx, p, b, sx, flip) {
+    await Motion(ctx, p, [sy=0.7, sx=sx], 150)
     if flip && (p.sx != 1) {
         set p.sx, p.sy = (-1, 1)
     } else {
@@ -27,6 +27,8 @@ task Squash (p, b, sx, flip) {
 }
 
 task Menu () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin keys = Cursor()
     pin t1 = Text(math.floor(W/2) + 0.5, 50, "Princess Quest", 40)
@@ -36,20 +38,20 @@ task Menu () {
         set t.ax, t.ay = (0.5, 0.5)
     }
     set t3.angle = 0
-    spawn Swing(t3, 300)
-    val pb = Body(Sprite(IMG_PRINCESS, W/2, (H/2) - 50), :princess)
+    spawn Swing(ctx, t3, 300)
+    val pb = Body(ctx, Sprite(IMG_PRINCESS, W/2, (H/2) - 50), :princess)
     val princess = pb.spr
     set pb.gy = 12
     set princess.ax, princess.ay = (0.5, 1)
     set princess.frame = 1
-    val lb = Body(Sprite(IMG_PLATFORM, W/2, (H/2) + 150), :platform)
+    val lb = Body(ctx, Sprite(IMG_PLATFORM, W/2, (H/2) + 150), :platform)
     val platform = lb.spr
     set platform.ax, platform.ay = (0.5, 0.5)
     set lb.immovable = true
     pin mute = Sprite(IMG_MUTE, W - 70, 42)
     defer {
-        body_remove(pb)
-        body_remove(lb)
+        body_remove(ctx, pb)
+        body_remove(ctx, lb)
     }
     pin tweens = tasks()
     spawn {
@@ -66,7 +68,7 @@ task Menu () {
     loop on :update {
         collide(pb, lb)
         if pb.touching.down && (princess.sy == 1) {
-            spawn @tweens Squash(princess, pb, 1.3, false)
+            spawn @tweens Squash(ctx, princess, pb, 1.3, false)
         }
         until cursor_down(keys, 'UP') || pointer_down()
     }

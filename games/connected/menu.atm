@@ -15,10 +15,10 @@ func contains (b, x, y) {
 }
 
 ;; a swing of an angle, for ever: .to(1).to(-1).loop()
-task Swing (t, ms) {
+task Swing (ctx, t, ms) {
     loop {
-        await Motion(t, [angle=1], ms)
-        await Motion(t, [angle=-1], ms)
+        await Motion(ctx, t, [angle=1], ms)
+        await Motion(ctx, t, [angle=-1], ms)
     }
 }
 
@@ -39,6 +39,8 @@ task Button (s) {
 }
 
 task Menu () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin title = Text(W/2, 50, "connected", 30)
     pin start = Text(W/2, H - 50, "connect the two dots to start", 20)
@@ -46,18 +48,18 @@ task Menu () {
         set t.ax, t.ay, t.color = (0.5, 0.5, INK)
     }
     set start.angle = 0
-    val b1 = Body(Sprite(IMG_DOT, (W/2) - 25, H/2), :dot)
-    val b2 = Body(Sprite(IMG_DOT, (W/2) + 25, H/2), :dot)
+    val b1 = Body(ctx, Sprite(IMG_DOT, (W/2) - 25, H/2), :dot)
+    val b2 = Body(ctx, Sprite(IMG_DOT, (W/2) + 25, H/2), :dot)
     val dot1, dot2 = (b1.spr, b2.spr)
     loop _, d in [dot1, dot2] {
         set d.ax, d.ay = (0.5, 0.5)
     }
     pin snd_btn = Sprite(IMG_SOUND, W - 70, 40)
     defer {
-        body_remove(b1)
-        body_remove(b2)
+        body_remove(ctx, b1)
+        body_remove(ctx, b2)
     }
-    spawn Swing(start, 300)
+    spawn Swing(ctx, start, 300)
     spawn {
         loop {
             await Button(snd_btn)

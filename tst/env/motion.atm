@@ -9,23 +9,26 @@ include "../../lib/game.atm"
 rl.window [title="motion", width=100, height=100]
 spawn Game(100, 100)
 
+pin ctx = Screen()
+spawn Screen_run(ctx)
+
 pin a = [x=0, y=100]
 pin b = [s=0]
 pin c = [angle=0]
 
 spawn {
-    await Motion(a, [x=100, y=0], 100)
+    await Motion(ctx, a, [x=100, y=0], 100)
     print(rl.frame(), "a done")
 }
 spawn {
-    await Motion(b, [s=1], 200, Ease.bounce_out)
+    await Motion(ctx, b, [s=1], 200, Ease.bounce_out)
     print(rl.frame(), "b done")
 }
 spawn {
     await Wait(50)                      ;; a wait of 50 ms in the updates
     loop _ in 2 {                       ;; .to(1).to(-1), twice
-        await Motion(c, [angle=1], 50)
-        await Motion(c, [angle=-1], 50)
+        await Motion(ctx, c, [angle=1], 50)
+        await Motion(ctx, c, [angle=-1], 50)
     }
     print(rl.frame(), "c done")
 }

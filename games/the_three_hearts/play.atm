@@ -21,12 +21,14 @@ val SND_HEART  = eng.sound(A ++ "sounds/heart.wav")
 val SND_DEAD   = eng.sound(A ++ "sounds/dead.wav")
 
 ;; a door that opens: it shrinks, then is killed
-task Open (d) {
-    await Motion(d, [sx=0, sy=0], 300)
+task Open (ctx, d) {
+    await Motion(ctx, d, [sx=0, sy=0], 300)
     set d.alive, d.exists, d.visible = (false, false, false)
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
 
     ;; load_map: the tiles; the world of 48 x 40 tiles
@@ -117,18 +119,18 @@ task Play () {
     val func open_door (id) {
         loop _, d in doors.kids {
             if d.key_id == id {
-                spawn @tweens Open(d)
+                spawn @tweens Open(ctx, d)
             }
         }
     }
 
     ;; the death: the screen goes dark, then the player is back at the start
     val task Death () {
-        await Motion(dead, [alpha=1], 100)
+        await Motion(ctx, dead, [alpha=1], 100)
         sprite_reset201(player, W/2, 80)
         set Camera.x, Camera.y = (0, 0)         ;; camera.reset()
         set st.cx, st.cy = (0, 0)
-        spawn @tweens Motion(dead, [alpha=0], 1200)
+        spawn @tweens Motion(ctx, dead, [alpha=0], 1200)
         set player.alive = true
     }
     val func player_dead () {
@@ -163,15 +165,15 @@ task Play () {
         val l = labels@(#labels - 1)
         set l.ax, l.ay = (0.5, 0.5)
         set l.sx, l.sy = (0, 0)
-        spawn @tweens Motion(l, [sx=1, sy=1], 1500, Ease.bounce_out)
+        spawn @tweens Motion(ctx, l, [sx=1, sy=1], 1500, Ease.bounce_out)
         ;; the emitter of hearts is not ported (no run reaches it)
     }
 
     val func take_heart (h) {
         if h.alive {
             set h.alive = false
-            spawn @tweens Motion(h, [sx=2, sy=2], 200)
-            spawn @tweens Motion(h, [alpha=0], 300)
+            spawn @tweens Motion(ctx, h, [sx=2, sy=2], 200)
+            spawn @tweens Motion(ctx, h, [alpha=0], 300)
             if sound {
                 eng.play(SND_HEART, 0.3)
             }
@@ -193,7 +195,7 @@ task Play () {
     }
 
     val task Slide () {
-        await Motion(Camera, [x=st.cx * W, y=st.cy * H], 600)
+        await Motion(ctx, Camera, [x=st.cx * W, y=st.cy * H], 600)
         set st.tween = false
     }
     val func camera_movements () {

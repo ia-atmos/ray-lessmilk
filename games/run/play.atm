@@ -5,12 +5,21 @@ pin IMG_PLAYER = eng.image(A ++ "images/player.png", 20, 24)
 val SND_HIT = eng.sound(A ++ "sounds/hit.wav")
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
+    ;; [trace]
+    spawn {
+        loop on :trace {
+            set Trace.line = trace(ctx)
+        }
+    }
+    ;; [/trace]
     pin keys = Cursor()
-    val body = Body(Sprite(IMG_PLAYER, W/2, H/2), :player)
+    val body = Body(ctx, Sprite(IMG_PLAYER, W/2, H/2), :player)
     val player = body.spr
     set body.world = true
     defer {
-        body_remove(body)
+        body_remove(ctx, body)
     }
     sprite_add(player, :bottom, [0, 1], 10, true)
     sprite_add(player, :top,    [4, 5], 10, true)
@@ -47,7 +56,7 @@ task Play () {
     ;; the arrows: the label fades at the first UP (the flag firstKey)
     spawn {
         await :update until cursor_down(keys, 'UP')
-        await Motion(label_keys, [alpha=0], 800)
+        await Motion(ctx, label_keys, [alpha=0], 800)
     }
 
     ;; the arrows: a level, polled in each update, in the order of the original
@@ -68,7 +77,7 @@ task Play () {
     spawn {
         await :update
         loop {
-            spawn @enemies Enemy(new_enemy())
+            spawn @enemies Enemy(ctx, new_enemy())
             await Wait(500)
         }
     }
@@ -84,24 +93,24 @@ task Play () {
     }
 
     ;; physics.overlap(player, enemies): the end of the game
-    await :overlap until overlap_any(body, :enemy)
+    await :overlap until overlap_any(ctx, body, :enemy)
     score
 }
 
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/1.js
-func trace () {
+func trace (ctx) {
     val f = rl.frame()
-    if screen == "Play" {
+    if ctx {
         var n, sx, sy = (0, 0, 0)
-        loop _, b in Physics.bodies {
+        loop _, b in ctx.bodies {
             if b.group == :enemy {
                 set n += 1
                 set sx += b.spr.x
                 set sy += b.spr.y
             }
         }
-        val p = Physics.bodies@0
+        val p = ctx.bodies@0
         tostring(f) ++ " Play " ++ tostring(score) ++ " " ++
             eng.fixed(p.spr.x, 2) ++ " " ++ eng.fixed(p.spr.y, 2) ++ " " ++
             tostring(n) ++ " " ++ eng.fixed(sx, 2) ++ " " ++ eng.fixed(sy, 2)

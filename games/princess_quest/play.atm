@@ -27,10 +27,12 @@ func level_of (s) {
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     set Physics.x, Physics.y, Physics.w, Physics.h = (0, -100000, W, H + 100000)   ;; world.setBounds
     pin keys = Cursor()
-    pin clouds = Group(IMG_CLOUD, 6, :cloud)
+    pin clouds = Group(ctx, IMG_CLOUD, 6, :cloud)
     loop _, x in clouds.slots {
         set x.s.oob_kill = true
     }
@@ -38,26 +40,26 @@ task Play () {
         set best_score = score
     }
     set score = 0
-    pin platforms = Group(IMG_PLATFORM, 15, :platform)
+    pin platforms = Group(ctx, IMG_PLATFORM, 15, :platform)
     loop _, x in platforms.slots {
         set x.b.immovable = true
         set x.b.allow.down, x.b.allow.right, x.b.allow.left = (false, false, false)
     }
-    pin hearts = Group(IMG_HEART, 3, :heart)
-    pin spikes = Group(IMG_SPIKE, 5, :spike)
-    pin emitter = Emitter(IMG_HEART, 100)
+    pin hearts = Group(ctx, IMG_HEART, 3, :heart)
+    pin spikes = Group(ctx, IMG_SPIKE, 5, :spike)
+    pin emitter = Emitter(ctx, IMG_HEART, 100)
     set emitter.x = -100
     set emitter.on = false
     set emitter.gravity = 10
     emitter_start(emitter, false, 1000, 15, 0)
     set emitter.w = 50
     spawn Emitter_run(emitter)
-    val pb = Body(Sprite(IMG_PRINCESS, (W/2) + 100, H - 200), :princess)
+    val pb = Body(ctx, Sprite(IMG_PRINCESS, (W/2) + 100, H - 200), :princess)
     val princess = pb.spr
     set pb.gy = 12
     set princess.ax, princess.ay = (0.5, 1)
     set princess.alive = true
-    val gb = Body(do {
+    val gb = Body(ctx, do {
         val ground = Sprite(IMG_GROUND, 0, H - 56)
         set ground.sx, ground.sy = (15, 1)
         ground
@@ -69,12 +71,12 @@ task Play () {
     pin score_label = Text(10, 10, "0", 20)
     eng.play(SND_MUSIC, 0.2)
     defer {
-        group_remove(clouds)
-        group_remove(platforms)
-        group_remove(hearts)
-        group_remove(spikes)
-        body_remove(pb)
-        body_remove(gb)
+        group_remove(ctx, clouds)
+        group_remove(ctx, platforms)
+        group_remove(ctx, hearts)
+        group_remove(ctx, spikes)
+        body_remove(ctx, pb)
+        body_remove(ctx, gb)
     }
     var next_platform, next_cloud = (10, 50)
     var took_heart = false
@@ -193,8 +195,8 @@ task Play () {
             if ground.alive {
                 collide(pb, gb)
             }
-            collide_group(pb, :platform)
-            loop _, hb in overlap_list(pb, :heart) {
+            collide_group(ctx, pb, :platform)
+            loop _, hb in overlap_list(ctx, pb, :heart) {
                 ;; take_heart
                 sprite_kill(hb.spr)
                 if sound { eng.play(SND_HEART, 0.2) }
@@ -202,7 +204,7 @@ task Play () {
                 set pb.vy = -1200
                 set took_heart = true
             }
-            loop _, sb in overlap_list(pb, :spike) {
+            loop _, sb in overlap_list(ctx, pb, :spike) {
                 ;; take_spike
                 if !took_heart {
                     if sound { eng.play(SND_HIT, 0.4) }
@@ -254,7 +256,7 @@ task Play () {
         }
         if pb.touching.down && (princess.sy == 1) {
             if sound { eng.play(SND_JUMP, 0.15) }
-            spawn @tweens Squash(princess, pb, if princess.sx == 1 => 1.3 => -1.3, true)
+            spawn @tweens Squash(ctx, princess, pb, if princess.sx == 1 => 1.3 => -1.3, true)
         }
         set pb.vx = 0
         val touch_right = pointer_down() && (rl.mouse_x() > (W/2))

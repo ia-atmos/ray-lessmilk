@@ -4,6 +4,8 @@ pin IMG_ZOOM = eng.image(A ++ "images/princess_zoom.png")
 val SND_DEAD = eng.sound(A ++ "sounds/dead.wav")
 
 task Dead () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin keys = Cursor()
     pin t1 = Text(math.floor(W/2) + 0.5, 50, "oh no, you died", 40)
@@ -15,11 +17,11 @@ task Dead () {
         set t.ax, t.ay = (0.5, 0.5)
     }
     set t3.angle = 0
-    spawn Swing(t3, 300)
+    spawn Swing(ctx, t3, 300)
     pin zoom = Sprite(IMG_ZOOM, W/2, H + H)
     set zoom.ax, zoom.ay = (0.5, 1)
-    spawn Motion(t4, [y=300], 2000, Ease.bounce_out)
-    spawn Motion(zoom, [y=H], 2000, Ease.bounce_out)
+    spawn Motion(ctx, t4, [y=300], 2000, Ease.bounce_out)
+    spawn Motion(ctx, zoom, [y=H], 2000, Ease.bounce_out)
     if sound { eng.play(SND_DEAD, 0.3) }
     spawn {
         loop on :rl.draw {

@@ -14,15 +14,13 @@
 ;; The pointer is over a sprite if it is in its frame, unscaled, in the
 ;; transform drawn in the last frame (getLocalUnmodifiedPosition).
 
-pin Inputs = [ items = [] ]
-
-func input_enable (s) {
+func input_enable (ctx, s) {
     set s.input = [ down = false ]
-    set Inputs.items@+ = s
+    set ctx.inputs@+ = s
 }
 
-func input_disable_all () {
-    set Inputs.items = []
+func input_disable_all (ctx) {
+    vector.clear(ctx.inputs)
 }
 
 ;; InputHandler.checkPointerOver
@@ -34,13 +32,13 @@ func input_over (s, px, py) {
     (lx >= 0) && (lx <= s.img.fw) && (ly >= 0) && (ly <= s.img.fh)
 }
 
-task Input_run () {
+task Input_run (ctx) {
     spawn {
         loop e on :rl.mouse.dn {
             if e.button == 0 {
                 ;; Pointer.move: the sprite on top under the pointer
                 var top, prio, ord = (nil, -1, -1)
-                loop _, s in Inputs.items {
+                loop _, s in ctx.inputs {
                     if ((0 > prio) || ((s.render_order || -1) > ord)) && input_over(s, e.x, e.y) {
                         set top, prio, ord = (s, 0, s.render_order || -1)
                     }
@@ -56,7 +54,7 @@ task Input_run () {
     loop e on :rl.mouse.up {
         if e.button == 0 {
             ;; Pointer.stop: _releasedHandler of every sprite
-            loop _, s in Inputs.items {
+            loop _, s in ctx.inputs {
                 if s.input.down {
                     set s.input.down = false
                     if input_over(s, e.x, e.y) {

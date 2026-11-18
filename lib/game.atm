@@ -116,6 +116,45 @@ task Every (ms, f) {
 ;; The tweens that a state starts in its create move from the next frame
 ;; (they are added at the end of the pass of the same frame): for the state
 ;; created before frame 1, Game adds them before the pass of frame 1.
+;; Screen(): the context of a screen, which its task pins: what lives for
+;; one screen and that Phaser kept in lists of the game (its bodies, its
+;; tweens, its sprites that take the mouse, its quadtree). Screen_run(ctx),
+;; spawned by the screen, does for it, at the points of the frame that Game
+;; marks with events (:w.tweens, :w.pre, :w.post), what Phaser did for its
+;; lists.
+;;
+;;      pin ctx = Screen()
+;;      spawn Screen_run(ctx)
+func Screen () {
+    :Screen [ bodies = [], qt = nil, tweens = [ list = [], add = [] ], inputs = [] ]
+}
+
+task Screen_run (ctx) {
+    spawn Input_run(ctx)
+    spawn {
+        loop on :w.merge {
+            loop _, r in ctx.tweens.add {
+                set ctx.tweens.list@+ = r
+            }
+            vector.clear(ctx.tweens.add)
+        }
+    }
+    spawn {
+        loop on :w.tweens {
+            tweens_pass(ctx)
+        }
+    }
+    spawn {
+        loop on :w.pre {
+            physics_pre(ctx)
+        }
+    }
+    loop on :w.post {
+        physics_post(ctx)
+        physics_draw(ctx)
+    }
+}
+
 task Game (w, h, ver) {
     set Physics.x, Physics.y = (0, 0)
     set Physics.w = w
@@ -136,7 +175,6 @@ task Game (w, h, ver) {
             }
         }
     }
-    spawn Input_run()
     var prev = eng.now()
     loop on :rl.frame {
         set Keys.frame += 1
@@ -150,7 +188,7 @@ task Game (w, h, ver) {
                 set Physics.dt = 0.05               ;; Time.update clamps it
             }
             emit @:global :pre                      ;; world.preUpdate (body6_pre)
-            tweens_pass()
+            emit @:global :w.tweens
             emit @:global :update                   ;; state.update
             emit @:global :post                     ;; world.postUpdate, camera
             emit @:global :render                   ;; the transforms drawn
@@ -161,25 +199,21 @@ task Game (w, h, ver) {
             emit @:global :state
             emit @:global :pre
             if Keys.frame == 1 {
-                loop _, r in Tweens.add {
-                    set Tweens.list@+ = r
-                }
-                vector.clear(Tweens.add)
+                emit @:global :w.merge
             }
-            tweens_pass()
+            emit @:global :w.tweens
             emit @:global :update
             emit @:global :post                     ;; stage.postUpdate
             emit @:global :render
             skip
         }
-        tweens_pass()
+        emit @:global :w.tweens
         emit @:global :pre
-        physics_pre()
+        emit @:global :w.pre
         emit @:global :particles
         emit @:global :update
         emit @:global :overlap
-        physics_post()
-        physics_draw()
+        emit @:global :w.post
     }
 }
 

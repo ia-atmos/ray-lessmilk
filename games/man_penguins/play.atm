@@ -31,10 +31,10 @@ pin PLATFORMS = [
 pin WALLS = [ [0, 0, 0, 0, 1, 17.5], [W, 0, 1, 0, 1, 17.5] ]
 
 ;; a group made with group.create, of sprites that exist
-func Bricks (list, tag) {
+func Bricks (ctx, list, tag) {
     val g = :Group [ slots = [] ]
     loop _, d in list {
-        val b = Body(Sprite(IMG_BRICK, d@0, d@1), tag)
+        val b = Body(ctx, Sprite(IMG_BRICK, d@0, d@1), tag)
         val s = b.spr
         set s.ax, s.ay, s.sx, s.sy = (d@2, d@3, d@4, d@5)
         set b.immovable = true
@@ -45,29 +45,31 @@ func Bricks (list, tag) {
 }
 
 ;; shakeScreen: the camera, in y and in x, three tweens each, chained
-task Shake (k, i, t) {
-    await Motion(Camera, [@(k)=i], t)
-    await Motion(Camera, [@(k)=-i], t)
-    await Motion(Camera, [@(k)=0], t)
+task Shake (ctx, k, i, t) {
+    await Motion(ctx, Camera, [@(k)=i], t)
+    await Motion(ctx, Camera, [@(k)=-i], t)
+    await Motion(ctx, Camera, [@(k)=0], t)
 }
 
 ;; playerDie: the man falls; then (onComplete) playerInit
-task Fall (p) {
-    await Motion(p, [y=H+10], 500)
+task Fall (ctx, p) {
+    await Motion(ctx, p, [y=H+10], 500)
     set p.x, p.y = (W/2, H/2)
     set p.alive = true
 }
 
 ;; enemyDie: the penguin flattens, then dies
-task Flatten (e) {
-    await Motion(e, [sy=0], 150)
+task Flatten (ctx, e) {
+    await Motion(ctx, e, [sy=0], 150)
     sprite_kill(e)
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     set Physics.x, Physics.y, Physics.w, Physics.h = (-50, -50, 800, 800)     ;; world.setBounds
     pin keys = Cursor()
-    val pbody = Body(Sprite(IMG_PLAYER, W/2, H/2), :player)
+    val pbody = Body(ctx, Sprite(IMG_PLAYER, W/2, H/2), :player)
     val player = pbody.spr
     set pbody.gy = 12
     set player.ax, player.ay = (0.5, 0.5)
@@ -75,12 +77,12 @@ task Play () {
     sprite_add(player, :walk, [1, 2], 6, true)
     var jump_count = 1
 
-    pin enemies = Group(IMG_ENEMY, 40, :enemy)
+    pin enemies = Group(ctx, IMG_ENEMY, 40, :enemy)
     loop _, x in enemies.slots {
         set x.s.oob_kill = true
     }
 
-    val cbody = Body(Sprite(IMG_COIN, 150, H/2), :coin)
+    val cbody = Body(ctx, Sprite(IMG_COIN, 150, H/2), :coin)
     val coin = cbody.spr
     set cbody.gy, cbody.by = (10, 0.3)
     set coin.ax, coin.ay = (0.5, 0.5)
@@ -96,15 +98,15 @@ task Play () {
     var half = 1
     var enemy_time = 0
     eng.play(SND_MUSIC, 0.3)
-    pin platforms = Bricks(PLATFORMS, :platform)
-    pin walls     = Bricks(WALLS, :wall)
+    pin platforms = Bricks(ctx, PLATFORMS, :platform)
+    pin walls     = Bricks(ctx, WALLS, :wall)
     pin tweens = tasks()
     defer {
-        group_remove(enemies)
-        group_remove(platforms)
-        group_remove(walls)
-        body_remove(pbody)
-        body_remove(cbody)
+        group_remove(ctx, enemies)
+        group_remove(ctx, platforms)
+        group_remove(ctx, walls)
+        body_remove(ctx, pbody)
+        body_remove(ctx, cbody)
     }
 
     ;; [trace]
@@ -141,12 +143,12 @@ task Play () {
     }
 
     val func shake (i, t) {
-        spawn @tweens Shake("y", i, t)
-        spawn @tweens Shake("x", i, t)
+        spawn @tweens Shake(ctx, "y", i, t)
+        spawn @tweens Shake(ctx, "x", i, t)
     }
 
     val func enemy_die (e, all) {
-        spawn @tweens Flatten(e)
+        spawn @tweens Flatten(ctx, e)
         set e.alive = false
         if !all {
             eng.play(SND_KILL, 0.15)
@@ -159,14 +161,14 @@ task Play () {
         if player.alive {
             eng.play(SND_DEAD, 0.1)
             set player.alive = false
-            spawn @tweens Fall(player)
-            spawn @tweens Motion(player, [angle=360], 500)
+            spawn @tweens Fall(ctx, player)
+            spawn @tweens Motion(ctx, player, [angle=360], 500)
             ;; updateBestScore
             if best < score {
                 set best = score
                 set label_best.s = "best: " ++ tostring(best)
                 set label_best.sx, label_best.sy = (2, 2)
-                spawn @tweens Motion(label_best, [sx=1, sy=1], 300)
+                spawn @tweens Motion(ctx, label_best, [sx=1, sy=1], 300)
             }
             set score = 0
             set label_score.s = "score: 0"
@@ -202,24 +204,24 @@ task Play () {
     ;; flags oneCoin and oneKill, and the label's alive, of the original)
     spawn {
         await <:coin && :kill>
-        spawn @tweens Motion(label_tuto, [alpha=0], 1000)
+        spawn @tweens Motion(ctx, label_tuto, [alpha=0], 1000)
     }
 
     ;; the update, in the order of the original
     loop on :update {
-        collide_group(pbody, :platform)
-        collide_group(pbody, :wall)
+        collide_group(ctx, pbody, :platform)
+        collide_group(ctx, pbody, :wall)
         loop _, x in enemies.slots {
             if x.s.exists {
-                collide_group(x.b, :platform)
+                collide_group(ctx, x.b, :platform)
             }
         }
-        collide_group(cbody, :platform)
+        collide_group(ctx, cbody, :platform)
 
         ;; overlap(enemies, walls): the penguin turns at a wall
         loop _, x in enemies.slots {
             if x.s.exists {
-                loop _, wb in overlap_list(x.b, :wall) {
+                loop _, wb in overlap_list(ctx, x.b, :wall) {
                     val e = x.s
                     set x.b.vx *= -1
                     if e.x < (H/2) {
@@ -234,7 +236,7 @@ task Play () {
         }
 
         ;; overlap(player, enemies): a jump on a penguin, or a death
-        loop _, eb in overlap_list(pbody, :enemy) {
+        loop _, eb in overlap_list(ctx, pbody, :enemy) {
             val e = eb.spr
             pin pc = sprite_corners(player)
             pin ec = sprite_corners(e)

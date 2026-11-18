@@ -34,9 +34,6 @@
 ;;          await Motion(label, [angle=-1], 500)
 ;;      }
 
-;; the list of tweens, and the tweens added in this pass
-pin Tweens = [ list = [], add = [] ]
-
 ;; The easings that the originals use. The same formulas are in reasings.h of
 ;; raylib, but in 32-bit floats: here they are in doubles, as in JavaScript,
 ;; so that the positions are the same as the originals'.
@@ -69,59 +66,74 @@ pin Ease = [
 ;;
 ;; A value given as a string, as "-20" or "+30", is relative to the value at
 ;; the start, as in Phaser. `ms` is `ms || 1000`, as in Phaser.
-task Motion (obj, to, ms, ease, delay) {
-    set pub = [ stop = false ]              ;; set pub.stop = true: tween.pause()
-    val f, dur = (ease || Ease.linear, ms || 1000)
-    val t0 = eng.now() + (delay || 0)
-    pin from = []
-    pin end = []
+;;
+;; The tweens of a screen are in its context (`ctx`, lib/game.atm), which
+;; the screen owns, with the objects that they move.
+;; the numbers of the tweens: an event cannot carry what a screen owns
+pin Tween_ids = [ next = 0 ]
+
+task Motion (ctx, obj, to, ms, ease, delay) {
+    set ctx.tweens.add@+ = :Tween [         ;; TweenManager.add
+        obj = obj, f = ease || Ease.linear, dur = ms || 1000,
+        t0 = eng.now() + (delay || 0),
+        from = [], end = [],
+        stop = false,                       ;; set pub.stop = true: tween.pause()
+        dead = false,
+        id = Tween_ids.next,                ;; for :tween.done, which is global
+    ]
+    set Tween_ids.next += 1
+    val r = ctx.tweens.add@(#ctx.tweens.add - 1)
+    set pub = r
     loop k, v in to {
-        set from@k = prop_get(obj, k)
-        set end@k = if type(v) == "string" => from@k + tonumber(v) => v
+        set r.from@k = prop_get(obj, k)
+        set r.end@k = if type(v) == "string" => r.from@k + tonumber(v) => v
     }
-    ;; the record, in the list of the manager (TweenManager.add): the list
-    ;; is global and the object is not, so the record only marks the place
-    ;; of this tween in the list, and the pass asks the task to move
-    set Tweens.add@+ = :Tween [ dead = false ]
-    val r = Tweens.add@(#Tweens.add - 1)
     defer {
         set r.dead = true                   ;; pendingDelete
     }
-    ;; Tween.update, in each pass: it ends when the tween reaches its end
-    loop {
-        val now = (await :tween.step until it.r == r).now
-        if !pub.stop && (now >= t0) {     ;; paused, or in its delay
-            val t = (now - t0) / dur
+    await :tween.done until it.id == r.id
+}
+
+;; Tween.update: false when the tween is over (or deleted)
+func tween_update (r, now) {
+    ifs {
+        r.dead => false
+        r.stop || (now < r.t0) => true      ;; paused, or in its delay
+        else => {
+            val t = (now - r.t0) / r.dur
             val e = if t > 1 => 1 => t
-            val v = f(e)
-            loop k, x in end {
-                prop_set(obj, k, from@k + ((x - from@k) * v))
+            val v = r.f(e)
+            loop k, x in r.end {
+                prop_set(r.obj, k, r.from@k + ((x - r.from@k) * v))
             }
-            until e == 1                    ;; onComplete
+            if e == 1 {
+                set r.dead = true
+                emit @:global :tween.done [id=r.id] ;; onComplete
+                false
+            } else {
+                true
+            }
         }
     }
 }
 
 ;; TweenManager.update: the tweens in order, then the new ones at the end
-func tweens_pass () {
+func tweens_pass (ctx) {
+    val tw = ctx.tweens
     val now = eng.now()
     var i = 0
-    var n = #Tweens.list
+    var n = #tw.list
     loop {
         while i < n
-        val r = Tweens.list@i
-        if !r.dead {
-            emit @:global :tween.step [r=r, now=now]
-        }
-        if r.dead {
-            vector.remove(Tweens.list, i)
-            set n -= 1
-        } else {
+        if tween_update(tw.list@i, now) {
             set i += 1
+        } else {
+            vector.remove(tw.list, i)
+            set n -= 1
         }
     }
-    loop _, r in Tweens.add {
-        set Tweens.list@+ = r
+    loop _, r in tw.add {
+        set tw.list@+ = r
     }
-    vector.clear(Tweens.add)
+    vector.clear(tw.add)
 }

@@ -33,14 +33,16 @@ func push_box (s, b, px, py) {
 }
 
 ;; a pulse of a scale, for ever: .to(big).to(1).loop()
-task Pulse (o, big, ms) {
+task Pulse (ctx, o, big, ms) {
     loop {
-        await Motion(o, [sx=big, sy=big], ms)
-        await Motion(o, [sx=1, sy=1], ms)
+        await Motion(ctx, o, [sx=big, sy=big], ms)
+        await Motion(ctx, o, [sx=1, sy=1], ms)
     }
 }
 
 task Menu () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin title = Text((W/2) + 0.5, 50, "Fill the Holes", 50)
     pin expl = Text((W/2) + 0.5, (H - 30) + 0.5, "click on the box above to start", 20, 0.5)
@@ -49,15 +51,15 @@ task Menu () {
     }
     pin arrows = Sprite(IMG_ARROWS, W/2, H/2)
     set arrows.ax, arrows.ay = (0.5, 0.5)
-    spawn Pulse(arrows, 1.2, 1000)
-    val body = Body(Sprite(IMG_BOX, W/2, H/2), :box)
+    spawn Pulse(ctx, arrows, 1.2, 1000)
+    val body = Body(ctx, Sprite(IMG_BOX, W/2, H/2), :box)
     val box = body.spr
-    input_enable(box)
+    input_enable(ctx, box)
     set box.ax, box.ay = (0.5, 0.5)
     set box.oob_signal = true
     defer {
-        body_remove(body)
-        input_disable_all()
+        body_remove(ctx, body)
+        input_disable_all(ctx, ctx)
     }
     spawn {
         loop on :rl.draw {
@@ -71,7 +73,7 @@ task Menu () {
     spawn {
         loop e on :input.up {
             if e.s == box {
-                spawn Motion(arrows, [alpha=0], 400)
+                spawn Motion(ctx, arrows, [alpha=0], 400)
                 push_box(box, body, rl.mouse_x(), rl.mouse_y())
             }
         }

@@ -18,37 +18,39 @@ func rand (n) {
 }
 
 ;; a tween of the player down and back, chained
-task Bump (p, y0, dy, ms) {
-    await Motion(p, [y=y0 + dy], ms)
-    await Motion(p, [y=y0], ms)
+task Bump (ctx, p, y0, dy, ms) {
+    await Motion(ctx, p, [y=y0 + dy], ms)
+    await Motion(ctx, p, [y=y0], ms)
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     pin keys = Cursor()
     val player_y = H - 70
     var lives, evolution = (3, 1)
     set score = 0
 
-    pin enemies = Group(IMG_ENEMY, 25, :enemy)
-    pin fires   = Group(IMG_FIRE, 25, :fire)
-    pin bonuses = Group(IMG_BONUS, 3, :bonus)
-    pin bullets = Group(IMG_BULLET, 25, :bullet)
+    pin enemies = Group(ctx, IMG_ENEMY, 25, :enemy)
+    pin fires   = Group(ctx, IMG_FIRE, 25, :fire)
+    pin bonuses = Group(ctx, IMG_BONUS, 3, :bonus)
+    pin bullets = Group(ctx, IMG_BULLET, 25, :bullet)
     loop _, g in [enemies, fires, bonuses, bullets] {
         loop _, x in g.slots {
             set x.s.oob_kill = true
         }
     }
-    val pbody = Body(Sprite(IMG_PLAYER, W/2, player_y), :player)
+    val pbody = Body(ctx, Sprite(IMG_PLAYER, W/2, player_y), :player)
     val player = pbody.spr
     set pbody.world = true
     defer {
         loop _, g in [enemies, fires, bonuses, bullets] {
-            group_remove(g)
+            group_remove(ctx, g)
         }
-        body_remove(pbody)
+        body_remove(ctx, pbody)
     }
 
-    pin emitter = Emitter(IMG_PIXEL, 200)
+    pin emitter = Emitter(ctx, IMG_PIXEL, 200)
     set emitter.gravity = 0
     spawn Emitter_run(emitter)
 
@@ -119,7 +121,7 @@ task Play () {
                 one_fire(player.x + pw, player.y)
             }
         }
-        spawn @tweens Bump(player, player_y, 5, 50)
+        spawn @tweens Bump(ctx, player, player_y, 5, 50)
     }
 
     ;; the arrows, polled in each update
@@ -182,7 +184,7 @@ task Play () {
             sprite_reset(x.s, x.b, rand(W - IMG_BONUS.fw) + (IMG_BONUS.fw / 2), -IMG_BONUS.fh / 2)
             set x.b.vy = 150
             set x.s.ax, x.s.ay = (0.5, 0.5)
-            spawn @tweens Motion(x.s, [angle=360], 3500)
+            spawn @tweens Motion(ctx, x.s, [angle=360], 3500)
             await Wait(5000)
         }
     }
@@ -202,17 +204,17 @@ task Play () {
         }
         sprite_kill(other.spr)
         eng.play(SND_HIT, 0.2)
-        spawn @tweens Bump(player, player_y, 20, 100)
+        spawn @tweens Bump(ctx, player, player_y, 20, 100)
         set evolution = 1
         set lives_text.s = tostring(lives)
     }
     loop on :overlap {
-        loop _, e in overlap_list(pbody, :enemy) {
+        loop _, e in overlap_list(ctx, pbody, :enemy) {
             player_hit(e)
         }
         loop _, f in fires.slots {
             if f.s.exists {
-                loop _, e in overlap_list(f.b, :enemy) {
+                loop _, e in overlap_list(ctx, f.b, :enemy) {
                     eng.play(SND_EXP, 0.1)
                     set emitter.x = e.spr.x + (IMG_ENEMY.fw / 2)
                     set emitter.y = e.spr.y + (IMG_ENEMY.fh / 2)
@@ -223,13 +225,13 @@ task Play () {
                 }
             }
         }
-        loop _, b in overlap_list(pbody, :bonus) {
+        loop _, b in overlap_list(ctx, pbody, :bonus) {
             eng.play(SND_BONUS, 0.1)
             sprite_kill(b.spr)
             set evolution += 1
             update_score(100)
         }
-        loop _, b in overlap_list(pbody, :bullet) {
+        loop _, b in overlap_list(ctx, pbody, :bullet) {
             player_hit(b)
         }
         until over != nil

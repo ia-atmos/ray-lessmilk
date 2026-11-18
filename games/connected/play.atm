@@ -14,13 +14,15 @@ func rand (n) {
 }
 
 ;; the dots that grow, are removed, or fall, and the bar
-task Tween (o, to, ms, delay) {
-    await Motion(o, to, ms, nil, delay)
+task Tween (ctx, o, to, ms, delay) {
+    await Motion(ctx, o, to, ms, nil, delay)
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
-    pin dots = Group(IMG_DOT, 70, :dot)
+    pin dots = Group(ctx, IMG_DOT, 70, :dot)
     pin label_score = Text(40, 20, "0", 20)
     pin label_moves = Text(W - 75, 20, "0/20", 20)
     loop _, t in [label_score, label_moves] {
@@ -37,7 +39,7 @@ task Play () {
     var tuto = nil
     pin tweens = tasks()
     defer {
-        group_remove(dots)
+        group_remove(ctx, dots)
     }
 
     var clicked, count, moves, type = (false, 0, 0, -1)
@@ -99,14 +101,14 @@ task Play () {
         set d.alive2 = true
         sprite_reset(d, x.b, offset_x + (j * TILE), offset_y + (i * TILE))
         if first {
-            spawn @tweens Tween(d, [sx=1, sy=1], 400, (j * 100) + 1)
+            spawn @tweens Tween(ctx, d, [sx=1, sy=1], 400, (j * 100) + 1)
         } else {
-            spawn @tweens Tween(d, [sx=1, sy=1], 400, 400)
+            spawn @tweens Tween(ctx, d, [sx=1, sy=1], 400, 400)
         }
     }
 
     val func clear_bar () {
-        spawn @tweens Tween(progress, [width=0], 300)
+        spawn @tweens Tween(ctx, progress, [width=0], 300)
     }
 
     val func unselect_all () {
@@ -143,7 +145,7 @@ task Play () {
         set count += 1
         set pos_j, pos_i = (d.pos_j, d.pos_i)
         if width_bar() <= 11 {
-            spawn @tweens Tween(progress, [width="+28"], 100)
+            spawn @tweens Tween(ctx, progress, [width="+28"], 100)
         }
     }
 
@@ -169,8 +171,8 @@ task Play () {
         loop _, x in dots.slots {
             val e = x.s
             if e.alive && e.selected {
-                spawn @tweens Tween(e, [sx=2, sy=2], 300)
-                spawn @tweens Tween(e, [alpha=0], 300)
+                spawn @tweens Tween(ctx, e, [sx=2, sy=2], 300)
+                spawn @tweens Tween(ctx, e, [alpha=0], 300)
                 set deleted@+ = [i=e.pos_i, j=e.pos_j]
                 set e.alive2 = false
             }
@@ -191,7 +193,7 @@ task Play () {
             if e.alive && (e.move_y != 0) {
                 val coef = e.move_y / TILE
                 set e.pos_i += coef
-                spawn @tweens Tween(e, [y=e.y + e.move_y], 100 * coef, 100)
+                spawn @tweens Tween(ctx, e, [y=e.y + e.move_y], 100 * coef, 100)
                 set e.move_y = 0
             }
         }

@@ -18,7 +18,7 @@
 ;; With a vector of images (makeParticles of several keys), the image of each
 ;; of the `max` particles is drawn from game.rnd when the emitter is made, as
 ;; Phaser does; a particle takes the first slot that is free, and its image.
-func Emitter (img, max) {
+func Emitter (ctx, img, max) {
     val many = (img ?? :table) && !(img ?? :Image)
     val keys = []
     if many {
@@ -27,6 +27,7 @@ func Emitter (img, max) {
         }
     }
     :Emitter [
+        ctx = ctx,
         img = img, max = max, keys = if many => keys => nil,
         busy = [],                          ;; the slots in use
         x = 0, y = 0,                       ;; emitX, emitY
@@ -70,14 +71,14 @@ task Particle (e) {
     defer {
         set e.busy@(slot) = false
     }
-    val b = Body(Sprite(if e.keys => e.keys@(slot) => e.img, e.x, e.y), :particle)
+    val b = Body(e.ctx, Sprite(if e.keys => e.keys@(slot) => e.img, e.x, e.y), :particle)
     val s = b.spr
     set s.ax, s.ay = (0.5, 0.5)
     set pub = s
     set e.sprites@+ = s
     set b.none = true                       ;; allowCollision.none
     defer {
-        body_remove(b)
+        body_remove(e.ctx, b)
         loop i, v in e.sprites {
             if v == s {
                 vector.remove(e.sprites, i)

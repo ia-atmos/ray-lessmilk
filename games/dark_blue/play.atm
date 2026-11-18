@@ -13,16 +13,16 @@ val SND_JUMP   = eng.sound(A ++ "sounds/jump.wav")
 val SND_MUSIC  = eng.sound(A ++ "sounds/music.wav")
 
 ;; a coin floats: .to({y:"-5"}, 300).to({y:"+5"}, 300).loop()
-task Float (c) {
+task Float (ctx, c) {
     loop {
-        await Motion(c, [y="-5"], 300)
-        await Motion(c, [y="+5"], 300)
+        await Motion(ctx, c, [y="-5"], 300)
+        await Motion(ctx, c, [y="+5"], 300)
     }
 }
 
 ;; a coin taken shrinks, then is killed
-task Shrink (c) {
-    await Motion(c, [sx=0, sy=0], 200)
+task Shrink (ctx, c) {
+    await Motion(ctx, c, [sx=0, sy=0], 200)
     set c.exists, c.visible = (false, false)
 }
 
@@ -47,6 +47,8 @@ func follow (p) {
 }
 
 task Play () {
+    pin ctx = Screen()
+    spawn Screen_run(ctx)
     input_reset()
     pin keys = Cursor()
 
@@ -90,7 +92,7 @@ task Play () {
                 set c.s.ax, c.s.ay = (0.5, 0.5)
                 set c.s.x += sprite_w6(c.s) / 2
                 set c.s.y -= sprite_w6(c.s) / 2
-                spawn @tweens Float(c.s)
+                spawn @tweens Float(ctx, c.s)
             }
         }
     }
@@ -182,7 +184,7 @@ task Play () {
 
     ;; the end of the turn of a level: the next one, or Endd
     val task Next () {
-        await Motion(player, [angle=360], 600)
+        await Motion(ctx, player, [angle=360], 600)
         if st.level == 6 {
             set over.done = true
         } else {
@@ -209,7 +211,7 @@ task Play () {
         val c = cb.spr
         if c.alive != false {
             set c.alive = false
-            spawn @tweens Shrink(c)
+            spawn @tweens Shrink(ctx, c)
             set st.taken += 1
             if sound {
                 eng.play(SND_COIN, 0.2)
