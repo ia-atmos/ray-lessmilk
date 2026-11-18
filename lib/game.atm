@@ -126,7 +126,10 @@ task Every (ms, f) {
 ;;      pin ctx = Screen()
 ;;      spawn Screen_run(ctx)
 func Screen () {
-    :Screen [ bodies = [], qt = nil, tweens = [ list = [], add = [] ], inputs = [] ]
+    ;; the quadtree starts empty: a screen started in an update overlaps
+    ;; before its first preUpdate, with none of its bodies in the tree
+    :Screen [ bodies = [], qt = qt_node(Physics.x, Physics.y, Physics.w, Physics.h, 0),
+              tweens = [ list = [], add = [] ], inputs = [] ]
 }
 
 task Screen_run (ctx) {
