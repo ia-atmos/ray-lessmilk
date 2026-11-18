@@ -75,7 +75,9 @@ ${tags.join('\n')}
 
 (async () => {
     const run  = parseRun(runFile);
-    const dir  = path.join(ROOT, 'ext/originals/www.lessmilk.com/games', n);
+    // SITE=1: the version of www.lessmilk.com today (tools/site.sh), in ext/site
+    const dir  = process.env.SITE ? path.join(ROOT, 'ext/site/games', n)
+                                  : path.join(ROOT, 'ext/originals/www.lessmilk.com/games', n);
     const page = makePage(dir);
     fs.mkdirSync(outDir, { recursive: true });
 
