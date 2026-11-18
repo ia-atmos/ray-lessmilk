@@ -5,7 +5,7 @@
 ;; a rotation and a scale, which its children follow (Pixi 1.5).
 ;;
 ;;      pin level = Group2(250, 250)            ;; game.add.group(), x, y
-;;      val bg = node_add(level, Sprite(img, 0, 0))     ;; level.add(...)
+;;      val bg = node_add(level, \{ Sprite(img, 0, 0) })  ;; level.add(...)
 ;;      body2(bg, img.fw, img.fh)               ;; physics.arcade.enable
 ;;      scene_pre(level)                        ;; in :pre (stage.preUpdate)
 ;;      scene_transform(level)                  ;; in :render (Pixi)
@@ -25,11 +25,11 @@ func Group2 (x, y) {
               kids=[], wt=wt_new() ]
 }
 
-;; group.add(node): a new node (a fresh value) goes to the end of the group,
+;; group.add(node): a new node (made by mk) goes to the end of the group,
 ;; which owns it; it is "fresh" (_cache[4] of Phaser) until its first
 ;; preUpdate. Returns the node.
-func node_add (g, n) {
-    set g.kids@+ = n
+func node_add (g, mk) {
+    set g.kids@+ = mk()             ;; unnamed, so that the group adopts it
     val k = g.kids@(#g.kids - 1)
     if !k.wt {
         set k.wt = wt_new()

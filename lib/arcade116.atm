@@ -24,9 +24,8 @@ pin Arcade6 = [
 
 ;; SAT.Polygon: a position and points; the normals of its edges, as recalc
 ;; computes them: the edge turned (perp: x, y = y, -x) and normalized
-func poly6 (x, y, pts0) {
-    pin pts = pts0
-    pin ns = []
+func poly6 (x, y, pts) {
+    val ns = []
     loop i in #pts {
         val p1 = pts@i
         val p2 = if i < (#pts - 1) => pts@(i + 1) => pts@0
@@ -429,7 +428,7 @@ func overlap6 (a, list, f) {
 ;; row with a digit per tile (0 is no tile), the tiles that collide (setCollisionBetween), their faces
 ;; (calculateFaces), and the callbacks by index (setTileIndexCallback)
 func Tilemap6 (rows, tw, th) {
-    pin data = []
+    val data = []
     loop _, row in rows {
         loop i in #row {
             set data@+ = string.byte(row, i, i) - 48        ;; a digit per tile
@@ -484,7 +483,7 @@ func map6_tiles (m, x0, y0, w0, h0) {
     val ty = (m.th * math.floor(y / m.th)) / m.th
     val tw = ((m.tw * math.ceil(w / m.tw)) + m.tw) / m.tw
     val th = ((m.th * math.ceil(h / m.th)) + m.th) / m.th
-    pin out = []
+    val out = []
     var wy = ty
     loop {
         while wy < (ty + th)
