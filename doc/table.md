@@ -34,7 +34,7 @@
 | 8 | Save the City | 1.1.3 | 176 | 194 | +10 | 1896 | 1598 | -16 | 2 | 1 | 2 (2162 frames, 2 cities gone, a restart) | yes |
 | 9 | I Hate Rabbits | 1.1.3 | 252 | 247 | -2 | 3161 | 2250 | -29 | 3 | 1 | 2 (9200 frames, 5 games) | yes |
 | 10 | Dark Blue | 1.1.6 | 307 | 421 | +37 | 3268 | 3252 | 0 | 4 | 3 (+1) | 3 (9900 frames, levels 1 and 2, 30 deaths) | yes |
-| 11 | The Three Hearts | 2.0.1 | 331 | 339 | +2 | 3479 | 2590 | -26 | 3 | 3 | 2 (1900 frames, a death, a key, four doors, a heart) | yes |
+| 11 | The Three Hearts | 2.0.1 | 331 | 339 | +2 | 3479 | 2590 | -26 | 3 | 3 | 2 (1800 frames, a death, a key, four doors, a heart) | yes |
 | 12 | Crazy Snake | 2.0.2 | 286 | 294 | +3 | 3296 | 2337 | -29 | 4 | 3 (+1) | 2 (9800 frames, score 52, 2 games) | yes |
 
 "(+1)": a flag that the port adds. Dark Blue: `over.done`, the end of the
@@ -47,5 +47,5 @@ files. The port also does in `play.atm` what Phaser 1.1.6 did for it: the
 order of the update of the bodies around the frame, and the camera that
 follows the player (about 70 lines).
 
-The Three Hearts: without `map.atm` (92 lines, 4579 tokens), the map
-rebuilt as Atmos data, which the original loads from its JSON file.
+The Three Hearts: without `map.atm` (92 lines, 4579 tokens), the map as
+Atmos data, which the original loads from its JSON file.

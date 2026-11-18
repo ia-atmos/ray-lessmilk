@@ -50,11 +50,9 @@ that is checked, and what differs, game by game.
   canvas, not in it: `run.js` fills it before drawing the canvas on top.
 - **Assets.** The copy of the site has assets for games 1 and 2 only; those
   of games 3 to 12 come from the student port (see `assets/README.md`).
-  Missing everywhere: the loading bars (they only show while loading), the
-  image of game 6 that asks to turn a phone, the tiles image of game 10
-  (it draws its walls anyway), and the map of game 11, without which its
-  `Play` state fails: game 11 runs only to its menu until the map is
-  rebuilt from the student's `map.atm`.
+  The loading bars, the tiles image of game 10 and the map of game 11, which
+  both lack, come from the site itself, reached later (see "The site
+  today"); still missing: the image of game 6 that asks to turn a phone.
 - **Fonts.** The originals ask for Arial; the browser of the container
   draws its own sans font. Text is compared by eye, not pixel by pixel.
 
@@ -472,8 +470,8 @@ all, the player (x, y, velocity, gravity, blocked below, alive, frame,
 scale, angle), the camera, the coins and the enemies alive (how many, sums
 of x and y).
 
-The tiles are drawn from a placeholder of `tiles.png`, lost (see
-`assets/README.md`); the original draws the same placeholder.
+The tiles are drawn from the `tiles.png` of the site (see
+`assets/README.md`).
 
 What it took: the arcade physics of Phaser 1.1.6 (`lib/arcade116.atm`),
 which is not that of 1.1.3: a body is a polygon of SAT (the box of the
@@ -504,16 +502,14 @@ The same as the original on its two runs, line by line
 | Run | Frames | Seed | Input | Rooms |
 |-----|-------:|-----:|-------|------:|
 | `probe` | 600 | 1 | UP on the menu; DOWN, RIGHT, DOWN, LEFT | 1 |
-| `bot` | 1300 | 1 | what a player of the original pressed (`tools/original/bot/11.js`, `BOT=`): into an enemy first (a death), then by the shortest paths to a key (four doors open) and a heart | 3 |
+| `bot` | 1200 | 1 | what a player of the original pressed (`tools/original/bot/11.js`, `BOT=`): into an enemy first (a death), then by the shortest paths to a key (four doors open) and a heart | 3 |
 
 Trace: frame, state; in Play, the hearts, the player (x, y, velocity,
 alive, frame, direction), the camera and the room, the slide of the
 camera, the screen of death, the enemies (sums of x and y), the keys,
 doors and hearts that exist.
 
-The map, `levels/map.json`, is lost; the runs use one rebuilt from the
-port of Jessica Oliveira (`tools/map11.py`, decided by the author), next
-to the original only (see `assets/README.md`).
+The map is the `levels/map.json` of the site (see `assets/README.md`).
 
 What it took: the arcade physics of Phaser 2.0.1 (`lib/arcade201.atm`) as
 the `phaser201.min.js` that the original runs has it, which is not the
@@ -530,3 +526,19 @@ while the camera slides); nothing of them shows in the screens.
 
 Not reached: the second and third hearts, the end (the emitter of hearts
 is not ported), the last door.
+
+## The site today
+
+www.lessmilk.com could be reached on 2026-11-18. Each game has a page of
+its own (`/run/`, `/dark-blue/`, ...), which loads one bundle: the same
+version of Phaser as the copy of 2014 (1.1.3 for games 1 to 9, 1.1.6,
+2.0.1, 2.0.2), then the code of the game, minified again by the host (the
+text differs; the page places the game in an element `game`, not
+`gameContainer`). `tools/site.sh` builds that version in `ext/site/`, and
+`SITE=1 node tools/original/run.js` runs it in the same harness.
+
+All the runs of `tst/` give the same traces on the version of the site as
+on the copy of 2014 (all 31 runs of the twelve games), and the assets are
+the same, byte by byte, but for the files that the copy lacked (now taken
+from the site, see `assets/README.md`). So the ports are compared with the
+games as they are served today.

@@ -66,13 +66,15 @@ None.
 
 ## Settled
 
-- The Three Hearts (A3, the author, 2026-11-17): the lost `levels/map.json`
-  is rebuilt from the student's map (`tools/map11.py`), next to the
-  original only; the port reads the same map.
+- The Three Hearts (A3, the author, 2026-11-17): a map rebuilt from the
+  student's port; replaced on 2026-11-18 by the real `levels/map.json`, from
+  the site (the rebuilt one had its objects 40 px lower).
+- The site (2026-11-18): www.lessmilk.com is reachable; its version of the
+  twelve games gives the same traces as the copy of 2014 on all the runs
+  (`tools/site.sh`, `SITE=1`), and its assets are the same.
 
-- Dark Blue (A2, the author, 2026-11-17): the lost `tiles.png` is replaced
-  by a placeholder of plain squares (`assets/10/images/tiles.png`, see
-  `assets/README.md`), drawn by the original and by the port.
+- Dark Blue (A2, the author, 2026-11-17): a placeholder of the lost
+  `tiles.png`; replaced on 2026-11-18 by the real one, from the site.
 
 - Expressiveness over exactness (the author, 2026-11-14): once a port is
   identical to its original, it may relax the constraints of exactness in
