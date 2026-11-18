@@ -32,14 +32,11 @@ task Play () {
     pin ctx = Screen()
     spawn Screen_run(ctx)
     pin rabbits = Group(ctx, IMG_RABBIT, 30, :rabbit)
-    val bbody = Body(ctx, do {
-        val bad = Sprite(IMG_BAD, W/2, H/2)
-        set bad.ax, bad.ay = (0.5, 1)
-        sprite_add(bad, :walk, [0, 1], 5, true)
-        sprite_play(bad, :walk)
-        bad
-    }, :bad)
-    val bad = bbody.spr
+    pin bad = Sprite(IMG_BAD, W/2, H/2)
+    set bad.ax, bad.ay = (0.5, 1)
+    sprite_add(bad, :walk, [0, 1], 5, true)
+    sprite_play(bad, :walk)
+    val bbody = Body(ctx, bad, :bad)
     pin circle = Sprite(IMG_CIRCLE, W/2, H/2)
     set circle.ax, circle.ay = (0.5, 0.5)
     defer {

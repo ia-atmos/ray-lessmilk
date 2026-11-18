@@ -52,8 +52,8 @@ task Menu () {
     pin arrows = Sprite(IMG_ARROWS, W/2, H/2)
     set arrows.ax, arrows.ay = (0.5, 0.5)
     spawn Pulse(ctx, arrows, 1.2, 1000)
-    val body = Body(ctx, Sprite(IMG_BOX, W/2, H/2), :box)
-    val box = body.spr
+    pin box = Sprite(IMG_BOX, W/2, H/2)
+    val body = Body(ctx, box, :box)
     input_enable(ctx, box)
     set box.ax, box.ay = (0.5, 0.5)
     set box.oob_signal = true

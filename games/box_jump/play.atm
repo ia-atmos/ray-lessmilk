@@ -43,25 +43,19 @@ task Play () {
     spawn Screen_run(ctx)
     pin keys = Cursor()
 
-    val body = Body(ctx, do {
-        val player = Sprite(IMG_PLAYER, 80, ((H * 2) / 3) - 20)
-        set player.ax, player.ay = (0.5, 0.5)
-        set player.alive = true
-        player
-    }, :player)
-    val player = body.spr
+    pin player = Sprite(IMG_PLAYER, 80, ((H * 2) / 3) - 20)
+    set player.ax, player.ay = (0.5, 0.5)
+    set player.alive = true
+    val body = Body(ctx, player, :player)
     defer {
         body_remove(ctx, body)
     }
 
     pin cubes = tasks(20)
 
-    val lbody = Body(ctx, do {
-        val line = Sprite(IMG_LINE, W/2, math.floor((H * 2) / 3))
-        set line.ax, line.ay = (0.5, 0.5)
-        line
-    }, :line)
-    val line = lbody.spr
+    pin line = Sprite(IMG_LINE, W/2, math.floor((H * 2) / 3))
+    set line.ax, line.ay = (0.5, 0.5)
+    val lbody = Body(ctx, line, :line)
     set lbody.immovable = true
     defer {
         body_remove(ctx, lbody)

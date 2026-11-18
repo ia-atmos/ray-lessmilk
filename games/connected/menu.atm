@@ -48,9 +48,10 @@ task Menu () {
         set t.ax, t.ay, t.color = (0.5, 0.5, INK)
     }
     set start.angle = 0
-    val b1 = Body(ctx, Sprite(IMG_DOT, (W/2) - 25, H/2), :dot)
-    val b2 = Body(ctx, Sprite(IMG_DOT, (W/2) + 25, H/2), :dot)
-    val dot1, dot2 = (b1.spr, b2.spr)
+    pin dot1 = Sprite(IMG_DOT, (W/2) - 25, H/2)
+    val b1 = Body(ctx, dot1, :dot)
+    pin dot2 = Sprite(IMG_DOT, (W/2) + 25, H/2)
+    val b2 = Body(ctx, dot2, :dot)
     loop _, d in [dot1, dot2] {
         set d.ax, d.ay = (0.5, 0.5)
     }

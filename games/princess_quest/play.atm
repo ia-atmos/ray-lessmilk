@@ -54,17 +54,14 @@ task Play () {
     emitter_start(emitter, false, 1000, 15, 0)
     set emitter.w = 50
     spawn Emitter_run(emitter)
-    val pb = Body(ctx, Sprite(IMG_PRINCESS, (W/2) + 100, H - 200), :princess)
-    val princess = pb.spr
+    pin princess = Sprite(IMG_PRINCESS, (W/2) + 100, H - 200)
+    val pb = Body(ctx, princess, :princess)
     set pb.gy = 12
     set princess.ax, princess.ay = (0.5, 1)
     set princess.alive = true
-    val gb = Body(ctx, do {
-        val ground = Sprite(IMG_GROUND, 0, H - 56)
-        set ground.sx, ground.sy = (15, 1)
-        ground
-    }, :ground)
-    val ground = gb.spr
+    pin ground = Sprite(IMG_GROUND, 0, H - 56)
+    set ground.sx, ground.sy = (15, 1)
+    val gb = Body(ctx, ground, :ground)
     set gb.immovable = true
     set ground.alive = true
     set ground.oob_kill = true

@@ -72,12 +72,9 @@ task Play () {
     input_reset()
     pin city = Sprite(IMG_CITY, W/2, H - 55)
     set city.ax, city.ay = (0.5, 1)
-    val body = Body(ctx, do {
-        val bomb = Sprite(IMG_BOMB, W/2, -40)
-        set bomb.ax, bomb.ay = (0.5, 0.5)
-        bomb
-    }, :bomb)
-    val bomb = body.spr
+    pin bomb = Sprite(IMG_BOMB, W/2, -40)
+    set bomb.ax, bomb.ay = (0.5, 0.5)
+    val body = Body(ctx, bomb, :bomb)
     defer {
         body_remove(ctx, body)
     }

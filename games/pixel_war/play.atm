@@ -40,8 +40,8 @@ task Play () {
             set x.s.oob_kill = true
         }
     }
-    val pbody = Body(ctx, Sprite(IMG_PLAYER, W/2, player_y), :player)
-    val player = pbody.spr
+    pin player = Sprite(IMG_PLAYER, W/2, player_y)
+    val pbody = Body(ctx, player, :player)
     set pbody.world = true
     defer {
         loop _, g in [enemies, fires, bonuses, bullets] {

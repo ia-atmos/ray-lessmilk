@@ -15,8 +15,8 @@ task Play () {
     }
     ;; [/trace]
     pin keys = Cursor()
-    val body = Body(ctx, Sprite(IMG_PLAYER, W/2, H/2), :player)
-    val player = body.spr
+    pin player = Sprite(IMG_PLAYER, W/2, H/2)
+    val body = Body(ctx, player, :player)
     set body.world = true
     defer {
         body_remove(ctx, body)

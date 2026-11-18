@@ -69,8 +69,8 @@ task Play () {
     spawn Screen_run(ctx)
     set Physics.x, Physics.y, Physics.w, Physics.h = (-50, -50, 800, 800)     ;; world.setBounds
     pin keys = Cursor()
-    val pbody = Body(ctx, Sprite(IMG_PLAYER, W/2, H/2), :player)
-    val player = pbody.spr
+    pin player = Sprite(IMG_PLAYER, W/2, H/2)
+    val pbody = Body(ctx, player, :player)
     set pbody.gy = 12
     set player.ax, player.ay = (0.5, 0.5)
     set player.alive = true
@@ -82,8 +82,8 @@ task Play () {
         set x.s.oob_kill = true
     }
 
-    val cbody = Body(ctx, Sprite(IMG_COIN, 150, H/2), :coin)
-    val coin = cbody.spr
+    pin coin = Sprite(IMG_COIN, 150, H/2)
+    val cbody = Body(ctx, coin, :coin)
     set cbody.gy, cbody.by = (10, 0.3)
     set coin.ax, coin.ay = (0.5, 0.5)
 

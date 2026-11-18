@@ -39,13 +39,13 @@ task Menu () {
     }
     set t3.angle = 0
     spawn Swing(ctx, t3, 300)
-    val pb = Body(ctx, Sprite(IMG_PRINCESS, W/2, (H/2) - 50), :princess)
-    val princess = pb.spr
+    pin princess = Sprite(IMG_PRINCESS, W/2, (H/2) - 50)
+    val pb = Body(ctx, princess, :princess)
     set pb.gy = 12
     set princess.ax, princess.ay = (0.5, 1)
     set princess.frame = 1
-    val lb = Body(ctx, Sprite(IMG_PLATFORM, W/2, (H/2) + 150), :platform)
-    val platform = lb.spr
+    pin platform = Sprite(IMG_PLATFORM, W/2, (H/2) + 150)
+    val lb = Body(ctx, platform, :platform)
     set platform.ax, platform.ay = (0.5, 0.5)
     set lb.immovable = true
     pin mute = Sprite(IMG_MUTE, W - 70, 42)
