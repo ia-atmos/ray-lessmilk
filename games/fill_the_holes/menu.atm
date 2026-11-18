@@ -72,7 +72,7 @@ task Menu () {
     }
     spawn {
         loop e on :input.up {
-            if e.s == box {
+            if e.id == box.input.id {
                 spawn Motion(ctx, arrows, [alpha=0], 400)
                 push_box(box, body, rl.mouse_x(), rl.mouse_y())
             }

@@ -120,7 +120,7 @@ task Play () {
     spawn {
         loop e on :input.up {
             loop _, x in boxes.slots {
-                if e.s == x.s {
+                if e.id == x.s.input.id {
                     loop _ in x.s.listeners {
                         set user_clicks += 1
                         if x.s.alive && (x.b.vx == 0) && (x.b.vy == 0) {
@@ -135,7 +135,7 @@ task Play () {
     ;; reset_level, on onInputDown of the button
     spawn {
         loop e on :input.down {
-            if e.s == reset_button {
+            if e.id == reset_button.input.id {
                 set user_clicks += 1
                 clear_level()
                 draw_level()
