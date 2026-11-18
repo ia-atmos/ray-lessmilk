@@ -33,13 +33,13 @@ task Play () {
 
     ;; the group of the level: the background, the snake, the coin, the score
     pin level = Group2(W/2, W/2)
-    val bg = node_add(level, Sprite(IMG_BG, 0, 0))
+    val bg = node_add(level, \{ Sprite(IMG_BG, 0, 0) })
     set bg.ax, bg.ay = (0.5, 0.5)
     body2(bg, IMG_BG.fw, IMG_BG.fh)
-    val snake = node_add(level, Group2(0, 0))
+    val snake = node_add(level, \{ Group2(0, 0) })
     pin snake_array = []                ;; head first
     val func new_square (i, j) {
-        val sq = node_add(snake, Sprite(IMG_PLAYER, 0, 0))
+        val sq = node_add(snake, \{ Sprite(IMG_PLAYER, 0, 0) })
         set sq.ax, sq.ay = (0.5, 0.5)
         sprite_reset2(sq, i * 20, j * 20)
         set sq.head = false
@@ -49,10 +49,10 @@ task Play () {
     new_square(0, 2)
     new_square(0, 3)
     new_square(0, 4)
-    val coin = node_add(level, Sprite(IMG_COIN, 100, 100))
+    val coin = node_add(level, \{ Sprite(IMG_COIN, 100, 100) })
     set coin.ax, coin.ay = (0.5, 0.5)
     body2(coin, 1, 1, 0, 0)
-    val score_label = node_add(level, Text(-160, -160, "0", 20))
+    val score_label = node_add(level, \{ Text(-160, -160, "0", 20) })
 
     if sound {
         eng.play(SND_MUSIC, 0.4)

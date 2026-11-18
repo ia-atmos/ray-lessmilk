@@ -678,14 +678,15 @@ func collide_group (ctx, a, group) {
 ;; A sprite keeps what it had in its last life (its angle, its frame, the
 ;; size of its body, inWorld), as in Phaser.
 func Group (ctx, img, n, tag) {
-    val g = :Group [ slots = [] ]
+    ;; the slots, held only by their name while they are filled
+    val slots = []
     loop _ in n {
         val b = Body(ctx, Sprite(img, 0, 0), tag)
         val s = b.spr
         set s.alive, s.exists, s.visible = (false, false, false)
-        set g.slots@+ = [ s=s, b=b ]
+        set slots@+ = [ s=s, b=b ]
     }
-    g
+    :Group [ slots = slots ]
 }
 
 ;; the bodies of the group leave the physics (at the end of a state)

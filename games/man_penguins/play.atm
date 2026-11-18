@@ -32,16 +32,16 @@ pin WALLS = [ [0, 0, 0, 0, 1, 17.5], [W, 0, 1, 0, 1, 17.5] ]
 
 ;; a group made with group.create, of sprites that exist
 func Bricks (ctx, list, tag) {
-    val g = :Group [ slots = [] ]
+    val slots = []
     loop _, d in list {
         val b = Body(ctx, Sprite(IMG_BRICK, d@0, d@1), tag)
         val s = b.spr
         set s.ax, s.ay, s.sx, s.sy = (d@2, d@3, d@4, d@5)
         set b.immovable = true
         set s.alive, s.exists, s.visible = (true, true, true)
-        set g.slots@+ = [ s=s, b=b ]
+        set slots@+ = [ s=s, b=b ]
     }
-    g
+    :Group [ slots = slots ]
 }
 
 ;; shakeScreen: the camera, in y and in x, three tweens each, chained
