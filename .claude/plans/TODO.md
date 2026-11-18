@@ -63,6 +63,18 @@ Each has the option recommended by this session.
 
 None.
 
+## Items (#N)
+
+The standing rule of the author (2026-11-18): everything put to him has a
+number `#N`, unique in this session, in order, never reused; from another
+session `session#N` (this one is `ray-lessmilk`). The numbers in the
+tables above were given before the rule and stay as they are.
+
+| # | Item | Kind | State |
+|---|------|------|-------|
+| #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | open |
+| #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | open |
+
 ## Settled
 
 - Who to tell (2026-11-18): what concerns `pin` goes to the session
