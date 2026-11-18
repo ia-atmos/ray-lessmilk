@@ -13,19 +13,18 @@ his, not covered by the license of this repository.
   game, or else from `<game>/media/`. Where both exist, the 36 files that
   can be compared are the same, byte by byte.
 
-Missing from every source found (the site itself cannot be reached from the
-container):
+- From www.lessmilk.com itself (reached on 2026-11-18, where each game now
+  has a page of its own, `/<name>/`): the files that the two sources above
+  lack, `images/loading.png` and `images/loading2.png` of games 5, 6, 7, 10,
+  11 and 12, `10/images/tiles.png`, and `11/levels/map.json`. The other 127
+  files of this directory are the same as the site's, byte by byte
+  (`tools/site.sh` downloads them; see `doc/fidelity.md`).
 
-| Game | File | Used for |
-|------|------|----------|
-| 5, 6, 7, 10, 11, 12 | `images/loading.png`, `images/loading2.png` | the loading bar |
-| 6 | `images/orientation.png` | the message to turn a phone |
-| 10 | `images/tiles.png` | the tiles of the levels (drawing only): **a placeholder** of this port, not his (see below) |
-| 11 | `levels/map.json` | the map: tiles and objects |
+Missing still: `6/images/orientation.png` (the message to turn a phone),
+which the site does not serve either.
 
-`10/images/tiles.png` is a placeholder made by this port (decided by the
-author, 2026-11-17): plain squares of 20 x 20 in a sheet of 140 x 20, as the
-levels declare it, grey (#52555B, the grey of the logo) for the walls (tile 1)
-and red (#E74C3C) for the tiles that kill (tile 3), the others transparent.
-The original and the port both draw it, so that their screens can be
-compared.
+Before the site was reached, Dark Blue drew a placeholder of `tiles.png`
+(grey and red squares) and The Three Hearts read a map rebuilt from the
+student's port (whose objects came out 40 px lower than in the real one);
+both were replaced by the files of the site. The runs of The Three Hearts
+were made again; the traces of Dark Blue do not depend on the image.
