@@ -66,7 +66,7 @@ function makePage (dir) {
 <html><head><meta charset="utf-8">
 <style>body{margin:0;background:#000}</style>
 ${tags.join('\n')}
-</head><body><div id="gameContainer" style="width:${width}px"></div></body></html>
+</head><body><div id="${process.env.SITE ? 'game' : 'gameContainer'}" style="width:${width}px"></div></body></html>
 `;
     const out = path.join(dir, 'harness.html');
     fs.writeFileSync(out, page);

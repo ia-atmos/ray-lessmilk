@@ -30,7 +30,8 @@ PY
         code=$(curl -sS -L -o $d/tmp -w "%{http_code}" --max-time 30 "https://www.lessmilk.com/$s/$f")
         [ "$code" = 200 ] && { mkdir -p $d/$(dirname $f); mv $d/tmp $d/$f; } || rm -f $d/tmp
     done
-    w=$(grep -o 'var w=[0-9*a-z_]*' $d/game.js | head -1)
-    printf '<!DOCTYPE html><html><body>\n<div id="gameContainer" style="width:600px"></div>\n<script src="phaser.js"></script>\n<script src="game.js"></script>\n</body></html>\n' > $d/index.html
+    # the width of the page of the copy of 2014, which the harness reads
+    w=$(grep -o 'gameContainer" style="width:[0-9]*px' ext/originals/www.lessmilk.com/games/$n/index.html | head -1)
+    printf '<!DOCTYPE html><html><body>\n<div id="%s"></div>\n<script src="phaser.js"></script>\n<script src="game.js"></script>\n</body></html>\n' "${w:-gameContainer\" style=\"width:600px}" > $d/index.html
     echo "site: $n $s"
 done
