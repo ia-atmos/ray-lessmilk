@@ -65,6 +65,11 @@ None.
 
 ## Settled
 
+- Who to tell (2026-11-18): what concerns `pin` goes to the session
+  `atmos-pin` (session_011eECogSDhkVfyt7qme5DLh); the rest of the compiler
+  to `atmos-lang` (session_011eECogKVQ7ZzmWCoMST2wK); the binding of raylib
+  to `env-ray` (session_011eECohyySVpgZiuUF17qc2).
+
 - The second migration of `pin` (2026-11-18, compiler 94aedf1): done on
   main (47c6b0b), the 33 tests identical; reported to `atmos-lang`.
 
