@@ -25,7 +25,7 @@ func new_enemy () {
 
 task Enemy (kind, x, y, tox, toy) {
     val body = Body(do {
-        pin spr = Sprite(IMG_ENEMY@kind, x, y)
+        val spr = Sprite(IMG_ENEMY@kind, x, y)
         set spr.ax, spr.ay = (0.5, 0.5)
         angle_set(spr, 90 + ((math.atan2(y - toy, x - tox) * 180) / math.pi))
         spr

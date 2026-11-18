@@ -349,7 +349,7 @@ task Play () {
         loop on :update {
             tiles6_collide(st.map, pbody, nil)
             overlap6(pbody, do {
-                pin bs = []
+                val bs = []
                 loop _, c in st.coins { set bs@+ = c.b }
                 bs
             }, take_coin)
@@ -359,7 +359,7 @@ task Play () {
                 }
             }
             overlap6(pbody, do {
-                pin bs = []
+                val bs = []
                 loop _, e in st.enemies { set bs@+ = e.b }
                 bs
             }, \(b) { player_dead() })
