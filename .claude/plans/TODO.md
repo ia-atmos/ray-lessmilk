@@ -30,6 +30,7 @@ Each has the option recommended by this session.
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 25 | All twelve are identical on their runs: tag `exact` on `main` (item 15) once the author has seen the state |
 | 26 | The second migration of `pin`: on ba28459, 16 of 33 runs still fail (storing into an unpinned table that another value holds: `node_add` of lib/scene.atm, `Group` of lib/physics.atm); reverted again (f2fa10c), the port stays on f3389f6; asked the compiler session for the intended form of a tree that grows. The 20 `pin` -> `val` are commit 6a468c1 |
+| 27 | The vocabulary of events of all environments (env-ray 4d5f5b5, 2026-11-17): `ray.atm` and the table `ray` (was `raylib.atm`, `rl`), `:key.dn [key=name, code=]`, `:mouse.button.dn/up`, `:frame [n=, us=]`, the compiler `atmos-ray`. Needs the compiler at 1746969 or later: do it with the second migration of `pin` (26), once that is unblocked; our copy of the binding has nothing to merge back (only `pin rl`, which env-ray has) |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 8 | `doc/games/` for Pixel War, Man vs Penguins, Connected, and I Hate Rabbits (the other documents of these games are done) |
