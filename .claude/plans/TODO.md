@@ -74,6 +74,7 @@ tables above were given before the rule and stay as they are.
 |---|------|------|-------|
 | #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | open |
 | #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | open |
+| #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | open |
 
 ## Settled
 
