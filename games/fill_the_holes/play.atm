@@ -30,13 +30,6 @@ task Play () {
     set reset_button.alpha = 0
     set reset_button.sx, reset_button.sy = (1.5, 0.8)
     input_enable(reset_button)
-    defer {
-        group_remove(holes)
-        group_remove(boxes)
-        group_remove(walls)
-        body_remove(rbody)
-        input_disable_all()
-    }
     pin title = Text(10, 10, "Fill the Holes", 20)
     pin level_label = Text(W/2, 10, "1/" ++ tostring(#MAP), 20)
     set level_label.ax = 0.5

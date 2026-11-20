@@ -43,12 +43,6 @@ task Play () {
     val pbody = Body(Sprite(IMG_PLAYER, W/2, player_y), :player)
     val player = pbody.spr
     set pbody.world = true
-    defer {
-        loop _, g in [enemies, fires, bonuses, bullets] {
-            group_remove(g)
-        }
-        body_remove(pbody)
-    }
 
     pin emitter = Emitter(IMG_PIXEL, 200)
     set emitter.gravity = 0

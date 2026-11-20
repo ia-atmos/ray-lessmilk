@@ -38,9 +38,6 @@ task Play () {
     set question.ax, question.ay = (0.5, 0.5)
     var tuto = nil
     pin tweens = tasks()
-    defer {
-        group_remove(dots)
-    }
 
     var clicked, count, moves, type = (false, 0, 0, -1)
     pin deleted = []

@@ -70,14 +70,6 @@ task Play () {
     set ground.oob_kill = true
     pin score_label = Text(10, 10, "0", 20)
     eng.play(SND_MUSIC, 0.2)
-    defer {
-        group_remove(clouds)
-        group_remove(platforms)
-        group_remove(hearts)
-        group_remove(spikes)
-        body_remove(pb)
-        body_remove(gb)
-    }
     var next_platform, next_cloud = (10, 50)
     var took_heart = false
     var count_update = 0

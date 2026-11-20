@@ -57,10 +57,6 @@ task Menu () {
     input_enable(box)
     set box.ax, box.ay = (0.5, 0.5)
     set box.oob_signal = true
-    defer {
-        body_remove(body)
-        input_disable_all()
-    }
     spawn {
         loop on :draw {
             ray.clear(BG)

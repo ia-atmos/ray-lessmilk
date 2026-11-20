@@ -42,10 +42,6 @@ task Play () {
     val bad = bbody.spr
     pin circle = Sprite(IMG_CIRCLE, W/2, H/2)
     set circle.ax, circle.ay = (0.5, 0.5)
-    defer {
-        group_remove(rabbits)
-        body_remove(bbody)
-    }
     pin start = Text((W/2) + 0.5, 30, "try to save the rabbits by pressing space", 20, 0.5)
     set start.ax, start.ay = (0.5, 0.5)
     pin world = Text(W/2, H/2, "10", 80, 0.5)

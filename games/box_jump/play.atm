@@ -50,9 +50,6 @@ task Play () {
         player
     }, :player)
     val player = body.spr
-    defer {
-        body_remove(body)
-    }
 
     pin cubes = tasks(20)
 
@@ -63,9 +60,6 @@ task Play () {
     }, :line)
     val line = lbody.spr
     set lbody.immovable = true
-    defer {
-        body_remove(lbody)
-    }
 
     pin label_death = Text(100, H - 35, "0", 18, 0.5)
     pin label_level = Text((W - 100) + 0.5, H - 35, "1/" ++ tostring(#MAP), 18, 0.5)

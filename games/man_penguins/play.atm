@@ -101,13 +101,6 @@ task Play () {
     pin platforms = Bricks(PLATFORMS, :platform)
     pin walls     = Bricks(WALLS, :wall)
     pin tweens = tasks()
-    defer {
-        group_remove(enemies)
-        group_remove(platforms)
-        group_remove(walls)
-        body_remove(pbody)
-        body_remove(cbody)
-    }
 
     ;; [trace]
     pin trace_q = [ player=player, pbody=pbody, enemies=enemies, coin=coin,

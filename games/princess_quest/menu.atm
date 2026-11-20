@@ -49,10 +49,6 @@ task Menu () {
     set platform.ax, platform.ay = (0.5, 0.5)
     set lb.immovable = true
     pin mute = Sprite(IMG_MUTE, W - 70, 42)
-    defer {
-        body_remove(pb)
-        body_remove(lb)
-    }
     pin tweens = tasks()
     spawn {
         loop on :draw {

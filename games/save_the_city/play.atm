@@ -76,9 +76,6 @@ task Play () {
         bomb
     }, :bomb)
     val bomb = body.spr
-    defer {
-        body_remove(body)
-    }
     pin tuto = Text(W/2, (H/2) - 80, "use your keyboad\nto type the sentence below", 25, 0.5, FONT_MONO)
     set tuto.ax, tuto.ay = (0.5, 0.5)
 

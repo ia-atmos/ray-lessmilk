@@ -55,10 +55,6 @@ task Menu () {
         set d.ax, d.ay = (0.5, 0.5)
     }
     pin snd_btn = Sprite(IMG_SOUND, W - 70, 40)
-    defer {
-        body_remove(b1)
-        body_remove(b2)
-    }
     spawn Swing(start, 300)
     spawn {
         loop {
