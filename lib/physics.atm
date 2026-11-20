@@ -4,7 +4,7 @@
 ;; A body belongs to a sprite. It has a box of the size of a frame, placed by
 ;; the anchor of the sprite, and the fields of Phaser.Physics.Arcade.Body:
 ;;
-;;      val b = Body(Sprite(img, x, y), :enemy)     ;; in Physics.bodies
+;;      val b = Body(Sprite(img, x, y), :enemy)     ;; in Physics.scr.bodies
 ;;      val spr = b.spr                     ;; the sprite, which the body owns
 ;;      set b.vx = -300                     ;; px/s, as body.velocity.x
 ;;      set b.gy = 12                       ;; body.gravity.y
@@ -123,14 +123,21 @@ static void phs_bounds (double x, double y, double rot, double sx, double sy,
 }
 ```
 
+;; what a screen owns of the physics and the input: its bodies, the quadtree
+;; of the frame, the sprites that receive the mouse
+func Physics_screen () {
+    [ bodies=[], qt=nil, inputs=[] ]
+}
+pin PHS_NONE = Physics_screen()     ;; no screen: nothing
 pin Physics = [
     x = 0, y = 0,           ;; the world: (x, y, w, h) (world.setBounds)
     w = 0, h = 0,
     elapsed = 0,            ;; game.time.elapsed, in ms
     dt = 0,                 ;; game.time.physicsElapsed, in seconds
     gx = 0, gy = 0,         ;; game.physics.gravity
-    bodies = [],            ;; the bodies, in the order they were created
-    qt = nil,               ;; the quadtree of the frame
+    scr = nil,              ;; of the screen, which owns them (`set :out`):
+                            ;; its bodies, in the order they were created,
+                            ;; and the quadtree of the frame
 ]
 
 ;; camera.x and camera.y set (Camera in lib/sprite.atm): kept in the bounds of
@@ -192,9 +199,8 @@ func sprite_drawn (s) {
 ;; test overlaps against). It starts where the sprite is, and is in the
 ;; world only after its first preUpdate.
 func Body (spr, group) {
-    ;; Physics.bodies owns the body and its sprite (a new one): a body is in
-    ;; the list of all bodies, which outlives the screens
-    set Physics.bodies@+ = :Body [
+    ;; the list of the screen owns the body (and its sprite, if a new one)
+    set Physics.scr.bodies@+ = :Body [
         spr = spr,
         group = group,
         w = spr.img.fw * spr.sx, h = spr.img.fh * spr.sy,
@@ -220,15 +226,15 @@ func Body (spr, group) {
         allow = [ up=true, down=true, left=true, right=true ],  ;; allowCollision
         live = false,                   ;; in the quadtree of this frame
     ]
-    val b = Physics.bodies@(#Physics.bodies - 1)
+    val b = Physics.scr.bodies@(#Physics.scr.bodies - 1)
     sprite_drawn(b.spr)
     b
 }
 
 func body_remove (b) {
-    loop i, v in Physics.bodies {
+    loop i, v in (Physics.scr || PHS_NONE).bodies {
         if v == b {
-            vector.remove(Physics.bodies, i)
+            vector.remove(Physics.scr.bodies, i)
             break
         }
     }
@@ -309,7 +315,7 @@ func update_motion (b) {
 func physics_pre () {
     qt_clear()
     var order = 0
-    loop _, b in Physics.bodies {
+    loop _, b in (Physics.scr || PHS_NONE).bodies {
         val s = b.spr
         ;; renderOrderID: the order of the sprites updated in this frame
         ifs {
@@ -367,7 +373,7 @@ func physics_pre () {
             }
             set b.live = !b.none && (s.visible != false) && (s.alive != false)
             if b.live {
-                qt_insert(Physics.qt, b)
+                qt_insert(Physics.scr.qt, b)
             }
         } else {
             set b.live = false
@@ -377,7 +383,7 @@ func physics_pre () {
 
 ;; Body.postUpdate, for all bodies of sprites that exist
 func physics_post () {
-    loop _, b in Physics.bodies {
+    loop _, b in (Physics.scr || PHS_NONE).bodies {
         if b.spr.exists != false {
             val dx = b.x - b.px
             val dy = b.y - b.py
@@ -395,7 +401,7 @@ func physics_post () {
 ;; The render: the transforms drawn, which the next preUpdate reads; Pixi
 ;; does not update the transform of what is not visible
 func physics_draw () {
-    loop _, b in Physics.bodies {
+    loop _, b in (Physics.scr || PHS_NONE).bodies {
         if b.spr.visible != false {
             sprite_drawn(b.spr)
         }
@@ -429,7 +435,9 @@ func qt_node (x, y, w, h, level) {
 }
 
 func qt_clear () {
-    set Physics.qt = qt_node(Physics.x, Physics.y, Physics.w, Physics.h, 0)
+    if Physics.scr {
+        set Physics.scr.qt = qt_node(Physics.x, Physics.y, Physics.w, Physics.h, 0)
+    }
 }
 
 func qt_index (q, r) {
@@ -488,6 +496,9 @@ func qt_insert (q, b) {
 }
 
 func qt_retrieve (q, b, out) {
+    if !q {
+        return out          ;; a screen before its first frame: no quadtree
+    }
     loop _, o in q.objects {
         set out@+ = o
     }
@@ -515,7 +526,7 @@ func overlap (a, b) {
 func overlap_list (a, group) {
     val out = []
     pin found = []          ;; pinned: a fresh [] would not receive the bodies
-    loop _, b in qt_retrieve(Physics.qt, a, found) {
+    loop _, b in qt_retrieve(Physics.scr.qt, a, found) {
         if (b.group == group) && (b != a) && overlap(a, b) {
             set out@+ = b
         }
@@ -665,7 +676,7 @@ func in_world (s) {
 func collide_group (a, group) {
     var any = false
     pin found = []          ;; pinned: a fresh [] would not receive the bodies
-    loop _, b in qt_retrieve(Physics.qt, a, found) {
+    loop _, b in qt_retrieve(Physics.scr.qt, a, found) {
         if (b.group == group) && (b != a) {
             if collide(a, b) {
                 set any = true

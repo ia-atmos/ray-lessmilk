@@ -29,6 +29,8 @@ task Fade (r) {
 }
 
 task Play () {
+    pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
+    set :out Physics.scr = phys
     pin rabbits = Group(IMG_RABBIT, 30, :rabbit)
     val bbody = Body(do {
         val bad = Sprite(IMG_BAD, W/2, H/2)

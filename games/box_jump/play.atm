@@ -39,6 +39,8 @@ task Cube (x, kind) {
 }
 
 task Play () {
+    pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
+    set :out Physics.scr = phys
     pin keys = Cursor()
 
     val body = Body(do {
@@ -215,7 +217,7 @@ func trace (q) {
     if screen == "Play" {
         val p, b = (q.player, q.body)
         var nc, np = (0, 0)
-        loop _, x in Physics.bodies {
+        loop _, x in Physics.scr.bodies {
             if (x.group == :cube) && (x.spr.alive != false) { set nc += 1 }
         }
         set np = #q.emitter.sprites

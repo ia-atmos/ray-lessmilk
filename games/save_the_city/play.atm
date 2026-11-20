@@ -65,6 +65,8 @@ task Shake (g) {
 }
 
 task Play () {
+    pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
+    set :out Physics.scr = phys
     input_reset()
     pin city = Sprite(IMG_CITY, W/2, H - 55)
     set city.ax, city.ay = (0.5, 1)

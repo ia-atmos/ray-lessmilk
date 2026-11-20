@@ -2,27 +2,32 @@
 ;; a sprite with `input_enable` receives the mouse.
 ;;
 ;;      input_enable(box)
-;;      loop e on :input.up { if e.s == box { ... } }   ;; onInputUp
+;;      loop e on :input.up { if input_of(e) == box { ... } }   ;; onInputUp
 ;;
 ;; As in Phaser, in the events of the mouse, between frames:
 ;;   - a press (Pointer.start, after Pointer.move) goes to one sprite: of the
 ;;     sprites under the pointer, in the order they were enabled, the one
 ;;     with the highest renderOrderID (the latest in the display list);
-;;     `:input.down [s]`
+;;     `:input.down [i]`
 ;;   - a release goes to every sprite that was pressed, if the pointer is
-;;     still over it: `:input.up [s]`
+;;     still over it: `:input.up [i]`
 ;; The pointer is over a sprite if it is in its frame, unscaled, in the
 ;; transform drawn in the last frame (getLocalUnmodifiedPosition).
 
-pin Inputs = [ items = [] ]
 
 func input_enable (s) {
     set s.input = [ down = false ]
-    set Inputs.items@+ = s
+    set Physics.scr.inputs@+ = s
+}
+
+;; the sprite of an event of input: a global event cannot carry what a
+;; screen owns, so it carries the index of the sprite in the list of the screen
+func input_of (e) {
+    Physics.scr.inputs@(e.i)
 }
 
 func input_disable_all () {
-    set Inputs.items = []
+    vector.clear(Physics.scr.inputs)
 }
 
 ;; InputHandler.checkPointerOver
@@ -39,16 +44,16 @@ task Input_run () {
         loop e on :mouse.button.dn {
             if e.button == 0 {
                 ;; Pointer.move: the sprite on top under the pointer
-                var top, prio, ord = (nil, -1, -1)
-                loop _, s in Inputs.items {
+                var top, ti, prio, ord = (nil, nil, -1, -1)
+                loop i, s in (Physics.scr || PHS_NONE).inputs {
                     if ((0 > prio) || ((s.render_order || -1) > ord)) && input_over(s, e.x, e.y) {
-                        set top, prio, ord = (s, 0, s.render_order || -1)
+                        set top, ti, prio, ord = (s, i, 0, s.render_order || -1)
                     }
                 }
                 ;; Pointer.start: _touchedHandler of that sprite
                 if top && !top.input.down {
                     set top.input.down = true
-                    emit @:global :input.down [s=top]
+                    emit @:global :input.down [i=ti]
                 }
             }
         }
@@ -56,11 +61,11 @@ task Input_run () {
     loop e on :mouse.button.up {
         if e.button == 0 {
             ;; Pointer.stop: _releasedHandler of every sprite
-            loop _, s in Inputs.items {
+            loop i, s in (Physics.scr || PHS_NONE).inputs {
                 if s.input.down {
                     set s.input.down = false
                     if input_over(s, e.x, e.y) {
-                        emit @:global :input.up [s=s]
+                        emit @:global :input.up [i=i]
                     }
                 }
             }

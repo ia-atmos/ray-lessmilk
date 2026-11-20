@@ -27,6 +27,8 @@ task Squash (p, b, sx, flip) {
 }
 
 task Menu () {
+    pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
+    set :out Physics.scr = phys
     input_reset()
     pin keys = Cursor()
     pin t1 = Text(math.floor(W/2) + 0.5, 50, "Princess Quest", 40)

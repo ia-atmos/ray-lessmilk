@@ -11,6 +11,8 @@ task Remove (o) {
 }
 
 task Play () {
+    pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
+    set :out Physics.scr = phys
     input_reset()
     pin holes = Group(IMG_HOLE, 10, :hole)
     pin boxes = Group(IMG_BOX, 10, :box)
@@ -118,7 +120,7 @@ task Play () {
     spawn {
         loop e on :input.up {
             loop _, x in boxes.slots {
-                if e.s == x.s {
+                if input_of(e) == x.s {
                     loop _ in x.s.listeners {
                         set user_clicks += 1
                         if x.s.alive && (x.b.vx == 0) && (x.b.vy == 0) {
@@ -133,7 +135,7 @@ task Play () {
     ;; reset_level, on onInputDown of the button
     spawn {
         loop e on :input.down {
-            if e.s == reset_button {
+            if input_of(e) == reset_button {
                 set user_clicks += 1
                 clear_level()
                 draw_level()

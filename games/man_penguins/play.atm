@@ -65,6 +65,8 @@ task Flatten (e) {
 }
 
 task Play () {
+    pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
+    set :out Physics.scr = phys
     set Physics.x, Physics.y, Physics.w, Physics.h = (-50, -50, 800, 800)     ;; world.setBounds
     pin keys = Cursor()
     val pbody = Body(Sprite(IMG_PLAYER, W/2, H/2), :player)
