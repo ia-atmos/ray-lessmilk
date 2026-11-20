@@ -1,5 +1,5 @@
 ;; Game: a frame of Phaser 1.1.3 (Game.update), over the events of
-;; env/raylib.atm, so that a port does in each frame what its original did,
+;; env/ray.atm, so that a port does in each frame what its original did,
 ;; in the same order:
 ;;
 ;;      (tweens_pass)   tweens.update: the tweens of Motion move
@@ -11,9 +11,9 @@
 ;;      :overlap        the end of state.update, where the games call
 ;;                      physics.overlap and physics.collide
 ;;      (physics_post)  world.postUpdate: the sprites follow their bodies
-;;      :rl.draw        render
+;;      :draw        render
 ;;
-;; The game awaits :pre and :update, not :rl.frame. `await Wait(ms)` is a
+;; The game awaits :pre and :update, not :frame. `await Wait(ms)` is a
 ;; comparison with the clock of Phaser, in :update, as
 ;; `if (game.time.now > this.time)` was in an update.
 
@@ -32,7 +32,7 @@ include "arcade201.atm"
 ;; with the clock of the harness at 1000
 eng.rnd_sow(eng.tostring(1000 * eng.random()))
 
-;; Keys: the frame of the last press of each key (an :rl.key.dn before
+;; Keys: the frame of the last press of each key (an :key.dn before
 ;; frame f is a keydown before the update of frame f)
 pin Keys = [ frame = 0, pressed = [] ]
 
@@ -47,7 +47,7 @@ func Cursor () {
 }
 
 func cursor_down (c, k) {
-    rl.key_down(k) && ((Keys.pressed@(k) || -1) > c.born)
+    ray.key_down(k) && ((Keys.pressed@(k) || -1) > c.born)
 }
 
 ;; input.reset, which Phaser 1.1.3 does when a state starts (World.destroy):
@@ -63,12 +63,12 @@ func input_reset () {
 
 ;; game.input.keyboard.isDown(k), since the last reset
 func key_down (k) {
-    rl.key_down(k) && ((Keys.pressed@(k) || -1) > Input.reset)
+    ray.key_down(k) && ((Keys.pressed@(k) || -1) > Input.reset)
 }
 
 ;; game.input.activePointer.isDown, since the last reset
 func pointer_down () {
-    rl.mouse_down(0) && (Input.mouse > Input.reset)
+    ray.mouse_down(0) && (Input.mouse > Input.reset)
 }
 
 task Wait (ms) {
@@ -122,15 +122,15 @@ task Game (w, h, ver) {
     set Physics.h = h
     set Camera.w, Camera.h = (w, h)
     spawn {
-        loop e on :rl.key.dn {
-            set Keys.pressed@(e.key) = Keys.frame + 1           ;; by code
-            if e.name {
-                set Keys.pressed@(e.name) = Keys.frame + 1      ;; and by name
+        loop e on :key.dn {
+            set Keys.pressed@(e.code) = Keys.frame + 1          ;; by code
+            if e.key {
+                set Keys.pressed@(e.key) = Keys.frame + 1       ;; and by name
             }
         }
     }
     spawn {
-        loop e on :rl.mouse.dn {
+        loop e on :mouse.button.dn {
             if e.button == 0 {
                 set Input.mouse = Keys.frame + 1
             }
@@ -138,7 +138,7 @@ task Game (w, h, ver) {
     }
     spawn Input_run()
     var prev = eng.now()
-    loop on :rl.frame {
+    loop on :frame {
         set Keys.frame += 1
         eng.tick()
         val now = eng.now()
@@ -197,7 +197,7 @@ pin Trace = [ line = nil ]
 
 task Tracer (f) {
     if os.getenv("RL_FRAMES") {
-        loop on :rl.frame {
+        loop on :frame {
             set Trace.line = nil
             emit @:global :trace
             print(Trace.line || f())

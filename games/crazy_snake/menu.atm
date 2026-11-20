@@ -10,9 +10,9 @@ func over (s, x, y) {
 }
 task Button (s) {
     loop {
-        val d = await :rl.mouse.dn
+        val d = await :mouse.button.dn
         if over(s, d.x, d.y) {
-            val u = await :rl.mouse.up
+            val u = await :mouse.button.up
             until over(s, u.x, u.y)
         }
     }
@@ -50,8 +50,8 @@ task Menu () {
         }
     }
     spawn {
-        loop on :rl.draw {
-            rl.clear(0xFFFFFFFF)
+        loop on :draw {
+            ray.clear(0xFFFFFFFF)
             text_draw(title)
             text_draw(start)
             sprite_draw(snd_btn)

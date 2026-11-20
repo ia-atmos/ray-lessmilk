@@ -115,8 +115,8 @@ task Play () {
     ;; the explosion, the text, the button
     pin fin = [ grp=nil, exp=nil, gone=nil, button=nil ]
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             if !fin.grp {
                 sprite_draw(city)
             }
@@ -213,9 +213,9 @@ task Play () {
 
     ;; the fin.button: pressed and released over it
     loop {
-        val d = await :rl.mouse.dn
+        val d = await :mouse.button.dn
         if over(fin.button, d.x, d.y) {
-            val u = await :rl.mouse.up
+            val u = await :mouse.button.up
             until over(fin.button, u.x, u.y)
         }
     }
@@ -231,7 +231,7 @@ func over (s, x, y) {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/8.js
 func trace (q) {
-    val f = rl.frame()
+    val f = ray.frame()
     if !q {
         return tostring(f) ++ " Play"
     }

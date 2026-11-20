@@ -15,7 +15,7 @@ val A = "assets/8/"
 ;; what the trace reads
 pin Save = [ level=0, i=0, score=0, dead=false, letters=0 ]
 
-rl.window [title="Save the City", width=W, height=H]
+ray.window [title="Save the City", width=W, height=H]
 
 include "play.atm"
 

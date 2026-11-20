@@ -17,8 +17,8 @@ task End () {
     spawn Swing(label)
     val time = eng.now() + 500
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             sprite_draw(logo)
             text_draw(label)
         }

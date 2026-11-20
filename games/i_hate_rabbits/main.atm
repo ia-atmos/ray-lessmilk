@@ -18,7 +18,7 @@ var score, level, best_score = (0, 0, 0)    ;; the globals of the original
 var screen = "Menu"
 ;; [/trace]
 
-rl.window [title="I Hate Rabbits", width=W, height=H]
+ray.window [title="I Hate Rabbits", width=W, height=H]
 
 include "level.atm"
 include "menu.atm"

@@ -92,8 +92,8 @@ task Play () {
     ;; [/trace]
 
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             group_draw(clouds)
             group_draw(platforms)
             group_draw(hearts)
@@ -257,8 +257,8 @@ task Play () {
             spawn @tweens Squash(princess, pb, if princess.sx == 1 => 1.3 => -1.3, true)
         }
         set pb.vx = 0
-        val touch_right = pointer_down() && (rl.mouse_x() > (W/2))
-        val touch_left  = pointer_down() && (rl.mouse_x() < (W/2))
+        val touch_right = pointer_down() && (ray.mouse_x() > (W/2))
+        val touch_left  = pointer_down() && (ray.mouse_x() < (W/2))
         ifs {
             (cursor_down(keys, 'LEFT') || touch_left) && princess.alive => {
                 set princess.frame = 0
@@ -288,7 +288,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/6.js
 func trace (p) {
-    val f = rl.frame()
+    val f = ray.frame()
     var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(score) ++ " " ++ tostring(best_score)
     if screen == "Play" {
         val pr = p.princess

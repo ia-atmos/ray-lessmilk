@@ -32,8 +32,8 @@ task Menu () {
         }
     }
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             sprite_draw(bad)
             sprite_draw(circle)
             text_draw(start)
@@ -41,5 +41,5 @@ task Menu () {
             text_draw(title)
         }
     }
-    await :rl.key.dn until it.name == 'SPACE'          ;; space_key.onDown
+    await :key.dn until it.key == 'SPACE'          ;; space_key.onDown
 }

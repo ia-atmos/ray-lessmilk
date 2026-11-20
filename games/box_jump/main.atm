@@ -21,7 +21,7 @@ pin Box = [ level = 0 ]
 var screen = "Play"
 ;; [/trace]
 
-rl.window [title="Box Jump", width=W, height=H]
+ray.window [title="Box Jump", width=W, height=H]
 
 include "map.atm"
 include "play.atm"

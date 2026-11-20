@@ -36,7 +36,7 @@ func input_over (s, px, py) {
 
 task Input_run () {
     spawn {
-        loop e on :rl.mouse.dn {
+        loop e on :mouse.button.dn {
             if e.button == 0 {
                 ;; Pointer.move: the sprite on top under the pointer
                 var top, prio, ord = (nil, -1, -1)
@@ -53,7 +53,7 @@ task Input_run () {
             }
         }
     }
-    loop e on :rl.mouse.up {
+    loop e on :mouse.button.up {
         if e.button == 0 {
             ;; Pointer.stop: _releasedHandler of every sprite
             loop _, s in Inputs.items {

@@ -19,7 +19,7 @@ var screen = "Play"         ;; the state of Phaser, for the trace
 var score  = 0              ;; the global `score` of the original
 
 ;; the window first: the files below load their images
-rl.window [title="Run!", width=W, height=H]
+ray.window [title="Run!", width=W, height=H]
 
 include "enemy.atm"
 include "play.atm"

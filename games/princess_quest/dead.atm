@@ -22,8 +22,8 @@ task Dead () {
     spawn Motion(zoom, [y=H], 2000, Ease.bounce_out)
     if sound { eng.play(SND_DEAD, 0.3) }
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             text_draw(t1)
             text_draw(t2)
             text_draw(t3)

@@ -62,8 +62,8 @@ task Play () {
     var is_dead = false
 
     spawn {
-        loop on :rl.draw {
-            rl.clear(0xFFFFFFFF)
+        loop on :draw {
+            ray.clear(0xFFFFFFFF)
             scene_draw(level)
         }
     }
@@ -230,7 +230,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/12.js
 func trace (p) {
-    val f = rl.frame()
+    val f = ray.frame()
     var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(score) ++ " " ++ tostring(best_score)
     if p {
         val a = p.snake

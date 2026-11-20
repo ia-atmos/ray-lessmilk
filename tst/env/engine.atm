@@ -4,7 +4,7 @@
 
 include "../../lib/engine.atm"
 
-rl.window [title="engine", width=350, height=350]
+ray.window [title="engine", width=350, height=350]
 
 eng.seed(7)
 print(eng.random(), eng.random(), eng.rand(350), eng.rand(4))
@@ -23,8 +23,8 @@ print(eng.rnd_integer_in_range(-200,200), eng.rnd_integer_in_range(-200,200), en
 print(eng.measure("score: 0", 20))
 
 spawn {
-    loop on :rl.draw {
-        rl.clear(0x34495EFF)
+    loop on :draw {
+        ray.clear(0x34495EFF)
         eng.draw(player, 0, 175, 175, 0.5, 0.5)
         eng.draw(player, 5, 40, 40)
         eng.draw(enemy, 1, 100, 250, 0.5, 0.5, 45)
@@ -33,4 +33,4 @@ spawn {
         eng.text("game over\n\nscore: 3", 175, 175, 30, nil, 0.5, 0.5, 0.5)
     }
 }
-await :rl.quit
+await :quit

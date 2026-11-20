@@ -18,7 +18,7 @@ var sound = true            ;; the global of the original
 var screen = "Menu"
 ;; [/trace]
 
-rl.window [title="The Three Hearts", width=W, height=H]
+ray.window [title="The Three Hearts", width=W, height=H]
 
 include "map.atm"
 include "menu.atm"

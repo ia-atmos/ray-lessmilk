@@ -9,8 +9,8 @@ task Over (shown) {
     set label.ax, label.ay = (0.5, 0.5)
     eng.play(SND_DEAD, 0.2)
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             text_draw(label)
         }
     }

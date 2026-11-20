@@ -19,7 +19,7 @@ var sound = true
 var screen = "Menu"
 ;; [/trace]
 
-rl.window [title="Connected", width=W, height=H]
+ray.window [title="Connected", width=W, height=H]
 
 include "menu.atm"
 include "play.atm"

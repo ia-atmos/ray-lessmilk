@@ -15,7 +15,7 @@ val A = "assets/4/"
 var screen = "Menu"
 ;; [/trace]
 
-rl.window [title="Man vs Penguins", width=W, height=H]
+ray.window [title="Man vs Penguins", width=W, height=H]
 
 include "menu.atm"
 include "play.atm"

@@ -56,8 +56,8 @@ task Play () {
     ;; [/trace]
 
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             group_draw(holes)
             group_draw(boxes)
             group_draw(walls)
@@ -122,7 +122,7 @@ task Play () {
                     loop _ in x.s.listeners {
                         set user_clicks += 1
                         if x.s.alive && (x.b.vx == 0) && (x.b.vy == 0) {
-                            push_box(x.s, x.b, rl.mouse_x(), rl.mouse_y())
+                            push_box(x.s, x.b, ray.mouse_x(), ray.mouse_y())
                         }
                     }
                 }
@@ -202,7 +202,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/5.js
 func trace (p) {
-    val f = rl.frame()
+    val f = ray.frame()
     if screen != "Play" {
         return tostring(f) ++ " " ++ screen ++ " " ++ tostring(user_clicks)
     }

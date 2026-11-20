@@ -17,7 +17,7 @@ var score = 0               ;; the global `score` of the original
 var screen = "Intro"
 ;; [/trace]
 
-rl.window [title="Pixel War", width=W, height=H]
+ray.window [title="Pixel War", width=W, height=H]
 
 include "intro.atm"
 include "play.atm"

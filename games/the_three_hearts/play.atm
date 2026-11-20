@@ -274,8 +274,8 @@ task Play () {
         }
     }
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             ;; the layer of tiles, under the sprites
             val c0, r0 = (math.floor(Camera.x / 40), math.floor(Camera.y / 40))
             loop j in (H / 40) + 1 {
@@ -321,7 +321,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/11.js
 func trace (q) {
-    val f = rl.frame()
+    val f = ray.frame()
     var r = tostring(f) ++ " " ++ screen
     if q {
         val st, p, b = (q.st, q.player, q.player.body)

@@ -18,8 +18,8 @@ task End () {
     spawn Motion(l3, [alpha=1], 500, nil, 500)
     spawn Swing(l3, H - 100, H - 75)
     spawn {
-        loop on :rl.draw {
-            rl.clear(0x000000FF)
+        loop on :draw {
+            ray.clear(0x000000FF)
             text_draw(l1)
             text_draw(l2)
             text_draw(l3)

@@ -130,8 +130,8 @@ task Play () {
     ;; [/trace]
 
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             sprite_draw(player)
             loop _, c in cubes {
                 sprite_draw(c.pub)
@@ -211,7 +211,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/3.js
 func trace (q) {
-    val f = rl.frame()
+    val f = ray.frame()
     if screen == "Play" {
         val p, b = (q.player, q.body)
         var nc, np = (0, 0)

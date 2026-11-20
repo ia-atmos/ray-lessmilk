@@ -14,8 +14,8 @@ task Menu () {
         }
     }
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             eng.draw(IMG_BG, 0, 0, 0)
             text_draw(label)
         }

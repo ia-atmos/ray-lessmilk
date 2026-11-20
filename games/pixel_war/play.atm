@@ -67,8 +67,8 @@ task Play () {
     ;; [/trace]
 
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             group_draw(enemies)
             group_draw(fires)
             group_draw(bonuses)
@@ -240,7 +240,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/2.js
 func trace (p) {
-    val f = rl.frame()
+    val f = ray.frame()
     if screen != "Play" {
         return tostring(f) ++ " " ++ screen ++ " " ++ tostring(score)
     }

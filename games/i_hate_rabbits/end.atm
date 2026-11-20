@@ -27,8 +27,8 @@ task End () {
     set World.alpha = 0
     spawn Motion(World, [alpha=1], 1000)
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             sprite_draw(circle)
             text_draw(l1)
             text_draw(l2)
@@ -38,6 +38,6 @@ task End () {
         }
     }
     ;; space_key.onDown, which starts only after 500 ms
-    await :rl.key.dn until (it.name == 'SPACE') && (time < eng.now())
+    await :key.dn until (it.key == 'SPACE') && (time < eng.now())
     set World.alpha = 1
 }

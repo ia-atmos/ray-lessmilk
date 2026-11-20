@@ -6,7 +6,7 @@
 
 include "../../lib/game.atm"
 
-rl.window [title="motion", width=100, height=100]
+ray.window [title="motion", width=100, height=100]
 spawn Game(100, 100)
 
 pin a = [x=0, y=100]
@@ -15,11 +15,11 @@ pin c = [angle=0]
 
 spawn {
     await Motion(a, [x=100, y=0], 100)
-    print(rl.frame(), "a done")
+    print(ray.frame(), "a done")
 }
 spawn {
     await Motion(b, [s=1], 200, Ease.bounce_out)
-    print(rl.frame(), "b done")
+    print(ray.frame(), "b done")
 }
 spawn {
     await Wait(50)                      ;; a wait of 50 ms in the updates
@@ -27,11 +27,11 @@ spawn {
         await Motion(c, [angle=1], 50)
         await Motion(c, [angle=-1], 50)
     }
-    print(rl.frame(), "c done")
+    print(ray.frame(), "c done")
 }
 spawn {
-    loop on :rl.frame {
-        print(rl.frame(), string.format("%.4f %.4f %.4f %.4f", a.x, a.y, b.s, c.angle))
+    loop on :frame {
+        print(ray.frame(), string.format("%.4f %.4f %.4f %.4f", a.x, a.y, b.s, c.angle))
     }
 }
-await :rl.quit
+await :quit

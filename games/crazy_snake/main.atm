@@ -17,7 +17,7 @@ var sound = true
 var screen = "Menu"
 ;; [/trace]
 
-rl.window [title="Crazy Snake", width=W, height=H]
+ray.window [title="Crazy Snake", width=W, height=H]
 
 include "menu.atm"
 include "play.atm"

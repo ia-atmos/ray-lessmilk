@@ -53,8 +53,8 @@ task Menu () {
     }
     pin tweens = tasks()
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             text_draw(t1)
             text_draw(t2)
             text_draw(t3)

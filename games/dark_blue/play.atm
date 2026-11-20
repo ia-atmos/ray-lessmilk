@@ -309,8 +309,8 @@ task Play () {
         }
     }
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             sprite_draw(player)
             loop _, c in st.coins {
                 sprite_draw(c.s)
@@ -377,7 +377,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/10.js
 func trace (q) {
-    val f = rl.frame()
+    val f = ray.frame()
     var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(dead)
     if q {
         val st, p, b = (q.st, q.player, q.pbody)

@@ -17,8 +17,8 @@ task End () {
     spawn Emitter_run(emitter)
     emitter_start(emitter, false, 5000, 200)
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             text_draw(text)
             text_draw(restart)
             emitter_draw(emitter)

@@ -62,8 +62,8 @@ task Play () {
     ;; [/trace]
 
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             group_draw(rabbits)
             sprite_draw(bad)
             sprite_draw(circle)
@@ -121,8 +121,8 @@ task Play () {
     ;; frame): the first rabbit of the circle that has not jumped, if it is
     ;; already there
     spawn {
-        loop e on :rl.key.dn {
-            if e.name == 'SPACE' {
+        loop e on :key.dn {
+            if e.key == 'SPACE' {
                 var min, r = (20, nil)
                 loop _, x in rabbits.slots {
                     if x.s.alive && (x.s.jump == false) && (x.s.pos < min) {
@@ -173,7 +173,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/9.js
 func trace (p) {
-    val f = rl.frame()
+    val f = ray.frame()
     var r = tostring(f) ++ " " ++ screen ++ " " ++ tostring(score) ++ " " ++
             tostring(level) ++ " " ++ tostring(best_score)
     if screen == "Play" {

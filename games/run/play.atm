@@ -26,8 +26,8 @@ task Play () {
 
     ;; the drawing, in the order of the display list of the original
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             sprite_draw(player)
             loop _, e in enemies {
                 sprite_draw(e.pub)
@@ -91,7 +91,7 @@ task Play () {
 ;; [trace]
 ;; the line of the trace: as tools/original/trace/1.js
 func trace () {
-    val f = rl.frame()
+    val f = ray.frame()
     if screen == "Play" {
         var n, sx, sy = (0, 0, 0)
         loop _, b in Physics.bodies {

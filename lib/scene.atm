@@ -9,7 +9,7 @@
 ;;      body2(bg, img.fw, img.fh)               ;; physics.arcade.enable
 ;;      scene_pre(level)                        ;; in :pre (stage.preUpdate)
 ;;      scene_transform(level)                  ;; in :render (Pixi)
-;;      scene_draw(level)                       ;; in :rl.draw
+;;      scene_draw(level)                       ;; in :draw
 ;;
 ;; A node is a group (:Group2, with kids), a sprite (:Sprite) or a text
 ;; (:Text). Each has its worldTransform `wt`, the matrix of the last render,

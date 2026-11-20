@@ -5,8 +5,8 @@ pin IMG_BG = eng.image(A ++ "images/bg.png")
 task Intro () {
     pin keys = Cursor()
     spawn {
-        loop on :rl.draw {
-            rl.clear(BG)
+        loop on :draw {
+            ray.clear(BG)
             eng.draw(IMG_BG, 0, 0, 0)
         }
     }
