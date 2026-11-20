@@ -129,6 +129,27 @@ Control: 5 in the JavaScript, 4 left (`count_update`, `took_heart`,
 velocity) is a task, `Squash`. The flags are read and written in the same
 update, in its order, by the physics and the princess.
 
+## 7. Connected
+
+| JavaScript | Kind | Port |
+|------------|------|------|
+| `w`, `h`, `tile_size`, `this.offset_x`, `this.offset_y` | constant | `W`, `H`, `TILE`, `offset_x`, `offset_y` |
+| `score`, `best_score`, `sound` (globals) | data, shown in Play and End | globals of the port too |
+| `this.moves`, `this.count` (Play) | data: the moves made (twenty end the game), the dots of the move | `moves`, `count` |
+| `this.type`, `this.pos_i`, `this.pos_j` (Play) | data: the color of the move (-1 for none), the last dot selected | `type`, `pos_i`, `pos_j` |
+| `this.deleted_dots` (Play) | data: the dots removed, for the fall of the others | `deleted` |
+| `this.clicked` (Play) | control: a move is in progress (the button went down on a dot) | `clicked`, the same flag |
+| `this.next_time` (Play) | control: a new move waits 300 ms after the last one | `next_time`, the same timestamp |
+| `this.dots`, labels, the bar, sounds | drawn | locals of `Play` |
+
+Control: 2 in the JavaScript, 2 left. A move reads the pointer in each
+update, as the original: it starts when the button is down over a dot, at
+least 300 ms after the last move, and ends when the button goes up, in the
+same update that tests both. A sequence (`await` of the press, the updates
+while pressed, then `await Wait(300)`) is the form of the relaxed port
+(TODO 14); it would read the same frames, but the flags are the order of
+the original.
+
 ## 8. Save the City
 
 | JavaScript | Kind | Port |

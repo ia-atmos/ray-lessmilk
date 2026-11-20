@@ -30,7 +30,7 @@
 | 4 | Man vs Penguins | 1.1.3 | 308 | 306 | -1 | 3566 | 2503 | -30 | 6 | 3 | 2 (8400 frames, many deaths) | yes |
 | 5 | Fill the Holes | 1.1.3 | 363 | 416 | +15 | 4875 | 4015 | -18 | 3 | 2 | 2 (6659 frames, 6 levels solved) | yes |
 | 6 | Princess Quest | 1.1.3 | 403 | 366 | -9 | 4306 | 2916 | -32 | 5 | 4 | 2 (8387 frames, 5 games) | yes |
-| 7 | Connected | 1.1.3 | 334 | 357 | +7 | 3386 | 2633 | -22 | not counted | not counted | 2 (13033 frames, 3 games) | yes |
+| 7 | Connected | 1.1.3 | 334 | 357 | +7 | 3386 | 2633 | -22 | 2 | 2 | 2 (13033 frames, 3 games) | yes |
 | 8 | Save the City | 1.1.3 | 176 | 194 | +10 | 1896 | 1598 | -16 | 2 | 1 | 2 (2162 frames, 2 cities gone, a restart) | yes |
 | 9 | I Hate Rabbits | 1.1.3 | 252 | 247 | -2 | 3161 | 2250 | -29 | 3 | 1 | 2 (9200 frames, 5 games) | yes |
 | 10 | Dark Blue | 1.1.6 | 307 | 421 | +37 | 3268 | 3252 | 0 | 4 | 3 (+1) | 3 (9900 frames, levels 1 and 2, 30 deaths) | yes |
