@@ -65,10 +65,25 @@ tables above were given before the rule and stay as they are.
 | # | Item | Kind | State |
 |---|------|------|-------|
 | #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | the vocabulary done by the session (to be confirmed); the relaxed ports next |
-| #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | open |
-| #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | open |
+| #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | done on the branch `pin-out` (63d2e2b), by the session, to be confirmed: the compiler accepts the three first forms; not merged |
+| #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | tried on the branch `pin-out`, by the session, not merged: the bodies and the traces (the 26 runs give the same traces); the tweens not yet. See Settled |
 
 ## Settled
+
+- `set :out` (#3, 2026-11-20, branch `pin-out`, on top of #2; not merged).
+  Each screen that has bodies pins `Physics_screen()` (its bodies, the
+  quadtree of the frame, its sprites that receive the mouse) and
+  `set :out Physics.scr = phys`; the library reads `Physics.scr` (or an
+  empty one between screens). `Body(Sprite(...))` stays: the list of the
+  screen adopts the sprite. Found on the way: the quadtree is also a
+  registry (it holds bodies), and a screen may overlap before its first
+  quadtree (none: no bodies found), as on `exp-screen-context`; the input
+  events are global, so they carry the index of the sprite, not the sprite
+  (`input_of(e)`). The traces: a screen gives `pin trace_q = [...]` and
+  `set :out Trace.q = trace_q`, two lines in place of a task answering
+  `:trace`; `Tracer` prints `f(Trace.q)`. The 26 runs of the games give the
+  same traces. Not yet: the tweens (marks and `:tween.step`), and the
+  `body_remove` of the screens, which the list of the screen makes useless.
 
 - The vocabulary of `ray.atm` (2026-11-20, TODO 27, #1, by the session, to
   be confirmed): `env/ray.atm` copied from env-ray 8350e6f (with the patch
