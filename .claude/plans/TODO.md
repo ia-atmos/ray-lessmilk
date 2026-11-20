@@ -28,7 +28,8 @@ Each has the option recommended by this session.
 | 23 | Dark Blue: the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 28 | The experiment of a context per screen (branch `exp-screen-context`, d7c8751): reported to `atmos-pin`; not to merge into the exact port; a candidate for the relaxed ports (15) |
-| 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
+| 29 | The launcher (`tools/play.sh`) and `DESKTOP=1 tools/setup.sh` are not tried: no X11 in the container yet (to try under Xvfb) |
+| 30 | `doc/bench.md`: Dark Blue spends 10 times the logic of the original (4.7 ms a frame); three ports peak at 98 to 196 MB; not looked into |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
@@ -69,6 +70,13 @@ tables above were given before the rule and stay as they are.
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | done on the branch `pin-out`, by the session, not merged: bodies, traces, tweens; the 33 tests give the same traces (compiler 8c46149); 23 files, 164 lines in, 213 out. Merge is the author's call. See Settled |
 
 ## Settled
+
+- The bench (2026-11-20, TODO 6, with the measure asked by paper-games,
+  their #4): `doc/bench.md`, from `tools/bench.py`: the frame and the logic
+  alone (raster and copy skipped on both sides: `RL_NODRAW` in the patch of
+  raylib, `NODRAW` in the harness), CPU time of the process, median of 3,
+  ms a frame, with the ratio; the memory of each side. Every measured run
+  gives the trace of the original. The launcher: `tools/play.sh` (see 29).
 
 - `set :out` (#3, 2026-11-20, branch `pin-out`, on top of #2; not merged).
   Each screen that has bodies pins `Physics_screen()` (its bodies, the
