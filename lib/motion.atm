@@ -71,33 +71,39 @@ pin Ease = [
 ;; the start, as in Phaser. `ms` is `ms || 1000`, as in Phaser.
 task Motion (obj, to, ms, ease, delay) {
     set pub = [ stop = false ]              ;; set pub.stop = true: tween.pause()
-    val f, dur = (ease || Ease.linear, ms || 1000)
-    val t0 = eng.now() + (delay || 0)
     pin from = []
     pin end = []
     loop k, v in to {
         set from@k = prop_get(obj, k)
         set end@k = if type(v) == "string" => from@k + tonumber(v) => v
     }
-    ;; the record, in the list of the manager (TweenManager.add): the list
-    ;; is global and the object is not, so the record only marks the place
-    ;; of this tween in the list, and the pass asks the task to move
-    set Tweens.add@+ = :Tween [ dead = false ]
+    ;; the record, in the list of the manager (TweenManager.add): the list is
+    ;; global, and the record refers to what the task owns while it lasts
+    set Tweens.add@+ = :Tween [ dead = false, f = ease || Ease.linear,
+                                t0 = eng.now() + (delay || 0), dur = ms || 1000 ]
     val r = Tweens.add@(#Tweens.add - 1)
+    set :out r.obj  = obj
+    set :out r.from = from
+    set :out r.end  = end
+    set :out r.ctl  = pub
     defer {
         set r.dead = true                   ;; pendingDelete
     }
-    ;; Tween.update, in each pass: it ends when the tween reaches its end
-    loop {
-        val now = (await :tween.step until it.r == r).now
-        if !pub.stop && (now >= t0) {     ;; paused, or in its delay
-            val t = (now - t0) / dur
-            val e = if t > 1 => 1 => t
-            val v = f(e)
-            loop k, x in end {
-                prop_set(obj, k, from@k + ((x - from@k) * v))
-            }
-            until e == 1                    ;; onComplete
+    ;; it ends when the pass makes the tween reach its end (onComplete)
+    await :tween.done until it.r == r
+}
+
+;; Tween.update: the values at now; at the end, the task of the tween ends
+func tween_step (r, now) {
+    if !r.ctl.stop && (now >= r.t0) {       ;; paused, or in its delay
+        val t = (now - r.t0) / r.dur
+        val e = if t > 1 => 1 => t
+        val v = r.f(e)
+        loop k, x in r.end {
+            prop_set(r.obj, k, r.from@k + ((x - r.from@k) * v))
+        }
+        if e == 1 {
+            emit @:global :tween.done [r=r]
         }
     }
 }
@@ -111,7 +117,7 @@ func tweens_pass () {
         while i < n
         val r = Tweens.list@i
         if !r.dead {
-            emit @:global :tween.step [r=r, now=now]
+            tween_step(r, now)
         }
         if r.dead {
             vector.remove(Tweens.list, i)
