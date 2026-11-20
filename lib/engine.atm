@@ -276,7 +276,8 @@ func eng_font (f, size) {
     val key = f.path ++ ":" ++ tostring(sz)
     if !ENG_FONTS@(key) {
         val want = sz * ((f.asc + f.desc) / f.upem)
-        val k = math.max(1, math.floor((180 / want) + 0.5))
+        ;; a size of 0 loads at 0 (raylib takes its default), as the C did
+        val k = if want > 0 => math.max(1, math.floor((180 / want) + 0.5)) => 1
         val fnt = ray.font_ex(f.path, math.floor((want * k) + 0.5))
         ray.texture_filter(fnt, ray.FILTER_BILINEAR)
         set ENG_FONTS@(key) = [ font=fnt, draw=want ]

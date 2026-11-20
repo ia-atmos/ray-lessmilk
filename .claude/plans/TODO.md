@@ -99,7 +99,12 @@ tables above were given before the rule and stay as they are.
   `lib/engine.atm` loads them with `ray.font_ex` and keeps them in a table
   of Atmos (`ENG_FONTS`, by path and size); its C only lays out and draws.
   Branch `ray-font`, merged: the 33 tests give the same traces, and the
-  screenshot of the test of the engine is the same.
+  screenshot of the test of the engine is the same. ASAN then found a text
+  of size 0 in Crazy Snake: `180 / 0` gave a font of a garbage size (the C
+  had loaded it at 0 through an integer cast); `eng_font` loads it at 0.
+- ASAN on the compiler 8c46149 (2026-11-20, asked by atmos-lang: daab0b7,
+  7e3b7b5): the 33 tests pass, no error and no leak of the sanitizer (after
+  the fix of the font of size 0 above, which was the port's).
 
 - Documents (2026-11-20, work with no input): `doc/games/` has one per
   game (the nine that lacked one); `doc/state.md` and `doc/table.md` count
