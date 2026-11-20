@@ -76,7 +76,7 @@ original can be compared line by line. See [doc/fidelity.md](doc/fidelity.md).
 | 12 | Crazy Snake | `games/crazy_snake` | yes, 2 runs |
 
 Documents: [table](doc/table.md), [state variables](doc/state.md),
-[fidelity](doc/fidelity.md), [compiler](doc/compiler.md), [bench](doc/bench.md),
+[fidelity](doc/fidelity.md), [compiler](doc/compiler.md), [bench](doc/bench.md), [case study](doc/case-study.md),
 [from the reference Atmos](doc/from-reference.md), and one per game in
 [doc/games/](doc/games/).
 
