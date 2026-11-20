@@ -28,7 +28,6 @@ Each has the option recommended by this session.
 | 23 | Dark Blue: the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 28 | The experiment of a context per screen (branch `exp-screen-context`, d7c8751): reported to `atmos-pin`; not to merge into the exact port; a candidate for the relaxed ports (15) |
-| 29 | The launcher (`tools/play.sh`) and `DESKTOP=1 tools/setup.sh` are not tried: no X11 in the container yet (to try under Xvfb) |
 | 30 | `doc/bench.md`: Dark Blue spends 10 times the logic of the original (4.7 ms a frame); three ports peak at 98 to 196 MB; not looked into |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
@@ -76,7 +75,9 @@ tables above were given before the rule and stay as they are.
   alone (raster and copy skipped on both sides: `RL_NODRAW` in the patch of
   raylib, `NODRAW` in the harness), CPU time of the process, median of 3,
   ms a frame, with the ratio; the memory of each side. Every measured run
-  gives the trace of the original. The launcher: `tools/play.sh` (see 29).
+  gives the trace of the original. The launcher: `tools/play.sh`, with
+  raylib for a window (`DESKTOP=1 tools/setup.sh`, needs the X11 headers):
+  tried under Xvfb (Mesa): Run! opens in a window and plays.
 
 - `set :out` (#3, 2026-11-20, branch `pin-out`, on top of #2; not merged).
   Each screen that has bodies pins `Physics_screen()` (its bodies, the
