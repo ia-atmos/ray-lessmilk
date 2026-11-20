@@ -56,11 +56,8 @@ task Play () {
     val cw = IMG_CIRCLE.fw          ;; circle.width
 
     ;; [trace]
-    spawn {
-        loop on :trace {
-            set Trace.line = trace([ bad=bad, rabbits=rabbits ])
-        }
-    }
+    pin trace_q = [ bad=bad, rabbits=rabbits ]
+    set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
 
     spawn {

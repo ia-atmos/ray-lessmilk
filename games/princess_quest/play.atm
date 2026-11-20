@@ -84,13 +84,10 @@ task Play () {
     pin tweens = tasks()
 
     ;; [trace]
-    spawn {
-        loop on :trace {
-            set Trace.line = trace([ princess=princess, pb=pb, platforms=platforms, hearts=hearts,
-                        spikes=spikes, clouds=clouds, emitter=emitter,
-                        next=\{ next_platform }, took=\{ took_heart } ])
-        }
-    }
+    pin trace_q = [ princess=princess, pb=pb, platforms=platforms, hearts=hearts,
+                spikes=spikes, clouds=clouds, emitter=emitter,
+                next=\{ next_platform }, took=\{ took_heart } ]
+    set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
 
     spawn {

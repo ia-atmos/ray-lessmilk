@@ -294,12 +294,9 @@ task Play () {
     }
 
     ;; [trace]
-    spawn {
-        loop on :trace {
-            set Trace.line = trace([ st=st, player=player, enemies=enemies, keys=keys,
-                                     doors=doors, hearts=hearts, dead=dead ])
-        }
-    }
+    pin trace_q = [ st=st, player=player, enemies=enemies, keys=keys,
+                             doors=doors, hearts=hearts, dead=dead ]
+    set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
 
     loop on :update {

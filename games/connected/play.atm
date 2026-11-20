@@ -51,12 +51,9 @@ task Play () {
     set score = 0
 
     ;; [trace]
-    spawn {
-        loop on :trace {
-            set Trace.line = trace([ dots=dots, progress=progress,
-                         moves=\{ moves }, count=\{ count }, type=\{ type } ])
-        }
-    }
+    pin trace_q = [ dots=dots, progress=progress,
+                 moves=\{ moves }, count=\{ count }, type=\{ type } ]
+    set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
 
     spawn {

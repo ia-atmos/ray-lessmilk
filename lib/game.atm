@@ -184,23 +184,18 @@ task Game (w, h, ver) {
 }
 
 ;; [trace]
-;; Tracer(f): in test mode (RL_FRAMES), a line per frame, after the frame.
-;; A screen whose line needs what it owns answers :trace, setting
-;; Trace.line (a global cannot hold what a screen owns); else f().
+;; Tracer(f): in test mode (RL_FRAMES), a line per frame, after the frame:
+;; f(Trace.q). A screen whose line needs what it owns gives it in Trace.q,
+;; which refers to it while the screen lasts (nil otherwise):
 ;;
-;;      spawn {
-;;          loop on :trace {
-;;              set Trace.line = trace([ player=player, score=\{ score } ])
-;;          }
-;;      }
-pin Trace = [ line = nil ]
+;;      pin trace_q = [ player=player, score=\{ score } ]
+;;      set :out Trace.q = trace_q
+pin Trace = [ q = nil ]
 
 task Tracer (f) {
     if os.getenv("RL_FRAMES") {
         loop on :frame {
-            set Trace.line = nil
-            emit @:global :trace
-            print(Trace.line || f())
+            print(f(Trace.q))
         }
     }
 }

@@ -86,11 +86,8 @@ task Play () {
     pin tweens = tasks()
     set Save.level, Save.i, Save.score, Save.dead = (0, 0, 0, false)
     ;; [trace]
-    spawn {
-        loop on :trace {
-            set Trace.line = trace([ bomb=bomb, body=body, tuto=tuto, city=city ])
-        }
-    }
+    pin trace_q = [ bomb=bomb, body=body, tuto=tuto, city=city ]
+    set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
 
     ;; a letter reached the bomb: it goes up (a tween of Play, which goes on
