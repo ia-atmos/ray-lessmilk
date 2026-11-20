@@ -349,13 +349,14 @@ pin eng = [
     ;; eng.image(path, [fw, fh]): an image, or a sheet of frames of fw x fh;
     ;; loaded once per path (ray.texture)
     image = func (path, fw, fh) {
-        if !ENG_IMAGES@(path) {
-            set ENG_IMAGES@(path) = ray.texture(path)
-            if ray.texture_id(ENG_IMAGES@(path)) == 0 {
+        val t = ENG_IMAGES@(path) || do {
+            val t = ray.texture(path)
+            if ray.texture_id(t) == 0 {
                 throw :error, "engine : cannot load image : " ++ path
             }
+            set ENG_IMAGES@(path) = t
+            t
         }
-        val t = ENG_IMAGES@(path)
         val w, h = (ray.texture_width(t), ray.texture_height(t))
         :Image [ tex=t, w=w, h=h, fw=fw || w, fh=fh || h ]
     },
@@ -428,10 +429,11 @@ pin eng = [
                 ray.audio_init()
             }
         }
-        if !ENG_SOUNDS@(path) {
-            set ENG_SOUNDS@(path) = ray.sound(path)
+        ENG_SOUNDS@(path) || do {
+            val snd = ray.sound(path)
+            set ENG_SOUNDS@(path) = snd
+            snd
         }
-        ENG_SOUNDS@(path)
     },
     ;; eng.play(snd, [volume])
     play = func (snd, volume) {

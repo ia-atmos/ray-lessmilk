@@ -35,14 +35,12 @@ func key_of (c) {
 
 ;; a letter: it appears, waits to be fired, flies to the bomb, and dies when
 ;; it reaches it (or leaves the top of the screen)
-task Letter (t0, i, bomb) {
+task Letter (t, i, bomb) {
     set Save.letters += 1
     defer {
         set Save.letters -= 1
     }
-    set pub = t0                            ;; the task owns its text
-    val t = pub
-    set t.alpha = 0
+    set pub = t
     spawn Motion(t, [alpha=1], 200, nil, i * 20)
     await :fire until it.i == i
     eng.play(SND_FIRE, 0.2)
@@ -149,7 +147,9 @@ task Play () {
             val c = string.sub(s, i, i)
             if c != " " {
                 val offset = ((W - (#s * 13)) / 2) + (i * 13)
-                spawn @letters Letter(Text(offset, H - 40, c, 20, 0, FONT_MONO), i, bomb)
+                val t = Text(offset, H - 40, c, 20, 0, FONT_MONO)
+                set t.alpha = 0
+                spawn @letters Letter(t, i, bomb)
             }
         }
         set Save.level += 1

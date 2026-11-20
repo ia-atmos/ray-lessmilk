@@ -96,20 +96,16 @@ func sprite_h (s) { s.img.fh * math.abs(s.sy) }
 ;; becomes the current one, stopped, showing its first frame; with no frames,
 ;; all the frames of the sheet
 func sprite_add (s, name, frames, fps, loop_) {
-    set s.anims@(name) = [
-        frames = frames || do {
-            val n = (s.img.w // s.img.fw) * (s.img.h // s.img.fh)
-            val all = []
-            loop i in n {
-                set all@+ = i
-            }
-            all
-        },
-        delay = 1000 / (fps || 60),
-        loop = loop_ || false,
-    ]
-    val a = s.anims@(name)
-    val fs = a.frames
+    val fs = frames || do {
+        val n = (s.img.w // s.img.fw) * (s.img.h // s.img.fh)
+        val all = []
+        loop i in n {
+            set all@+ = i
+        }
+        all
+    }
+    val a = [ frames=fs, delay=1000/(fps || 60), loop=loop_ || false ]
+    set s.anims@(name) = a
     set s.cur = a
     set s.playing = false
     set s.index = 0
