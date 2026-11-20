@@ -30,7 +30,6 @@ Each has the option recommended by this session.
 | 28 | The experiment of a context per screen (branch `exp-screen-context`, d7c8751): reported to `atmos-pin`; not to merge into the exact port; a candidate for the relaxed ports (15) |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
-| 10 | Copy `raylib.atm` at `0b1aa0f` of `ia-atmos/env-ray`, and use `rl.font_ex` in `lib/engine.atm` in place of its own C for fonts |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 16 | Fill the Holes: no run gets through the fifteen levels (End not compared); a run would need the solutions of levels 7 to 15 |
@@ -77,6 +76,11 @@ tables above were given before the rule and stay as they are.
   `:key.dn [key=, code=]`, `:mouse.button.dn/up`, `:quit`; the include of
   `reasings.h` added to `tools/atmos.sh`. Branch `ray-vocabulary`, merged:
   the 33 tests give the same traces.
+- The fonts (2026-11-20, TODO 10, by the session, to be confirmed):
+  `lib/engine.atm` loads them with `ray.font_ex` and keeps them in a table
+  of Atmos (`ENG_FONTS`, by path and size); its C only lays out and draws.
+  Branch `ray-font`, merged: the 33 tests give the same traces, and the
+  screenshot of the test of the engine is the same.
 
 - Documents (2026-11-20, work with no input): `doc/games/` has one per
   game (the nine that lacked one); `doc/state.md` and `doc/table.md` count
