@@ -32,7 +32,6 @@ Each has the option recommended by this session.
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 10 | Copy `raylib.atm` at `0b1aa0f` of `ia-atmos/env-ray`, and use `rl.font_ex` in `lib/engine.atm` in place of its own C for fonts |
-| 11 | Run `ASAN=1 tst/run.sh` on the last commits (stopped once for time; the normal suite passes, 22 tests). The suite takes more than 10 minutes with ASAN: run it in the background |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 16 | Fill the Holes: no run gets through the fifteen levels (End not compared); a run would need the solutions of levels 7 to 15 |
@@ -77,6 +76,8 @@ tables above were given before the rule and stay as they are.
   game (the nine that lacked one); `doc/state.md` and `doc/table.md` count
   the control of Connected (2 in the JavaScript, 2 left). TODO 8, 9, 20 and
   23 (its document) done.
+- ASAN (2026-11-20, TODO 11): `ASAN=1 tst/run.sh` on main (compiler
+  c4e99c4): the 33 tests pass, no error and no leak of the sanitizer.
 
 - Who to tell (2026-11-18): what concerns `pin` goes to the session
   `atmos-pin` (session_011eECogSDhkVfyt7qme5DLh); the rest of the compiler
