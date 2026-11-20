@@ -37,6 +37,7 @@ same frames, with the same seed and the same input.
 | 5 | Fill the Holes |
 | 6 | Princess Quest |
 | 7 | Connected |
+| 7 | Connected | `games/connected` | yes, 2 runs |
 | 8 | Save the City |
 | 9 | I Hate Rabbits |
 | 10 | Dark Blue |
