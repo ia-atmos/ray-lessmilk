@@ -94,6 +94,13 @@
         }
     };
 
+    // NODRAW (BENCH of run.js): the drawing calls of the 2D canvas do nothing
+    if (P.nodraw) {
+        var C = CanvasRenderingContext2D.prototype;
+        ['drawImage', 'fillRect', 'clearRect', 'strokeRect', 'fillText', 'strokeText',
+         'fill', 'stroke', 'putImageData'].forEach(function (k) { C[k] = function () {}; });
+    }
+
     // after Phaser is loaded (harness-post.js)
     window.__post = function () {
         Phaser.AUTO = Phaser.CANVAS;

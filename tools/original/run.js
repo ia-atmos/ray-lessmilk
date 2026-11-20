@@ -89,7 +89,7 @@ ${tags.join('\n')}
     pg.on('requestfailed', r => console.error('missing:', r.url()));
     pg.on('pageerror', e => console.error('page error:', e.message));
     pg.on('console', m => { if (m.type() === 'error') console.error('console:', m.text()); });
-    await pg.addInitScript(p => { window.__params = p; }, { seed: run.seed, step: 1000 / run.fps });
+    await pg.addInitScript(p => { window.__params = p; }, { seed: run.seed, step: 1000 / run.fps, nodraw: !!process.env.NODRAW });
     await pg.goto('file://' + page);
 
     // loading: frames with the clock stopped at T0, until a frame starts in
@@ -119,6 +119,49 @@ ${tags.join('\n')}
     const botLog = [];
     if (process.env.BOT) {
         await pg.addScriptTag({ path: process.env.BOT });
+    }
+
+    // BENCH=1: all frames in one loop in the page (no round trip per frame),
+    // with the CPU time of the renderer process before and after it (CDP),
+    // printed to stderr as "bench: cpu_ms=... frames=... heap=..."; the trace
+    // as usual. NODRAW=1 also makes the drawing calls of the 2D canvas do
+    // nothing: all the code of the game and of Phaser runs, no pixel is
+    // rasterized (doc/bench.md)
+    if (process.env.BENCH) {
+        const cdp = await browser.newBrowserCDPSession();
+        const cpu = async () => {
+            const info = await cdp.send('SystemInfo.getProcessInfo');
+            return info.processInfo.filter(p => p.type === 'renderer')
+                                   .reduce((a, p) => a + p.cpuTime, 0);
+        };
+        const c0 = await cpu();
+        const lines = await pg.evaluate(([frames, input, bot]) => {
+            const out = [];
+            const botOps = {};
+            for (let f = 1; f <= frames; f++) {
+                if (f > 1) {
+                    for (const op of (input[f] || []).concat(botOps[f] || [])) window.__input(op);
+                    window.__step(true);
+                }
+                const g = Phaser.GAMES[0];
+                const extra = window.__trace ? window.__trace(g, f) : '';
+                out.push(f + ' ' + g.state.current + (extra !== '' && extra !== undefined ? ' ' + extra : ''));
+                if (bot) {
+                    const b = window.__bot(g, f);
+                    if (b && b.length) botOps[f + 1] = b;
+                }
+            }
+            return out;
+        }, [run.frames, run.input, !!process.env.BOT]);
+        const c1 = await cpu();
+        const ps = await pg.context().newCDPSession(pg);
+        await ps.send('Performance.enable');
+        const mt = (await ps.send('Performance.getMetrics')).metrics;
+        const m = (mt.find(x => x.name === 'JSHeapUsedSize') || {}).value || 0;
+        for (const l of lines) console.log(l);
+        console.error(`bench: cpu_ms=${((c1 - c0) * 1000).toFixed(1)} frames=${run.frames} heap=${m}`);
+        await browser.close();
+        return;
     }
 
     for (let f = 1; f <= run.frames; f++) {

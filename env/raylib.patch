@@ -1,5 +1,5 @@
 diff --git a/src/external/rlsw.h b/src/external/rlsw.h
-index 68639f3..da01a48 100644
+index 68639f3..f6f68a8 100644
 --- a/src/external/rlsw.h
 +++ b/src/external/rlsw.h
 @@ -776,7 +776,7 @@ SWAPI void swGetFramebufferAttachmentParameteriv(SWattachment attachment, SWatta
@@ -11,11 +11,23 @@ index 68639f3..da01a48 100644
  #else
      #define SW_LOG(...)
  #endif
+@@ -1601,6 +1601,11 @@ static SW_INLINE bool sw_is_face_valid(int face)
+ 
+ static SW_INLINE bool sw_is_ready_to_render(void)
+ {
++    // Atmos port: RL_NODRAW (test mode) skips the rasterizer, to measure
++    // the CPU of everything else (doc/bench.md)
++    static int nodraw = -1;
++    if (nodraw < 0) nodraw = (getenv("RL_NODRAW") != NULL);
++    if (nodraw) return false;
+     return (swCheckFramebufferStatus() == SW_FRAMEBUFFER_COMPLETE);
+ }
+ //-------------------------------------------------------------------------------------------
 diff --git a/src/platforms/rcore_memory.c b/src/platforms/rcore_memory.c
-index 5d9461c..03510c1 100644
+index 5d9461c..d31a739 100644
 --- a/src/platforms/rcore_memory.c
 +++ b/src/platforms/rcore_memory.c
-@@ -95,6 +95,157 @@ static int kbhit(void);                         // Check if key has been pressed
+@@ -95,6 +95,159 @@ static int kbhit(void);                         // Check if key has been pressed
  static char getch(void) { return getchar(); }   // Get pressed character
  #endif
  
@@ -35,6 +47,8 @@ index 5d9461c..03510c1 100644
 +//                              f:md:B  f:mu:B          mouse button B down/up (0 left)
 +//                              f:wh:D                  mouse wheel moves D
 +//      RL_SHOT=f:file.png,...  saves the screen at the end of frame f
++//      RL_NODRAW=1         rasterizes and presents nothing (rlsw.h): all the rest
++//                          runs, to measure its CPU (doc/bench.md)
 +//
 +static struct {
 +    int on;             // test mode active
@@ -173,7 +187,7 @@ index 5d9461c..03510c1 100644
  //----------------------------------------------------------------------------------
  // Module Functions Definition: Window and Graphics Device
  //----------------------------------------------------------------------------------
-@@ -102,6 +253,7 @@ static char getch(void) { return getchar(); }   // Get pressed character
+@@ -102,6 +255,7 @@ static char getch(void) { return getchar(); }   // Get pressed character
  // Check if application should close
  bool WindowShouldClose(void)
  {
@@ -181,10 +195,14 @@ index 5d9461c..03510c1 100644
      if (CORE.Window.ready) return CORE.Window.shouldClose;
      else return true;
  }
-@@ -353,6 +505,12 @@ void SwapScreenBuffer(void)
+@@ -351,8 +505,14 @@ void DisableCursor(void)
+ // Swap back buffer with front buffer (screen drawing)
+ void SwapScreenBuffer(void)
  {
-     // Update framebuffer
-     rlCopyFramebuffer(0, 0, CORE.Window.render.width, CORE.Window.render.height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, platform.pixels);
+-    // Update framebuffer
+-    rlCopyFramebuffer(0, 0, CORE.Window.render.width, CORE.Window.render.height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, platform.pixels);
++    // Update framebuffer (Atmos port: not with RL_NODRAW, see rlsw.h)
++    if (getenv("RL_NODRAW") == NULL) rlCopyFramebuffer(0, 0, CORE.Window.render.width, CORE.Window.render.height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, platform.pixels);
 +
 +    if (rlt.on)
 +    {
@@ -194,7 +212,7 @@ index 5d9461c..03510c1 100644
  }
  
  //----------------------------------------------------------------------------------
-@@ -363,6 +521,7 @@ void SwapScreenBuffer(void)
+@@ -363,6 +523,7 @@ void SwapScreenBuffer(void)
  double GetTime(void)
  {
      double time = 0.0;
@@ -202,7 +220,7 @@ index 5d9461c..03510c1 100644
  #if defined(_WIN32)
      LARGE_INTEGER currentTicks = { 0 };
      QueryPerformanceCounter(&currentTicks);
-@@ -465,12 +624,25 @@ void PollInputEvents(void)
+@@ -465,12 +626,25 @@ void PollInputEvents(void)
  
      // Register previous keys states
      // NOTE: Android supports up to 260 keys
@@ -229,7 +247,7 @@ index 5d9461c..03510c1 100644
      // TODO: Poll input events for current platform
  
      // Check for key pressed to exit
-@@ -538,7 +710,9 @@ int InitPlatform(void)
+@@ -538,7 +712,9 @@ int InitPlatform(void)
      QueryPerformanceFrequency(&platform.timerFrequency);
      CORE.Time.base = time.QuadPart;
  #endif
