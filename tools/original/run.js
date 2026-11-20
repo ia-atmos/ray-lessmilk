@@ -82,7 +82,9 @@ ${tags.join('\n')}
     fs.mkdirSync(outDir, { recursive: true });
 
     const browser = await chromium.launch({
-        args: ['--allow-file-access-from-files', '--autoplay-policy=no-user-gesture-required'],
+        args: ['--allow-file-access-from-files', '--autoplay-policy=no-user-gesture-required']
+              // BENCH: the canvas in software, in the renderer, as rlsw in the port
+              .concat(process.env.BENCH ? ['--disable-gpu', '--disable-accelerated-2d-canvas'] : []),
     });
     const ctx = await browser.newContext({ viewport: { width: 800, height: 700 } });
     const pg  = await ctx.newPage();
@@ -129,21 +131,26 @@ ${tags.join('\n')}
     // rasterized (doc/bench.md)
     if (process.env.BENCH) {
         const cdp = await browser.newBrowserCDPSession();
+        // by type of process: the canvas is rasterized out of the renderer
+        // (gpu), so the whole is the sum of all the processes of Chromium
         const cpu = async () => {
             const info = await cdp.send('SystemInfo.getProcessInfo');
-            return info.processInfo.filter(p => p.type === 'renderer')
-                                   .reduce((a, p) => a + p.cpuTime, 0);
+            const t = {};
+            for (const p of info.processInfo) t[p.type] = (t[p.type] || 0) + p.cpuTime;
+            return t;
         };
         const c0 = await cpu();
         const lines = await pg.evaluate(([frames, input, bot]) => {
             const out = [];
             const botOps = {};
             for (let f = 1; f <= frames; f++) {
+                const g = Phaser.GAMES[0];
                 if (f > 1) {
                     for (const op of (input[f] || []).concat(botOps[f] || [])) window.__input(op);
                     window.__step(true);
+                    // a pixel read back: the canvas rasterizes what the frame drew
+                    g.canvas.getContext('2d').getImageData(0, 0, 1, 1);
                 }
-                const g = Phaser.GAMES[0];
                 const extra = window.__trace ? window.__trace(g, f) : '';
                 out.push(f + ' ' + g.state.current + (extra !== '' && extra !== undefined ? ' ' + extra : ''));
                 if (bot) {
@@ -159,7 +166,11 @@ ${tags.join('\n')}
         const mt = (await ps.send('Performance.getMetrics')).metrics;
         const m = (mt.find(x => x.name === 'JSHeapUsedSize') || {}).value || 0;
         for (const l of lines) console.log(l);
-        console.error(`bench: cpu_ms=${((c1 - c0) * 1000).toFixed(1)} frames=${run.frames} heap=${m}`);
+        const types = Object.keys(c1).sort();
+        const d = k => ((c1[k] || 0) - (c0[k] || 0)) * 1000;
+        const all = types.reduce((a, k) => a + d(k), 0);
+        console.error(`bench: cpu_ms=${all.toFixed(1)} frames=${run.frames} heap=${m} ` +
+                      types.map(k => `${k}=${d(k).toFixed(1)}`).join(' '));
         await browser.close();
         return;
     }
