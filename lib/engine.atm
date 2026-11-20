@@ -179,43 +179,6 @@ static double rdg_frac (void) {
 // FONTS: one per path and size
 ///////////////////////////////////////////////////////////////////////////////
 
-#define ENG_MAX 256
-// a font is loaded at about this size, whatever the size it is drawn at
-#define ENG_FONT_LOAD 180.0
-
-static struct { char* path; int size; Font font; double draw; } eng_fonts[ENG_MAX];
-static int eng_nfonts = 0;
-
-// The font, and the size to draw it at (in *draw).
-static Font* eng_font (const char* path, int size, double scale, double* draw) {
-    for (int i=0; i<eng_nfonts; i++) {
-        if (eng_fonts[i].size==size && strcmp(eng_fonts[i].path, path)==0) {
-            *draw = eng_fonts[i].draw;
-            return &eng_fonts[i].font;
-        }
-    }
-    if (eng_nfonts == ENG_MAX) {
-        return NULL;
-    }
-    // raylib scales a TTF so that ascent+descent is the size; the browser,
-    // so that the em is: (ascent+descent)/em. The font is loaded large, at
-    // about ENG_FONT_LOAD pixels, and drawn smaller: raylib rounds the
-    // advance of each glyph to whole pixels at the size it loads, and a
-    // sentence of 20 px loaded at 20 px came out 10% narrower than in the
-    // browser.
-    double want = size * scale;
-    int k = (int)round(ENG_FONT_LOAD / want);
-    if (k < 1) k = 1;
-    Font f = LoadFontEx(path, (int)round(want * k), NULL, 0);
-    SetTextureFilter(f.texture, TEXTURE_FILTER_BILINEAR);
-    eng_fonts[eng_nfonts].path = strdup(path);
-    eng_fonts[eng_nfonts].size = size;
-    eng_fonts[eng_nfonts].font = f;
-    eng_fonts[eng_nfonts].draw = want;
-    *draw = want;
-    return &eng_fonts[eng_nfonts++].font;
-}
-
 // The height of a line of text, as Pixi measures it in the browser (a div
 // with an "M"): the ascent, descent, and gap of the font (hhea, in units of
 // the em), each rounded, as Chromium does. Measured in the container for
@@ -228,16 +191,11 @@ static double eng_line_height (int size, double asc, double desc, double gap, do
 // The text, line by line, each line aligned in the box of the widest one
 // (align: 0 left, 0.5 center, 1 right), and the box with its anchor (ax,ay)
 // at (x,y). Returns the width of the box, and draws only if "draw".
-static double eng_text (const char* path, double asc, double desc, double gap,
+static double eng_text (Font* f, double fs, double asc, double desc, double gap,
                         double upem, int size, const char* s,
                         double x, double y, double ax, double ay,
                         double align, Color c, double alpha, int draw,
                         double angle) {
-    double fs;
-    Font* f = eng_font(path, size, (asc + desc) / upem, &fs);
-    if (f == NULL) {
-        return 0;
-    }
     char buf[1024];
     strncpy(buf, s, sizeof(buf)-1);
     buf[sizeof(buf)-1] = '\0';
@@ -305,6 +263,26 @@ pin FONT_MONO = [ path="lib/fonts/LiberationMono-Regular.ttf", asc=1705, desc=61
 ;; the images and sounds, by path
 pin ENG_IMAGES = []
 pin ENG_SOUNDS = []
+
+;; The font f at a size, loaded once (ray.font_ex), and the size to draw it
+;; at. raylib scales a TTF so that ascent+descent is the size; the browser,
+;; so that the em is: (ascent+descent)/em. The font is loaded large, at about
+;; 180 pixels, and drawn smaller: raylib rounds the advance of each glyph to
+;; whole pixels at the size it loads, and a sentence of 20 px loaded at 20 px
+;; came out 10% narrower than in the browser.
+pin ENG_FONTS = []
+func eng_font (f, size) {
+    val sz = math.floor(size)
+    val key = f.path ++ ":" ++ tostring(sz)
+    if !ENG_FONTS@(key) {
+        val want = sz * ((f.asc + f.desc) / f.upem)
+        val k = math.max(1, math.floor((180 / want) + 0.5))
+        val fnt = ray.font_ex(f.path, math.floor((want * k) + 0.5))
+        ray.texture_filter(fnt, ray.FILTER_BILINEAR)
+        set ENG_FONTS@(key) = [ font=fnt, draw=want ]
+    }
+    ENG_FONTS@(key)
+}
 pin ENG_AUDIO  = [ tried = false ]
 pin ENG_CLOCK  = [ now = 1000, fps = 60 ]
 
@@ -407,9 +385,11 @@ pin eng = [
         val ax_, ay_, al_ = (ax || 0, ay || 0, align || 0)
         val a = if alpha == nil => 1 => alpha
         val f = font || FONT_SANS
-        val p, as, ds, gp, em = (f.path, f.asc, f.desc, f.gap, f.upem)
+        val as, ds, gp, em = (f.asc, f.desc, f.gap, f.upem)
+        val ef = eng_font(f, size)
+        val fn, fs = (ef.font, ef.draw)
         val an = angle || 0
-        `eng_text(rl_s($p), a_dbl($as), a_dbl($ds), a_dbl($gp), a_dbl($em), (int)a_dbl($size), rl_s($s), a_dbl($x), a_dbl($y), a_dbl($ax_), a_dbl($ay_), a_dbl($al_), rl_color($c), a_dbl($a), 1, a_dbl($an));`
+        `Font eng_f = rl_font($fn); eng_text(&eng_f, a_dbl($fs), a_dbl($as), a_dbl($ds), a_dbl($gp), a_dbl($em), (int)a_dbl($size), rl_s($s), a_dbl($x), a_dbl($y), a_dbl($ax_), a_dbl($ay_), a_dbl($al_), rl_color($c), a_dbl($a), 1, a_dbl($an));`
     },
 
     ;; eng.draw_m(img, frame, m, [ax, ay, alpha]): a frame of the sheet, with
@@ -432,8 +412,11 @@ pin eng = [
     ;; eng.measure(s, size, [font]): the width of the text
     measure = func (s, size, font) {
         val f = font || FONT_SANS
-        val p, as, ds, gp, em = (f.path, f.asc, f.desc, f.gap, f.upem)
-        `:number eng_text(rl_s($p), a_dbl($as), a_dbl($ds), a_dbl($gp), a_dbl($em), (int)a_dbl($size), rl_s($s), 0, 0, 0, 0, 0, WHITE, 1, 0, 0)`
+        val as, ds, gp, em = (f.asc, f.desc, f.gap, f.upem)
+        val ef = eng_font(f, size)
+        val fn, fs = (ef.font, ef.draw)
+        `Font eng_f = rl_font($fn);`
+        `:number eng_text(&eng_f, a_dbl($fs), a_dbl($as), a_dbl($ds), a_dbl($gp), a_dbl($em), (int)a_dbl($size), rl_s($s), 0, 0, 0, 0, 0, WHITE, 1, 0, 0)`
     },
 
     ;; eng.sound(path): a sound, loaded once per path (ray.sound); with no
