@@ -24,16 +24,13 @@ Each has the option recommended by this session.
 | # | Work |
 |---|------|
 | 19 | Crazy Snake: the music loops and stops on the death, and the sound of the death stops when End restarts (`rl.stop_sound` and a looping sound are not in `raylib.atm`); the port plays each once |
-| 20 | Crazy Snake: `doc/games/crazy_snake.md` |
 | 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
-| 23 | Dark Blue: `doc/games/dark_blue.md`; the music (loop, stop) as in Crazy Snake (19) |
+| 23 | Dark Blue: the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 28 | The experiment of a context per screen (branch `exp-screen-context`, d7c8751): reported to `atmos-pin`; not to merge into the exact port; a candidate for the relaxed ports (15) |
 | 27 | The vocabulary of events of all environments (env-ray 4d5f5b5, 2026-11-17; and 8350e6f, 2026-11-18: in a frame, the input, then `:frame [n=, us=]`, then the time of Atmos, then `:draw`; the port keeps its own clock, so the order of the time should not matter, to check): `ray.atm` and the table `ray` (was `raylib.atm`, `rl`), `:key.dn [key=name, code=]`, `:mouse.button.dn/up`, `:frame [n=, us=]`, the compiler `atmos-ray`. The compiler is now at 94aedf1 (the second migration of `pin` is done), so this can be done; our copy of the binding has nothing to merge back (only `pin rl`, which env-ray has) |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
-| 8 | `doc/games/` for Pixel War, Man vs Penguins, Connected, and I Hate Rabbits (the other documents of these games are done) |
-| 9 | `doc/table.md` and `doc/state.md`: the row and the section of Connected (control variables not counted yet) |
 | 10 | Copy `raylib.atm` at `0b1aa0f` of `ia-atmos/env-ray`, and use `rl.font_ex` in `lib/engine.atm` in place of its own C for fonts |
 | 11 | Run `ASAN=1 tst/run.sh` on the last commits (stopped once for time; the normal suite passes, 22 tests). The suite takes more than 10 minutes with ASAN: run it in the background |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
@@ -55,9 +52,7 @@ Each has the option recommended by this session.
 | 5 | The code that runs is `phaser113.min.js`, whose minifier reordered `updateMotion`; the other formulas were checked against it |
 | 6 | Text: Liberation Sans and Mono for Arial and Courier (SIL OFL, in `lib/fonts/`); the line height and the width are those of Chromium, a vertical correction of `0.12 * size` was measured on two sizes only |
 | 7 | A tween whose task is aborted is deleted; Phaser would go on moving the object. No run shows a difference |
-| 8 | Connected keeps the best score in memory, not in `localStorage` |
 | 10 | The new rules of `pin` (compiler `98ad03a`, approved by the author on 2026-11-15): the port was migrated with the same traces (26 tests on `3a6ffe9`); bodies own their sprites, the list of tweens holds marks and the pass emits `:tween.step`, the traces of the screens answer `:trace`; `ctl` of `Motion` gone (its `pub.stop`). Report sent to the compiler session; in `doc/compiler.md` |
-| 9 | Some flags stay where the order inside a frame or of the random draws requires it (Save the City `keyReset`, Man vs Penguins `enemyTime`, I Hate Rabbits `change_level`), and the recycled groups stay as slots; listed in `doc/state.md` |
 
 ## D. Older items
 
@@ -77,6 +72,11 @@ tables above were given before the rule and stay as they are.
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | open |
 
 ## Settled
+
+- Documents (2026-11-20, work with no input): `doc/games/` has one per
+  game (the nine that lacked one); `doc/state.md` and `doc/table.md` count
+  the control of Connected (2 in the JavaScript, 2 left). TODO 8, 9, 20 and
+  23 (its document) done.
 
 - Who to tell (2026-11-18): what concerns `pin` goes to the session
   `atmos-pin` (session_011eECogSDhkVfyt7qme5DLh); the rest of the compiler
