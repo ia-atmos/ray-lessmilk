@@ -28,7 +28,6 @@ Each has the option recommended by this session.
 | 23 | Dark Blue: the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 28 | The experiment of a context per screen (branch `exp-screen-context`, d7c8751): reported to `atmos-pin`; not to merge into the exact port; a candidate for the relaxed ports (15) |
-| 27 | The vocabulary of events of all environments (env-ray 4d5f5b5, 2026-11-17; and 8350e6f, 2026-11-18: in a frame, the input, then `:frame [n=, us=]`, then the time of Atmos, then `:draw`; the port keeps its own clock, so the order of the time should not matter, to check): `ray.atm` and the table `ray` (was `raylib.atm`, `rl`), `:key.dn [key=name, code=]`, `:mouse.button.dn/up`, `:frame [n=, us=]`, the compiler `atmos-ray`. The compiler is now at 94aedf1 (the second migration of `pin` is done), so this can be done; our copy of the binding has nothing to merge back (only `pin rl`, which env-ray has) |
 | 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
 | 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
 | 10 | Copy `raylib.atm` at `0b1aa0f` of `ia-atmos/env-ray`, and use `rl.font_ex` in `lib/engine.atm` in place of its own C for fonts |
@@ -66,11 +65,18 @@ tables above were given before the rule and stay as they are.
 
 | # | Item | Kind | State |
 |---|------|------|-------|
-| #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | open |
+| #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | the vocabulary done by the session (to be confirmed); the relaxed ports next |
 | #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | open |
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | open |
 
 ## Settled
+
+- The vocabulary of `ray.atm` (2026-11-20, TODO 27, #1, by the session, to
+  be confirmed): `env/ray.atm` copied from env-ray 8350e6f (with the patch
+  of test mode), `rl.` became `ray.`, the events `:frame`, `:draw`,
+  `:key.dn [key=, code=]`, `:mouse.button.dn/up`, `:quit`; the include of
+  `reasings.h` added to `tools/atmos.sh`. Branch `ray-vocabulary`, merged:
+  the 33 tests give the same traces.
 
 - Documents (2026-11-20, work with no input): `doc/games/` has one per
   game (the nine that lacked one); `doc/state.md` and `doc/table.md` count
