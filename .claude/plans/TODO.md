@@ -69,6 +69,9 @@ tables above were given before the rule and stay as they are.
 
 ## Settled
 
+- The compiler at 34c381b (2026-11-21, asked by atmos-lang: atmos-pin#17,
+  #3): the 33 tests pass, and no error output says `invalid pin : shared`.
+
 - The case study (2026-11-20, TODO 7, by the session, to be confirmed):
   `doc/case-study.md`, six patterns (screens, timers, one-shot awaits,
   entities as tasks, chains of tweens, what a screen owns), from Run! and
