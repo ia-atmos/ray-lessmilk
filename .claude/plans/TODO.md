@@ -69,6 +69,10 @@ tables above were given before the rule and stay as they are.
 
 ## Settled
 
+- ASAN on the compiler f999c52 (2026-11-21, asked by atmos-lang: unpinned
+  cycles no longer collected, atmos-pin#18): the 33 tests pass, no error and
+  no leak of the sanitizer.
+
 - The compiler at 34c381b (2026-11-21, asked by atmos-lang: atmos-pin#17,
   #3): the 33 tests pass, and no error output says `invalid pin : shared`.
 
