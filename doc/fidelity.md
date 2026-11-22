@@ -348,7 +348,7 @@ differently.
 
 ## 5. Fill the Holes
 
-The same as the original on its two runs, line by line
+The same as the original on its three runs, line by line
 (`tst/fill_the_holes/`):
 
 | Run | Frames | Seed | Input |

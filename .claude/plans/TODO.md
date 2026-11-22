@@ -28,7 +28,6 @@ Each has the option recommended by this session.
 | 30 | `doc/bench.md` to measure again: the numbers predate the fixes below (set :out of the tweens, the input of the test mode, the scaled text) |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
-| 16 | Fill the Holes: no run gets through the fifteen levels (End not compared); a run would need the solutions of levels 7 to 15 |
 | 12 | Box Jump: no run reaches the screen End (twenty levels); a run that wins would need a schedule of jumps found by search |
 | 13 | Consider `await(n, :e)` of the compiler (the nth occurrence of a pattern) where a port counts frames |
 | 15 | After the twelve games are identical to their originals: tag the last exact commit `exact`, then relax each port in favor of expressiveness, keeping the intent of the original (decided by the author, see Settled): `await Nms` in place of `Wait`, a task per entity in place of recycled slots, `await`s in place of the flags that stayed, the emulation of 32-bit floats and of the quadtree out of the games (kept in `lib/` for the exact version); the relaxed ports get traces of their own |
@@ -55,6 +54,11 @@ tables above were given before the rule and stay as they are.
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | merged into main (2026-11-22, the author: "follow your recommendations"); 33 tests identical on compiler 98e4787 |
 
 ## Settled
+
+- Fill the Holes (TODO 16, 2026-11-22): `tst/fill_the_holes/win.run`, the
+  fifteen levels solved (levels 7 to 15 by a breadth-first search over the
+  rules of the original), then End: the port gives the trace of the
+  original, 11293 frames.
 
 - Acknowledged by the author (2026-11-22, "follow your recommendations"):
   - The order of L4 and L5 changed: the games on Phaser 1.1.3 first (I Hate Rabbits, Man vs Penguins, Connected, then Fill the Holes and Princess Quest), the three games on other versions of Phaser last (10, 11, 12)

@@ -28,7 +28,7 @@
 | 2 | Pixel War | 1.1.3 | 198 | 234 | +18 | 2188 | 1532 | -30 | 5 | 1 | 2 (6000 frames, 9 games) | yes |
 | 3 | Box Jump | 1.1.3 | 185 | 210 | +14 | 2746 | 2290 | -17 | 3 | 2 | 2 (5400 frames, levels 1 to 4, 56 deaths) | yes |
 | 4 | Man vs Penguins | 1.1.3 | 308 | 301 | -2 | 3566 | 2491 | -30 | 6 | 3 | 2 (8400 frames, many deaths) | yes |
-| 5 | Fill the Holes | 1.1.3 | 363 | 411 | +13 | 4875 | 4025 | -17 | 3 | 2 | 2 (6659 frames, 6 levels solved) | yes |
+| 5 | Fill the Holes | 1.1.3 | 363 | 411 | +13 | 4875 | 4025 | -17 | 3 | 2 | 3 (17952 frames, the 15 levels solved, End) | yes |
 | 6 | Princess Quest | 1.1.3 | 403 | 358 | -11 | 4306 | 2904 | -33 | 5 | 4 | 2 (8387 frames, 5 games) | yes |
 | 7 | Connected | 1.1.3 | 334 | 362 | +8 | 3386 | 2646 | -22 | 2 | 0 | 2 (13033 frames, 3 games) | yes |
 | 8 | Save the City | 1.1.3 | 176 | 193 | +10 | 1896 | 1604 | -15 | 2 | 1 | 2 (2162 frames, 2 cities gone, a restart) | yes |
