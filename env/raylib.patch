@@ -24,10 +24,10 @@ index 68639f3..f6f68a8 100644
  }
  //-------------------------------------------------------------------------------------------
 diff --git a/src/platforms/rcore_memory.c b/src/platforms/rcore_memory.c
-index 5d9461c..d31a739 100644
+index 5d9461c..cd0c0eb 100644
 --- a/src/platforms/rcore_memory.c
 +++ b/src/platforms/rcore_memory.c
-@@ -95,6 +95,159 @@ static int kbhit(void);                         // Check if key has been pressed
+@@ -95,6 +95,182 @@ static int kbhit(void);                         // Check if key has been pressed
  static char getch(void) { return getchar(); }   // Get pressed character
  #endif
  
@@ -77,13 +77,36 @@ index 5d9461c..d31a739 100644
 +// Applies the entries of RL_INPUT due at `frame`.
 +static void rlt_input (int frame)
 +{
-+    const char *s = getenv("RL_INPUT");
++    // Atmos port: RL_INPUT is in the order of the frames (as the run files
++    // write it): each call goes on from where the last one stopped, instead
++    // of reading the whole list each frame; if it is not in order, the
++    // whole list each frame, as before
++    static const char *pos = NULL;
++    static int sorted = -1;
++    if (sorted < 0)
++    {
++        const char *t = getenv("RL_INPUT");
++        int last = 0;
++        sorted = 1;
++        while ((t != NULL) && (*t != '\0'))
++        {
++            int f = atoi(t);
++            if (f < last) sorted = 0;
++            last = f;
++            t += strcspn(t, ",");
++            t += (*t == ',');
++        }
++        pos = getenv("RL_INPUT");
++    }
++    const char *s = sorted ? pos : getenv("RL_INPUT");
 +    while ((s != NULL) && (*s != '\0'))
 +    {
++        if (sorted && (atoi(s) > frame)) break;
 +        char item[128] = { 0 };
 +        size_t n = strcspn(s, ",");
 +        snprintf(item, sizeof(item), "%.*s", (int)n, s);
 +        s += n + (s[n] == ',');
++        if (sorted) pos = s;
 +
 +        char *op = strchr(item, ':');
 +        if ((op == NULL) || (atoi(item) != frame)) continue;
@@ -187,7 +210,7 @@ index 5d9461c..d31a739 100644
  //----------------------------------------------------------------------------------
  // Module Functions Definition: Window and Graphics Device
  //----------------------------------------------------------------------------------
-@@ -102,6 +255,7 @@ static char getch(void) { return getchar(); }   // Get pressed character
+@@ -102,6 +278,7 @@ static char getch(void) { return getchar(); }   // Get pressed character
  // Check if application should close
  bool WindowShouldClose(void)
  {
@@ -195,7 +218,7 @@ index 5d9461c..d31a739 100644
      if (CORE.Window.ready) return CORE.Window.shouldClose;
      else return true;
  }
-@@ -351,8 +505,14 @@ void DisableCursor(void)
+@@ -351,8 +528,14 @@ void DisableCursor(void)
  // Swap back buffer with front buffer (screen drawing)
  void SwapScreenBuffer(void)
  {
@@ -212,7 +235,7 @@ index 5d9461c..d31a739 100644
  }
  
  //----------------------------------------------------------------------------------
-@@ -363,6 +523,7 @@ void SwapScreenBuffer(void)
+@@ -363,6 +546,7 @@ void SwapScreenBuffer(void)
  double GetTime(void)
  {
      double time = 0.0;
@@ -220,7 +243,7 @@ index 5d9461c..d31a739 100644
  #if defined(_WIN32)
      LARGE_INTEGER currentTicks = { 0 };
      QueryPerformanceCounter(&currentTicks);
-@@ -465,12 +626,25 @@ void PollInputEvents(void)
+@@ -465,12 +649,25 @@ void PollInputEvents(void)
  
      // Register previous keys states
      // NOTE: Android supports up to 260 keys
@@ -247,7 +270,7 @@ index 5d9461c..d31a739 100644
      // TODO: Poll input events for current platform
  
      // Check for key pressed to exit
-@@ -538,7 +712,9 @@ int InitPlatform(void)
+@@ -538,7 +735,9 @@ int InitPlatform(void)
      QueryPerformanceFrequency(&platform.timerFrequency);
      CORE.Time.base = time.QuadPart;
  #endif

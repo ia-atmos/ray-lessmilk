@@ -71,21 +71,20 @@ pin Ease = [
 ;; the start, as in Phaser. `ms` is `ms || 1000`, as in Phaser.
 task Motion (obj, to, ms, ease, delay) {
     set pub = [ stop = false ]              ;; set pub.stop = true: tween.pause()
-    pin from = []
-    pin end = []
+    ;; what the tween moves, from where to where, and its control: a table
+    ;; of the task, to which the record refers while the task lasts (a
+    ;; `set :out` of a value of the task, which ends with it; one of `obj`,
+    ;; which is not the task's, would stay until obj ends)
+    pin tw = [ obj = obj, from = [], end = [], ctl = pub ]
     loop k, v in to {
-        set from@k = prop_get(obj, k)
-        set end@k = if type(v) == "string" => from@k + tonumber(v) => v
+        set tw.from@k = prop_get(obj, k)
+        set tw.end@k = if type(v) == "string" => tw.from@k + tonumber(v) => v
     }
-    ;; the record, in the list of the manager (TweenManager.add): the list is
-    ;; global, and the record refers to what the task owns while it lasts
+    ;; the record, in the list of the manager (TweenManager.add)
     set Tweens.add@+ = :Tween [ dead = false, f = ease || Ease.linear,
                                 t0 = eng.now() + (delay || 0), dur = ms || 1000 ]
     val r = Tweens.add@(#Tweens.add - 1)
-    set :out r.obj  = obj
-    set :out r.from = from
-    set :out r.end  = end
-    set :out r.ctl  = pub
+    set :out r.tw = tw
     defer {
         set r.dead = true                   ;; pendingDelete
     }
@@ -95,12 +94,13 @@ task Motion (obj, to, ms, ease, delay) {
 
 ;; Tween.update: the values at now; at the end, the task of the tween ends
 func tween_step (r, now) {
-    if !r.ctl.stop && (now >= r.t0) {       ;; paused, or in its delay
+    val tw = r.tw
+    if !tw.ctl.stop && (now >= r.t0) {      ;; paused, or in its delay
         val t = (now - r.t0) / r.dur
         val e = if t > 1 => 1 => t
         val v = r.f(e)
-        loop k, x in r.end {
-            prop_set(r.obj, k, r.from@k + ((x - r.from@k) * v))
+        loop k, x in tw.end {
+            prop_set(tw.obj, k, tw.from@k + ((x - tw.from@k) * v))
         }
         if e == 1 {
             emit @:global :tween.done [r=r]
