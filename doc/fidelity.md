@@ -376,13 +376,14 @@ The screen End is compared (`win`).
 
 ## 6. Princess Quest
 
-The same as the original on its two runs, line by line
+The same as the original on its three runs, line by line
 (`tst/princess_quest/`):
 
 | Run | Frames | Seed | Input | Games |
 |-----|-------:|-----:|-------|------:|
 | `play` | 3610 | 3 | UP on the menu; LEFT and RIGHT at random (Python's generator, seed 6); UP after each death | 3 |
 | `drift` | 4777 | 14 | short moves and pauses at random (seed 66); UP every 900 frames | 3 |
+| `spikes` | 1550 | 1 | what a bot pressed (`tools/original/bot/6.js`): it steers to the lowest platform above her feet; score 305, spikes from frame 1159 | 1 and the start of a second |
 
 Trace: frame, state, score, best score; in Play, the princess (x, y,
 velocity, alive, scale, frame), the camera, the platforms that exist (how
@@ -399,8 +400,11 @@ the original: the jump ends with the princess facing left (its
 heart is ever killed (`update_heart(h)` hides the global `h`, and the test
 compares a number with a string).
 
-What the runs do not reach: the spikes come from a score of 250, and the
-runs at random reach 27.
+The spikes come from a score of 250: the run `spikes` reaches 305 (the
+runs at random reach 27). It stops early in its second game: there the
+original throws in `add_platform_moving` (`add_platform` returns nothing
+when the 15 platforms are all in use, and the next line reads its body),
+which the harness cannot step over; the port does the same in its frames.
 
 ## 7. Connected
 

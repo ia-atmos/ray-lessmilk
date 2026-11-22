@@ -67,7 +67,7 @@ original can be compared line by line. See [doc/fidelity.md](doc/fidelity.md).
 | 3 | Box Jump | `games/box_jump` | yes, 2 runs |
 | 4 | Man vs Penguins | `games/man_penguins` | yes, 2 runs |
 | 5 | Fill the Holes | `games/fill_the_holes` | yes, 3 runs |
-| 6 | Princess Quest | `games/princess_quest` | yes, 2 runs |
+| 6 | Princess Quest | `games/princess_quest` | yes, 3 runs |
 | 7 | Connected | `games/connected` | yes, 2 runs |
 | 8 | Save the City | `games/save_the_city` | yes, 2 runs |
 | 9 | I Hate Rabbits | `games/i_hate_rabbits` | yes, 2 runs |

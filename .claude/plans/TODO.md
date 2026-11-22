@@ -26,7 +26,6 @@ Each has the option recommended by this session.
 | 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 30 | `doc/bench.md` to measure again: the numbers predate the fixes below (set :out of the tweens, the input of the test mode, the scaled text) |
-| 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 12 | Box Jump: no run reaches the screen End (twenty levels); a run that wins would need a schedule of jumps found by search |
 | 13 | Consider `await(n, :e)` of the compiler (the nth occurrence of a pattern) where a port counts frames |
@@ -54,6 +53,12 @@ tables above were given before the rule and stay as they are.
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | merged into main (2026-11-22, the author: "follow your recommendations"); 33 tests identical on compiler 98e4787 |
 
 ## Settled
+
+- Princess Quest (TODO 17, 2026-11-22): `tst/princess_quest/spikes.run`, by
+  a bot (`tools/original/bot/6.js`): score 305, spikes from frame 1159; the
+  port gives the trace of the original, 1550 frames. Found: in a second game
+  the original throws (`add_platform_moving` when the pool of platforms is
+  empty), which ends a run in the harness.
 
 - Fill the Holes (TODO 16, 2026-11-22): `tst/fill_the_holes/win.run`, the
   fifteen levels solved (levels 7 to 15 by a breadth-first search over the
