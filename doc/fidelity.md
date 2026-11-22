@@ -355,6 +355,7 @@ The same as the original on its three runs, line by line
 |-----|-------:|-----:|-------|
 | `solve` | 3600 | 1 | the box of the menu; the first six levels solved; clicks at random (seed 5) on level 7, the button restart |
 | `random` | 3059 | 4 | the box of the menu; clicks at random on the board (seed 55), some quick, the button restart now and then |
+| `win` | 11293 | 1 | the fifteen levels solved, then End: levels 1 to 6 as `solve`, 7 to 15 by the moves of a breadth-first search over the rules of the original (a click on a side moves the box toward it; it stops at a wall, falls into the first open hole it crosses, dies off the board); 110 frames between clicks, 270 after the last of a level |
 
 Trace: frame, state, clicks; in Play, the level, the holes to fill, the
 timer, the boxes that exist (how many, alive, sums of x, y, and velocity),
@@ -371,7 +372,7 @@ does not add a listener twice (a box recycled is clicked once, not once
 per level); the emitter of End, whose particles take one of three images,
 drawn from `game.rnd` for each slot when it is made.
 
-No run gets through the fifteen levels (the screen End is not compared).
+The screen End is compared (`win`).
 
 ## 6. Princess Quest
 
