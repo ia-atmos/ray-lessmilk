@@ -263,6 +263,7 @@ pin FONT_MONO = [ path="lib/fonts/LiberationMono-Regular.ttf", asc=1705, desc=61
 ;; the images and sounds, by path
 pin ENG_IMAGES = []
 pin ENG_SOUNDS = []
+pin ENG_MUSIC  = [ by = [], playing = [] ]  ;; music by path, and the ones playing
 
 ;; The font f at a size, loaded once (ray.font_ex), and the size to draw it
 ;; at. raylib scales a TTF so that ascent+descent is the size; the browser,
@@ -286,6 +287,16 @@ func eng_font (f, size) {
 }
 pin ENG_AUDIO  = [ tried = false ]
 pin ENG_CLOCK  = [ now = 1000, fps = 60 ]
+
+;; the audio device, at the first sound (none in the tests: RL_FRAMES)
+func eng_sound_init () {
+    if !ENG_AUDIO.tried {
+        set ENG_AUDIO.tried = true
+        if !os.getenv("RL_FRAMES") {
+            ray.audio_init()
+        }
+    }
+}
 
 pin eng = [
 
@@ -424,12 +435,7 @@ pin eng = [
     ;; eng.sound(path): a sound, loaded once per path (ray.sound); with no
     ;; audio device, as in the tests, sounds do nothing
     sound = func (path) {
-        if !ENG_AUDIO.tried {
-            set ENG_AUDIO.tried = true
-            if !os.getenv("RL_FRAMES") {
-                ray.audio_init()
-            }
-        }
+        eng_sound_init()
         ENG_SOUNDS@(path) || do {
             val snd = ray.sound(path)
             set ENG_SOUNDS@(path) = snd
@@ -440,6 +446,46 @@ pin eng = [
     play = func (snd, volume) {
         ray.sound_volume(snd, if volume == nil => 1 => volume)
         ray.play_sound(snd)
+    },
+    ;; eng.stop(snd): sound.stop()
+    stop = func (snd) {
+        `if (rl_sound($snd)) StopSound(*rl_sound($snd));`
+    },
+
+    ;; eng.music(path): a sound that loops (Phaser: play('', 0, volume,
+    ;; true)), streamed (ray.music), loaded once per path; with no audio
+    ;; device, as in the tests, it does nothing
+    music = func (path) {
+        eng_sound_init()
+        ENG_MUSIC.by@(path) || do {
+            val m = ray.music(path)
+            set ENG_MUSIC.by@(path) = m
+            m
+        }
+    },
+    ;; eng.play_music(m, [volume]): from its start; eng.stop_music(m)
+    play_music = func (m, volume) {
+        ray.music_volume(m, if volume == nil => 1 => volume)
+        ray.play_music(m)
+        loop _, x in ENG_MUSIC.playing {
+            if x == m { return nil }
+        }
+        set ENG_MUSIC.playing@+ = m
+    },
+    stop_music = func (m) {
+        ray.stop_music(m)
+        loop i, x in ENG_MUSIC.playing {
+            if x == m {
+                vector.remove(ENG_MUSIC.playing, i)
+                break
+            }
+        }
+    },
+    ;; eng.update_music(): once per frame (lib/game.atm), the streams fed
+    update_music = func () {
+        loop _, m in ENG_MUSIC.playing {
+            ray.update_music(m)
+        }
     },
 ]
 

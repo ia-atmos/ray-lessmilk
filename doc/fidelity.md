@@ -450,9 +450,9 @@ dies when its bounds, from its transform, leave the camera (`inCamera`).
 The board is drawn under the matrix of its group (`eng.draw_m`), which
 includes the shear of a rotation and an unequal scale (score 15 to 20).
 
-Not emulated: the music loops in the original and stops on the death, and
-the sound of the death stops when End restarts; the port plays each once
-(sounds are silent in the runs).
+The music loops and stops after the tween of the death, and the sound of
+the death stops when End restarts, as in the original (`eng.music`,
+`eng.stop`; sounds are silent in the runs).
 
 ## 10. Dark Blue
 

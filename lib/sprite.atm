@@ -187,10 +187,22 @@ func Text (x, y, s, size, align, font) {
     ]
 }
 
-;; a text scaled (t.sx, the same in x and y) is drawn at its size times the
-;; scale: Pixi scales the picture of the text, raylib draws the font larger
+;; a scaled text: as Pixi, the picture of the text at its size, drawn under
+;; the scale (and the angle) of the text (text_m, lib/scene.atm); drawing it
+;; at its size times the scale loaded a font for each size that a tween of
+;; the scale went through (32 in Crazy Snake, 196 MB, doc/bench.md)
 func text_draw (t) {
     if t.visible {
-        eng.text(t.s, (t.x + (t.ox || 0)) - Camera.x, (t.y + (t.oy || 0)) - Camera.y, t.size * (t.sx || 1), t.color, t.ax, t.ay, t.align, t.alpha * World.alpha, t.font, t.angle || 0)
+        val x = (t.x + (t.ox || 0)) - Camera.x
+        val y = (t.y + (t.oy || 0)) - Camera.y
+        val sx, sy = (t.sx || 1, t.sy || t.sx || 1)
+        if (sx == 1) && (sy == 1) {
+            eng.text(t.s, x, y, t.size, t.color, t.ax, t.ay, t.align, t.alpha * World.alpha, t.font, t.angle || 0)
+        } else {
+            val r = ((t.angle || 0) * math.pi) / 180
+            val cr, sr = (math.cos(r), math.sin(r))
+            pin m = [ a=cr * sx, b=(-sr) * sy, c=sr * sx, d=cr * sy, tx=x, ty=y ]
+            text_m(t.s, m, t.size, t.color, t.ax, t.ay, t.align, t.alpha * World.alpha, t.font)
+        }
     }
 }

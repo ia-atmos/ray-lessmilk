@@ -4,7 +4,7 @@
 pin IMG_PLAYER = eng.image(A ++ "images/player.png")
 pin IMG_COIN   = eng.image(A ++ "images/coin.png")
 pin IMG_BG     = eng.image(A ++ "images/bg.png", 350, 350)
-val SND_MUSIC  = eng.sound(A ++ "sounds/music.wav")
+val SND_MUSIC  = eng.music(A ++ "sounds/music.wav")   ;; it loops
 val SND_COIN   = eng.sound(A ++ "sounds/coin.wav")
 val SND_DEATH  = eng.sound(A ++ "sounds/death.wav")
 
@@ -16,6 +16,7 @@ func rand (n) {
 ;; the death: the level shrinks to nothing, then End (state.start)
 task Vanish (level, over) {
     await Motion(level, [sx=0, sy=0], 500)
+    eng.stop_music(SND_MUSIC)               ;; onComplete: music.stop()
     set over.dead = true
 }
 
@@ -53,7 +54,7 @@ task Play () {
     val score_label = node_add(level, Text(-160, -160, "0", 20))
 
     if sound {
-        eng.play(SND_MUSIC, 0.4)
+        eng.play_music(SND_MUSIC, 0.4)
     }
     set score = 0
     var direction, current = (1, nil)

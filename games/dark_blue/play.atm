@@ -10,7 +10,7 @@ val SND_COIN   = eng.sound(A ++ "sounds/coin.wav")
 val SND_DEAD   = eng.sound(A ++ "sounds/dead.wav")
 val SND_YEAH   = eng.sound(A ++ "sounds/yeah.mp3")
 val SND_JUMP   = eng.sound(A ++ "sounds/jump.wav")
-val SND_MUSIC  = eng.sound(A ++ "sounds/music.wav")
+val SND_MUSIC  = eng.music(A ++ "sounds/music.wav")   ;; it loops
 
 ;; a coin floats: .to({y:"-5"}, 300).to({y:"+5"}, 300).loop()
 task Float (c) {
@@ -68,7 +68,7 @@ task Play () {
     pin over = [ done = false ]     ;; the last level ended: Endd
 
     if sound {
-        eng.play(SND_MUSIC, 0.2)
+        eng.play_music(SND_MUSIC, 0.2)
     }
 
     ;; createFromObjects of the coins: new sprites at the end of the group,
@@ -200,6 +200,9 @@ task Play () {
                     eng.play(SND_YEAH, 0.3)
                 }
                 set pbody.gy, pbody.vx, pbody.vy = (0, 0, 0)
+                if st.level == 6 {
+                    eng.stop_music(SND_MUSIC)       ;; music.stop()
+                }
                 spawn @tweens Next()
             }
         }

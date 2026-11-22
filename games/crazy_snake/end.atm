@@ -27,5 +27,6 @@ task End () {
     }
     val time = eng.now() + 500
     await :update until key_down('UP') && (time < eng.now())
+    eng.stop(SND_DEATH)             ;; dead_s.stop()
     await :state                    ;; state.start('Play'), in the next frame
 }

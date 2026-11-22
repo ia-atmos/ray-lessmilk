@@ -141,6 +141,7 @@ task Game (w, h, ver) {
     loop on :frame {
         set Keys.frame += 1
         eng.tick()
+        eng.update_music()
         val now = eng.now()
         set Physics.elapsed = now - prev
         set Physics.dt = Physics.elapsed / 1000
