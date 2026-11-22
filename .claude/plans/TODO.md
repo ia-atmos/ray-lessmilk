@@ -27,7 +27,6 @@ Each has the option recommended by this session.
 | 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
 | 23 | Dark Blue: the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
-| 28 | The experiment of a context per screen (branch `exp-screen-context`, d7c8751): reported to `atmos-pin`; not to merge into the exact port; a candidate for the relaxed ports (15) |
 | 30 | `doc/bench.md`: Dark Blue spends 10 times the logic of the original (4.7 ms a frame); three ports peak at 98 to 196 MB; not looked into |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
@@ -64,10 +63,20 @@ tables above were given before the rule and stay as they are.
 | # | Item | Kind | State |
 |---|------|------|-------|
 | #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | the vocabulary done by the session (to be confirmed); the relaxed ports next |
-| #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | done on the branch `pin-out` (63d2e2b), by the session, to be confirmed: the compiler accepts the three first forms; not merged |
-| #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | done on the branch `pin-out`, by the session, not merged: bodies, traces, tweens; the 33 tests give the same traces (compiler 8c46149); 23 files, 164 lines in, 213 out. Merge is the author's call. See Settled |
+| #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | merged into main (2026-11-22, the author: "follow your recommendations") |
+| #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | merged into main (2026-11-22, the author: "follow your recommendations"); 33 tests identical on compiler 98e4787 |
 
 ## Settled
+
+- #2 and #3 merged into main (2026-11-22). The tweens: a `set :out` of
+  `obj` (a value of the screen, not of the task) kept an entry until obj
+  ended, which the runtime scans at each finalization: Dark Blue spent 34%
+  of its instructions there; the task now pins a table (object, start, end,
+  control) and the record refers to it. Reported to atmos-lang. The branch
+  `exp-screen-context` (28) is closed: #3 keeps its useful part.
+- The test mode of raylib (env/raylib.patch): `RL_INPUT` is read on from
+  where the last frame stopped (it was read whole each frame: 4% of Dark
+  Blue's instructions with the inputs of its bot).
 
 - The compiler at f416c03 (`mute`, `stage`, `solo` keywords: `mute` of
   the menu of Princess Quest became `mute_btn`, also on the branches) and at
