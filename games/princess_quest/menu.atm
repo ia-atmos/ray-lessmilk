@@ -46,7 +46,7 @@ task Menu () {
     val platform = lb.spr
     set platform.ax, platform.ay = (0.5, 0.5)
     set lb.immovable = true
-    pin mute = Sprite(IMG_MUTE, W - 70, 42)
+    pin mute_btn = Sprite(IMG_MUTE, W - 70, 42)
     defer {
         body_remove(pb)
         body_remove(lb)
@@ -60,7 +60,7 @@ task Menu () {
             text_draw(t3)
             sprite_draw(princess)
             sprite_draw(platform)
-            sprite_draw(mute)
+            sprite_draw(mute_btn)
         }
     }
     loop on :update {
