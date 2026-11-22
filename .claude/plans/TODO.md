@@ -25,7 +25,6 @@ Each has the option recommended by this session.
 |---|------|
 | 22 | Dark Blue: no run gets through the fourth level of `levels.atm` (`s.level` 4), so levels 4 and 5 and Endd are not compared. Tried 2026-11-22: the bot (`tools/original/bot/10.js`) reaches it in 4989 frames and then stays at the start (25000 frames): the coins are to the left, beyond a wall 3 tiles high and a red pit, and it pushes against the wall; varying its take-off and its timing after deaths (as the bot of Box Jump) did not help. It needs a plan for that level (climb, run left, jump the pit) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
-| 30 | `doc/bench.md` to measure again: the numbers predate the fixes below (set :out of the tweens, the input of the test mode, the scaled text) |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 13 | Consider `await(n, :e)` of the compiler (the nth occurrence of a pattern) where a port counts frames |
 | 15 | After the twelve games are identical to their originals: tag the last exact commit `exact`, then relax each port in favor of expressiveness, keeping the intent of the original (decided by the author, see Settled): `await Nms` in place of `Wait`, a task per entity in place of recycled slots, `await`s in place of the flags that stayed, the emulation of 32-bit floats and of the quadtree out of the games (kept in `lib/` for the exact version); the relaxed ports get traces of their own |
@@ -52,6 +51,9 @@ tables above were given before the rule and stay as they are.
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | merged into main (2026-11-22, the author: "follow your recommendations"); 33 tests identical on compiler 98e4787 |
 
 ## Settled
+
+- The bench again (TODO 30, 2026-11-22, compiler 3ffac71): `doc/bench.md`;
+  Dark Blue 4.72 to 1.26 ms of logic, the ports 21 to 39 MB.
 
 - Box Jump (TODO 12, 2026-11-22): `tst/box_jump/win.run`, by a bot that
   learns each level by dying (`tools/original/bot/3.js`): the twenty levels,

@@ -161,4 +161,5 @@ The 33 tests give the same traces on that branch.
 - Some control remains: the control variables left are counted in
   [table.md](table.md), with the reason for each in [state.md](state.md).
 - The cost of a frame: see [bench.md](bench.md); the logic is within a
-  factor of 2.3 of the browser in 9 games, and slower in Dark Blue.
+  factor of 2.3 of the browser in 10 games, and about 3 times it in Dark
+  Blue and Crazy Snake.
