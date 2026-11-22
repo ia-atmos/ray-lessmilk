@@ -69,6 +69,11 @@ tables above were given before the rule and stay as they are.
 
 ## Settled
 
+- The compiler at f416c03 (`mute`, `stage`, `solo` keywords: `mute` of
+  the menu of Princess Quest became `mute_btn`, also on the branches) and at
+  98e4787 (`loop in nil` is an error; the tag of a table in its header):
+  the 33 tests pass, traces identical (2026-11-22).
+
 - ASAN on the compiler f999c52 (2026-11-21, asked by atmos-lang: unpinned
   cycles no longer collected, atmos-pin#18): the 33 tests pass, no error and
   no leak of the sanitizer.
