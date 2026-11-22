@@ -35,16 +35,7 @@ Each has the option recommended by this session.
 
 ## C. Reported or decided, and not acknowledged by the author
 
-| # | What |
-|---|------|
-| 1 | The order of L4 and L5 changed: the games on Phaser 1.1.3 first (I Hate Rabbits, Man vs Penguins, Connected, then Fill the Holes and Princess Quest), the three games on other versions of Phaser last (10, 11, 12) |
-| 2 | Of the student's documents, only Run! has an analysis; the other READMEs are a TODO of 6 to 9 lines. The documents of the other games are this session's |
-| 3 | The assets of games 3 to 12 come from the student's port (the copy of the site has only games 1 and 2); compared byte by byte where both exist |
-| 4 | The easings of `reasings.h` are not used for Motion: they are 32-bit floats, and the traces need the doubles of JavaScript (the formulas are the same) |
-| 5 | The code that runs is `phaser113.min.js`, whose minifier reordered `updateMotion`; the other formulas were checked against it |
-| 6 | Text: Liberation Sans and Mono for Arial and Courier (SIL OFL, in `lib/fonts/`); the line height and the width are those of Chromium, a vertical correction of `0.12 * size` was measured on two sizes only |
-| 7 | A tween whose task is aborted is deleted; Phaser would go on moving the object. No run shows a difference |
-| 10 | The new rules of `pin` (compiler `98ad03a`, approved by the author on 2026-11-15): the port was migrated with the same traces (26 tests on `3a6ffe9`); bodies own their sprites, the list of tweens holds marks and the pass emits `:tween.step`, the traces of the screens answer `:trace`; `ctl` of `Motion` gone (its `pub.stop`). Report sent to the compiler session; in `doc/compiler.md` |
+None (the eight that were here are in Settled, 2026-11-22).
 
 ## D. Older items
 
@@ -64,6 +55,16 @@ tables above were given before the rule and stay as they are.
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | merged into main (2026-11-22, the author: "follow your recommendations"); 33 tests identical on compiler 98e4787 |
 
 ## Settled
+
+- Acknowledged by the author (2026-11-22, "follow your recommendations"):
+  - The order of L4 and L5 changed: the games on Phaser 1.1.3 first (I Hate Rabbits, Man vs Penguins, Connected, then Fill the Holes and Princess Quest), the three games on other versions of Phaser last (10, 11, 12)
+  - Of the student's documents, only Run! has an analysis; the other READMEs are a TODO of 6 to 9 lines. The documents of the other games are this session's
+  - The assets of games 3 to 12 come from the student's port (the copy of the site has only games 1 and 2); compared byte by byte where both exist
+  - The easings of `reasings.h` are not used for Motion: they are 32-bit floats, and the traces need the doubles of JavaScript (the formulas are the same)
+  - The code that runs is `phaser113.min.js`, whose minifier reordered `updateMotion`; the other formulas were checked against it
+  - Text: Liberation Sans and Mono for Arial and Courier (SIL OFL, in `lib/fonts/`); the line height and the width are those of Chromium, a vertical correction of `0.12 * size` was measured on two sizes only
+  - A tween whose task is aborted is deleted; Phaser would go on moving the object. No run shows a difference
+  - The new rules of `pin` (compiler `98ad03a`, approved by the author on 2026-11-15): the port was migrated with the same traces (26 tests on `3a6ffe9`); bodies own their sprites, the list of tweens holds marks and the pass emits `:tween.step`, the traces of the screens answer `:trace`; `ctl` of `Motion` gone (its `pub.stop`). Report sent to the compiler session; in `doc/compiler.md`
 
 - Connected (TODO 14, 2026-11-22): the move is a sequence (`await` of the
   press, the updates while down, `await Wait(300)`); `clicked` and
