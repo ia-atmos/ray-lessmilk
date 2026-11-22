@@ -154,7 +154,7 @@ The 33 tests give the same traces on that branch.
 
 - Fidelity has a cost. A port reproduces the order in which Phaser updates
   its sprites, bodies, tweens and timers, frame by frame: the library
-  (`lib/`, 2106 lines) emulates Phaser 1.1.3, 1.1.6, 2.0.1 and 2.0.2 where
+  (`lib/`, 2181 lines) emulates Phaser 1.1.3, 1.1.6, 2.0.1 and 2.0.2 where
   the games depend on them, down to 32-bit floats and the quadtree of the
   collisions. The relaxed ports (TODO 15) will drop that, against traces of
   their own.

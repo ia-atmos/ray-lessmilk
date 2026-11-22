@@ -138,17 +138,17 @@ update, in its order, by the physics and the princess.
 | `this.moves`, `this.count` (Play) | data: the moves made (twenty end the game), the dots of the move | `moves`, `count` |
 | `this.type`, `this.pos_i`, `this.pos_j` (Play) | data: the color of the move (-1 for none), the last dot selected | `type`, `pos_i`, `pos_j` |
 | `this.deleted_dots` (Play) | data: the dots removed, for the fall of the others | `deleted` |
-| `this.clicked` (Play) | control: a move is in progress (the button went down on a dot) | `clicked`, the same flag |
-| `this.next_time` (Play) | control: a new move waits 300 ms after the last one | `next_time`, the same timestamp |
+| `this.clicked` (Play) | control: a move is in progress (the button went down on a dot) | gone: the place in the sequence (the updates while the button is down) |
+| `this.next_time` (Play) | control: a new move waits 300 ms after the last one | gone: `await Wait(300)` after the move |
 | `this.dots`, labels, the bar, sounds | drawn | locals of `Play` |
 
-Control: 2 in the JavaScript, 2 left. A move reads the pointer in each
-update, as the original: it starts when the button is down over a dot, at
-least 300 ms after the last move, and ends when the button goes up, in the
-same update that tests both. A sequence (`await` of the press, the updates
-while pressed, then `await Wait(300)`) is the form of the relaxed port
-(TODO 14); it would read the same frames, but the flags are the order of
-the original.
+Control: 2 in the JavaScript, 0 left (2026-11-22, TODO 14). A move is a
+sequence: an `await` of the press, the updates while the button is down
+(`try_select` in each), the end of the move in the update of the release,
+then `await Wait(300)`, which ends in the first update where the clock is
+past the release plus 300 ms, the test of `next_time` of the original. The
+death of the dots grown to 2 is a trail of its own, spawned first, so that
+it still comes first in each update. The two runs give the same traces.
 
 ## 8. Save the City
 

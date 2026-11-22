@@ -23,18 +23,15 @@ Each has the option recommended by this session.
 
 | # | Work |
 |---|------|
-| 19 | Crazy Snake: the music loops and stops on the death, and the sound of the death stops when End restarts (`rl.stop_sound` and a looping sound are not in `raylib.atm`); the port plays each once |
 | 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
-| 23 | Dark Blue: the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
-| 30 | `doc/bench.md`: Dark Blue spends 10 times the logic of the original (4.7 ms a frame); three ports peak at 98 to 196 MB; not looked into |
+| 30 | `doc/bench.md` to measure again: the numbers predate the fixes below (set :out of the tweens, the input of the test mode, the scaled text) |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 16 | Fill the Holes: no run gets through the fifteen levels (End not compared); a run would need the solutions of levels 7 to 15 |
 | 12 | Box Jump: no run reaches the screen End (twenty levels); a run that wins would need a schedule of jumps found by search |
 | 13 | Consider `await(n, :e)` of the compiler (the nth occurrence of a pattern) where a port counts frames |
 | 15 | After the twelve games are identical to their originals: tag the last exact commit `exact`, then relax each port in favor of expressiveness, keeping the intent of the original (decided by the author, see Settled): `await Nms` in place of `Wait`, a task per entity in place of recycled slots, `await`s in place of the flags that stayed, the emulation of 32-bit floats and of the quadtree out of the games (kept in `lib/` for the exact version); the relaxed ports get traces of their own |
-| 14 | Connected: try the move as a sequence (`await` of the press, then the updates while pressed, then `await Wait(300)`), in place of the flags `clicked` and `next_time`, keeping the traces |
 
 ## C. Reported or decided, and not acknowledged by the author
 
@@ -67,6 +64,18 @@ tables above were given before the rule and stay as they are.
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | merged into main (2026-11-22, the author: "follow your recommendations"); 33 tests identical on compiler 98e4787 |
 
 ## Settled
+
+- Connected (TODO 14, 2026-11-22): the move is a sequence (`await` of the
+  press, the updates while down, `await Wait(300)`); `clicked` and
+  `next_time` gone, control left 0; the two runs give the same traces.
+  `doc/table.md` recounted (all rows: the ports changed since).
+- The music (TODO 19, 23, 2026-11-22): `eng.music` and the others; Crazy
+  Snake and Dark Blue loop it and stop it as the originals, and Crazy Snake
+  stops the sound of the death when End restarts.
+- The memory (TODO 30, part): a scaled text (`text_draw`, Phaser 1.1.3) is
+  drawn at its size under its scale, as Pixi draws its picture, in place of
+  at its size times the scale, which loaded a font for each size a tween
+  went through: Crazy Snake 196 MB to 35 MB, same traces.
 
 - #2 and #3 merged into main (2026-11-22). The tweens: a `set :out` of
   `obj` (a value of the screen, not of the task) kept an entry until obj

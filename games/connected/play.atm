@@ -39,12 +39,11 @@ task Play () {
     var tuto = nil
     pin tweens = tasks()
 
-    var clicked, count, moves, type = (false, 0, 0, -1)
+    var count, moves, type = (0, 0, -1)
     pin deleted = []
     var pos_i, pos_j = (-1, -1)
     val offset_x = ((W - (6 * TILE)) / 2) + (TILE / 2)
     val offset_y = 80
-    var next_time = 0
     set score = 0
 
     ;; [trace]
@@ -224,35 +223,49 @@ task Play () {
         }
     }
 
-    loop on :update {
-        loop _, x in dots.slots {
-            if x.s.alive && (x.s.sx == 2) {
-                sprite_kill(x.s)
+    ;; the dots grown to 2 die, first in each update
+    spawn {
+        loop on :update {
+            loop _, x in dots.slots {
+                if x.s.alive && (x.s.sx == 2) {
+                    sprite_kill(x.s)
+                }
             }
         }
-        if pointer_down() && (eng.now() > next_time) {
-            set clicked = true
+    }
+
+    ;; a move: the button goes down (300 ms after the last move), the dots
+    ;; under the pointer are selected while it stays down, and the move
+    ;; ends when it goes up; the flags clicked and next_time of the original
+    ;; are this sequence
+    await :update until pointer_down()
+    loop {
+        try_select()                        ;; in the update of the press
+        loop on :update {
+            until !pointer_down()
             try_select()
         }
-        if !pointer_down() && clicked {
-            if count > 1 {
-                remove_selected()
-                move_down()
-                add_missing()
-                ;; update_score_and_labels
-                if sound { eng.play(SND_COMBO, 0.4) }
-                set moves += 1
-                set label_moves.s = tostring(moves) ++ "/20"
-                set score += count * multiplier()
-                set label_score.s = tostring(score)
-                clear_bar()
-                until moves == 20
-            } else {
-                unselect_all()
-            }
-            set next_time = eng.now() + 300
-            set count, clicked, type = (0, false, -1)
-            set pos_i, pos_j = (-1, -1)
+        ;; in the update of the release
+        if count > 1 {
+            remove_selected()
+            move_down()
+            add_missing()
+            ;; update_score_and_labels
+            if sound { eng.play(SND_COMBO, 0.4) }
+            set moves += 1
+            set label_moves.s = tostring(moves) ++ "/20"
+            set score += count * multiplier()
+            set label_score.s = tostring(score)
+            clear_bar()
+        } else {
+            unselect_all()
+        }
+        until moves == 20
+        set count, type = (0, -1)
+        set pos_i, pos_j = (-1, -1)
+        await Wait(300)                     ;; next_time: now > the release + 300
+        if !pointer_down() {
+            await :update until pointer_down()
         }
     }
 }
