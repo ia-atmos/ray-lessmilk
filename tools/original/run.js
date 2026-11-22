@@ -82,14 +82,16 @@ ${tags.join('\n')}
     fs.mkdirSync(outDir, { recursive: true });
 
     const browser = await chromium.launch({
-        args: ['--allow-file-access-from-files', '--autoplay-policy=no-user-gesture-required'],
+        args: ['--allow-file-access-from-files', '--autoplay-policy=no-user-gesture-required']
+              // BENCH: the canvas in software, in the renderer, as rlsw in the port
+              .concat(process.env.BENCH ? ['--disable-gpu', '--disable-accelerated-2d-canvas'] : []),
     });
     const ctx = await browser.newContext({ viewport: { width: 800, height: 700 } });
     const pg  = await ctx.newPage();
     pg.on('requestfailed', r => console.error('missing:', r.url()));
     pg.on('pageerror', e => console.error('page error:', e.message));
     pg.on('console', m => { if (m.type() === 'error') console.error('console:', m.text()); });
-    await pg.addInitScript(p => { window.__params = p; }, { seed: run.seed, step: 1000 / run.fps });
+    await pg.addInitScript(p => { window.__params = p; }, { seed: run.seed, step: 1000 / run.fps, nodraw: !!process.env.NODRAW });
     await pg.goto('file://' + page);
 
     // loading: frames with the clock stopped at T0, until a frame starts in
@@ -119,6 +121,58 @@ ${tags.join('\n')}
     const botLog = [];
     if (process.env.BOT) {
         await pg.addScriptTag({ path: process.env.BOT });
+    }
+
+    // BENCH=1: all frames in one loop in the page (no round trip per frame),
+    // with the CPU time of the renderer process before and after it (CDP),
+    // printed to stderr as "bench: cpu_ms=... frames=... heap=..."; the trace
+    // as usual. NODRAW=1 also makes the drawing calls of the 2D canvas do
+    // nothing: all the code of the game and of Phaser runs, no pixel is
+    // rasterized (doc/bench.md)
+    if (process.env.BENCH) {
+        const cdp = await browser.newBrowserCDPSession();
+        // by type of process: the canvas is rasterized out of the renderer
+        // (gpu), so the whole is the sum of all the processes of Chromium
+        const cpu = async () => {
+            const info = await cdp.send('SystemInfo.getProcessInfo');
+            const t = {};
+            for (const p of info.processInfo) t[p.type] = (t[p.type] || 0) + p.cpuTime;
+            return t;
+        };
+        const c0 = await cpu();
+        const lines = await pg.evaluate(([frames, input, bot]) => {
+            const out = [];
+            const botOps = {};
+            for (let f = 1; f <= frames; f++) {
+                const g = Phaser.GAMES[0];
+                if (f > 1) {
+                    for (const op of (input[f] || []).concat(botOps[f] || [])) window.__input(op);
+                    window.__step(true);
+                    // a pixel read back: the canvas rasterizes what the frame drew
+                    g.canvas.getContext('2d').getImageData(0, 0, 1, 1);
+                }
+                const extra = window.__trace ? window.__trace(g, f) : '';
+                out.push(f + ' ' + g.state.current + (extra !== '' && extra !== undefined ? ' ' + extra : ''));
+                if (bot) {
+                    const b = window.__bot(g, f);
+                    if (b && b.length) botOps[f + 1] = b;
+                }
+            }
+            return out;
+        }, [run.frames, run.input, !!process.env.BOT]);
+        const c1 = await cpu();
+        const ps = await pg.context().newCDPSession(pg);
+        await ps.send('Performance.enable');
+        const mt = (await ps.send('Performance.getMetrics')).metrics;
+        const m = (mt.find(x => x.name === 'JSHeapUsedSize') || {}).value || 0;
+        for (const l of lines) console.log(l);
+        const types = Object.keys(c1).sort();
+        const d = k => ((c1[k] || 0) - (c0[k] || 0)) * 1000;
+        const all = types.reduce((a, k) => a + d(k), 0);
+        console.error(`bench: cpu_ms=${all.toFixed(1)} frames=${run.frames} heap=${m} ` +
+                      types.map(k => `${k}=${d(k).toFixed(1)}`).join(' '));
+        await browser.close();
+        return;
     }
 
     for (let f = 1; f <= run.frames; f++) {

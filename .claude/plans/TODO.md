@@ -28,10 +28,7 @@ Each has the option recommended by this session.
 | 23 | Dark Blue: the music (loop, stop) as in Crazy Snake (19) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 28 | The experiment of a context per screen (branch `exp-screen-context`, d7c8751): reported to `atmos-pin`; not to merge into the exact port; a candidate for the relaxed ports (15) |
-| 27 | The vocabulary of events of all environments (env-ray 4d5f5b5, 2026-11-17; and 8350e6f, 2026-11-18: in a frame, the input, then `:frame [n=, us=]`, then the time of Atmos, then `:draw`; the port keeps its own clock, so the order of the time should not matter, to check): `ray.atm` and the table `ray` (was `raylib.atm`, `rl`), `:key.dn [key=name, code=]`, `:mouse.button.dn/up`, `:frame [n=, us=]`, the compiler `atmos-ray`. The compiler is now at 94aedf1 (the second migration of `pin` is done), so this can be done; our copy of the binding has nothing to merge back (only `pin rl`, which env-ray has) |
-| 6 | L6: a launcher for the twelve; `doc/bench.md` (memory, CPU, time of a frame of logic, against the originals in the browser); the table complete |
-| 7 | L7: the case study in `doc/`, a pattern per section, from the shortest game that shows it |
-| 10 | Copy `raylib.atm` at `0b1aa0f` of `ia-atmos/env-ray`, and use `rl.font_ex` in `lib/engine.atm` in place of its own C for fonts |
+| 30 | `doc/bench.md`: Dark Blue spends 10 times the logic of the original (4.7 ms a frame); three ports peak at 98 to 196 MB; not looked into |
 | 17 | Princess Quest: no run reaches a score of 250, where the spikes come; a run would need to aim at the platforms |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 16 | Fill the Holes: no run gets through the fifteen levels (End not compared); a run would need the solutions of levels 7 to 15 |
@@ -66,11 +63,73 @@ tables above were given before the rule and stay as they are.
 
 | # | Item | Kind | State |
 |---|------|------|-------|
-| #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | open |
-| #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | open |
-| #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | open |
+| #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | the vocabulary done by the session (to be confirmed); the relaxed ports next |
+| #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | done on the branch `pin-out` (63d2e2b), by the session, to be confirmed: the compiler accepts the three first forms; not merged |
+| #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | done on the branch `pin-out`, by the session, not merged: bodies, traces, tweens; the 33 tests give the same traces (compiler 8c46149); 23 files, 164 lines in, 213 out. Merge is the author's call. See Settled |
 
 ## Settled
+
+- The compiler at f416c03 (`mute`, `stage`, `solo` keywords: `mute` of
+  the menu of Princess Quest became `mute_btn`, also on the branches) and at
+  98e4787 (`loop in nil` is an error; the tag of a table in its header):
+  the 33 tests pass, traces identical (2026-11-22).
+
+- ASAN on the compiler f999c52 (2026-11-21, asked by atmos-lang: unpinned
+  cycles no longer collected, atmos-pin#18): the 33 tests pass, no error and
+  no leak of the sanitizer.
+
+- The compiler at 34c381b (2026-11-21, asked by atmos-lang: atmos-pin#17,
+  #3): the 33 tests pass, and no error output says `invalid pin : shared`.
+
+- The case study (2026-11-20, TODO 7, by the session, to be confirmed):
+  `doc/case-study.md`, six patterns (screens, timers, one-shot awaits,
+  entities as tasks, chains of tweens, what a screen owns), from Run! and
+  else Save the City and Box Jump, with what did not become simpler.
+
+- The bench (2026-11-20, TODO 6, with the measure asked by paper-games,
+  their #4): `doc/bench.md`, from `tools/bench.py`: the frame and the logic
+  alone (raster and copy skipped on both sides: `RL_NODRAW` in the patch of
+  raylib, `NODRAW` in the harness), CPU time of the process, median of 3,
+  ms a frame, with the ratio; the memory of each side. Every measured run
+  gives the trace of the original. The launcher: `tools/play.sh`, with
+  raylib for a window (`DESKTOP=1 tools/setup.sh`, needs the X11 headers):
+  tried under Xvfb (Mesa): Run! opens in a window and plays.
+
+- `set :out` (#3, 2026-11-20, branch `pin-out`, on top of #2; not merged).
+  Each screen that has bodies pins `Physics_screen()` (its bodies, the
+  quadtree of the frame, its sprites that receive the mouse) and
+  `set :out Physics.scr = phys`; the library reads `Physics.scr` (or an
+  empty one between screens). `Body(Sprite(...))` stays: the list of the
+  screen adopts the sprite. Found on the way: the quadtree is also a
+  registry (it holds bodies), and a screen may overlap before its first
+  quadtree (none: no bodies found), as on `exp-screen-context`; the input
+  events are global, so they carry the index of the sprite, not the sprite
+  (`input_of(e)`). The traces: a screen gives `pin trace_q = [...]` and
+  `set :out Trace.q = trace_q`, two lines in place of a task answering
+  `:trace`; `Tracer` prints `f(Trace.q)`. The 26 runs of the games give the
+  same traces. The screens no longer remove their bodies at the end (13
+  defers gone). The tweens: the record in the global list refers to its
+  object, start, end and control (`set :out r.obj = obj`, ...); the pass
+  moves them itself and emits `:tween.done` only when a tween ends, in
+  place of a `:tween.step` per tween per frame. The 33 tests give the same
+  traces (compiler 8c46149). Against main: 23 files, 164 lines in, 213 out.
+
+- The vocabulary of `ray.atm` (2026-11-20, TODO 27, #1, by the session, to
+  be confirmed): `env/ray.atm` copied from env-ray 8350e6f (with the patch
+  of test mode), `rl.` became `ray.`, the events `:frame`, `:draw`,
+  `:key.dn [key=, code=]`, `:mouse.button.dn/up`, `:quit`; the include of
+  `reasings.h` added to `tools/atmos.sh`. Branch `ray-vocabulary`, merged:
+  the 33 tests give the same traces.
+- The fonts (2026-11-20, TODO 10, by the session, to be confirmed):
+  `lib/engine.atm` loads them with `ray.font_ex` and keeps them in a table
+  of Atmos (`ENG_FONTS`, by path and size); its C only lays out and draws.
+  Branch `ray-font`, merged: the 33 tests give the same traces, and the
+  screenshot of the test of the engine is the same. ASAN then found a text
+  of size 0 in Crazy Snake: `180 / 0` gave a font of a garbage size (the C
+  had loaded it at 0 through an integer cast); `eng_font` loads it at 0.
+- ASAN on the compiler 8c46149 (2026-11-20, asked by atmos-lang: daab0b7,
+  7e3b7b5): the 33 tests pass, no error and no leak of the sanitizer (after
+  the fix of the font of size 0 above, which was the port's).
 
 - Documents (2026-11-20, work with no input): `doc/games/` has one per
   game (the nine that lacked one); `doc/state.md` and `doc/table.md` count

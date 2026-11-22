@@ -8,7 +8,9 @@
 #   ext/ceu-atmos     the Atmos compiler (branch main): ext/ceu-atmos/atmos
 #   ext/raylib        raylib 6.2 with env/raylib.patch (the test mode), built
 #                     for the platform with no screen:
-#                     ext/raylib/build-mem/libraylib.a
+#                     ext/raylib/build-mem/libraylib.a; with DESKTOP=1, also
+#                     for a window (X11, GLFW), to play (tools/play.sh):
+#                     ext/raylib/build-desktop/libraylib.a
 #
 # It may run again: what is already there is kept, and only rebuilt.
 
@@ -47,6 +49,15 @@ mkdir -p ext/raylib/build-mem
 make -s -C ext/raylib/src PLATFORM=PLATFORM_MEMORY CUSTOM_CFLAGS=-O2 \
     RAYLIB_RELEASE_PATH="$ROOT/ext/raylib/build-mem" -j4 >/dev/null 2>&1 \
     || { echo "setup: raylib failed to build" >&2; exit 1; }
+if [ -n "$DESKTOP" ]; then
+    # the objects of both builds go to src/: clean them before and after
+    rm -f ext/raylib/src/*.o
+    mkdir -p ext/raylib/build-desktop
+    make -s -C ext/raylib/src PLATFORM=PLATFORM_DESKTOP CUSTOM_CFLAGS=-O2 \
+        RAYLIB_RELEASE_PATH="$ROOT/ext/raylib/build-desktop" -j4 >/dev/null 2>&1 \
+        || { echo "setup: raylib for the desktop failed to build (X11 headers?)" >&2; exit 1; }
+    rm -f ext/raylib/src/*.o
+fi
 
 # the originals load their assets from next to them: the copy of the site
 # has them only for games 1 and 2
