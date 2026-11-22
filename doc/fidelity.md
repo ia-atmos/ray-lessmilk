@@ -260,12 +260,13 @@ What it took, besides the rest of this document:
 
 ## 3. Box Jump
 
-The same as the original on its two runs, line by line (`tst/box_jump/`):
+The same as the original on its three runs, line by line (`tst/box_jump/`):
 
 | Run | Frames | Seed | Input | Reaches |
 |-----|-------:|-----:|-------|---------|
 | `periodic` | 1800 | 1 | SPACE for 3 frames every 40 frames | level 2, 19 deaths |
 | `random` | 3600 | 9 | SPACE at random (Python's generator, seed 3) | level 4, 37 deaths |
+| `win` | 15100 | 1 | what a bot pressed (`tools/original/bot/3.js`), which learns each level by dying: it jumps at a distance from each obstacle, and a death changes that distance | End, 102 deaths |
 
 Trace: frame, state, level, deaths; in Play, the player (x, y, angle,
 velocity), if it touches down, if it is alive, the cubes alive, and the
@@ -273,7 +274,6 @@ particles that exist.
 
 What is not compared:
 
-- The screen `End`: no run gets through the twenty levels.
 - The angle of a particle that Phaser recycles: `reset` does not reset its
   rotation, so a recycled particle starts at the angle where it died; in
   the port each particle starts at 0. It shows only in the screens, for
