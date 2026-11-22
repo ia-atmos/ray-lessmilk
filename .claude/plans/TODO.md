@@ -23,7 +23,7 @@ Each has the option recommended by this session.
 
 | # | Work |
 |---|------|
-| 22 | Dark Blue: no run reaches levels 3 to 5 or Endd; the bot (`tools/original/bot/10.js`) would need to get through level 2 (at 30 frames per second) |
+| 22 | Dark Blue: no run gets through the fourth level of `levels.atm` (`s.level` 4), so levels 4 and 5 and Endd are not compared. Tried 2026-11-22: the bot (`tools/original/bot/10.js`) reaches it in 4989 frames and then stays at the start (25000 frames): the coins are to the left, beyond a wall 3 tiles high and a red pit, and it pushes against the wall; varying its take-off and its timing after deaths (as the bot of Box Jump) did not help. It needs a plan for that level (climb, run left, jump the pit) |
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 30 | `doc/bench.md` to measure again: the numbers predate the fixes below (set :out of the tweens, the input of the test mode, the scaled text) |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
