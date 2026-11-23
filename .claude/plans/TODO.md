@@ -52,6 +52,9 @@ tables above were given before the rule and stay as they are.
 
 ## Settled
 
+- The compiler at ae8ca73 and 95946fe (2026-11-23: the end of a block is no
+  longer an event): the 36 tests pass, traces identical.
+
 - The bench again (TODO 30, 2026-11-22, compiler 3ffac71): `doc/bench.md`;
   Dark Blue 4.72 to 1.26 ms of logic, the ports 21 to 39 MB.
 
