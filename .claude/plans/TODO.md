@@ -181,8 +181,9 @@ tables above were given before the rule and stay as they are.
   to `env-ray` (session_011eECohyySVpgZiuUF17qc2).
   Since 2026-11-24 (atmos-lang#119): coordination, status and questions for
   the author go to `atmos` (session_011eECohhJbc4GMpAj3yyeEo); measures of
-  the ports and merges into lang main stay with `atmos-lang`; new items put
-  to the author take the numbers of `ISSUES.md` of lang (#120 on).
+  the ports and merges into lang main stay with `atmos-lang`. Item numbers
+  stay local to this session (`#N`, seen outside as `ray-lessmilk#N`), as
+  the author confirmed on 2026-11-25.
 
 - The second migration of `pin` (2026-11-18, compiler 94aedf1): done on
   main (47c6b0b), the 33 tests identical; reported to `atmos-lang`.
