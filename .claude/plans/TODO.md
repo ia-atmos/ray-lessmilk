@@ -27,7 +27,7 @@ Each has the option recommended by this session.
 | 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 13 | Consider `await(n, :e)` of the compiler (the nth occurrence of a pattern) where a port counts frames |
-| 15 | After the twelve games are identical to their originals: tag the last exact commit `exact`, then relax each port in favor of expressiveness, keeping the intent of the original (decided by the author, see Settled): `await Nms` in place of `Wait`, a task per entity in place of recycled slots, `await`s in place of the flags that stayed, the emulation of 32-bit floats and of the quadtree out of the games (kept in `lib/` for the exact version); the relaxed ports get traces of their own |
+| 15 | The relaxed ports (`doc/relaxed.md`): merged into main on 2026-11-26; what is left: the control that is behaviour stays, as the slots of Pixel War and Fill the Holes |
 
 ## C. Reported or decided, and not acknowledged by the author
 
@@ -60,7 +60,7 @@ tables above were given before the rule and stay as they are.
 | #12 | Excerpt, bad: `thing` and `living`, helpers that redo a group of Phaser over a pool (a capacity, the sprites that exist) (`games/princess_quest/play.atm:57-74`) | excerpt | shown |
 | #13 | Excerpt, idiomatic: the effects of Crazy Snake as a table by score, walked by a task that awaits each (`games/crazy_snake/play.atm:156-178`, `207-211`) | excerpt | shown |
 | #14 | Excerpt, bad: the same task must be the last branch of the `par`, after the update, to see the score of the coin of that update: an order of waking that nothing in the code says (`games/crazy_snake/play.atm:203-217`) | excerpt | shown |
-| #15 | Merge the branch `relaxed` into main (the exact ports stay at the tag `exact`; the expected traces of Connected and Princess Quest change with it) | decision | open; recommended: merge |
+| #15 | Merge the branch `relaxed` into main (the exact ports stay at the tag `exact`; the expected traces of Connected and Princess Quest change with it) | decision | merged into main (2026-11-26, the author: "ok") |
 | #16 | Excerpt, idiomatic: a coin of Dark Blue as a task, which ends when its sprite no longer exists (`games/dark_blue/play.atm:73-81`) | excerpt | shown |
 | #17 | Excerpt, bad: `set :out s.tw = tw`, the sprite pointing at the pool of tweens of its own task, so that `take_coin`, which gets a body, can reach it (`games/dark_blue/play.atm:79`) | excerpt | shown |
 
