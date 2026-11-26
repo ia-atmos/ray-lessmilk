@@ -52,6 +52,10 @@ tables above were given before the rule and stay as they are.
 | #4 | Answer to the general instruction for the ports (2026-11-26, pico-1oom#29 through `atmos`): how much the port follows it, what to redo, a grade | answer | given in this session (grade 5): the exact ports follow fidelity as frame-exact traces, which carried Phaser's internals (32-bit floats, quadtree, recycled slots) and some bugs of JavaScript; the relaxed ports (TODO 15) are where 1-4 apply |
 | #5 | Excerpt, idiomatic: a timer as a loop that awaits (`games/run/play.atm:75-83`) | excerpt | shown |
 | #6 | Excerpt, bad: an emulated bug of JavaScript, a shadowed `h` compared with a string, which kills no heart (`games/princess_quest/play.atm:229-230`) | excerpt | shown; to fix in the relaxed port (instruction, item 4) |
+| #7 | Excerpt, idiomatic: a rabbit as a task that owns its sprite, body and tweens (`games/i_hate_rabbits/play.atm:16-32`) | excerpt | shown |
+| #8 | Excerpt, bad: `set pub = [ s=r ]` then `set :out pub.tw = tw` to show the pool of a task (`games/i_hate_rabbits/play.atm:20-21`) | excerpt | shown |
+| #9 | Excerpt, idiomatic: the hearts below the screen die, the bug of the original fixed (`games/princess_quest/play.atm:236-245`) | excerpt | shown |
+| #10 | Excerpt, bad: Pixel War keeps the slots of its groups, because a quirk of Phaser (where a sprite died) decides which spawns vanish (`games/pixel_war/play.atm:34-42`) | excerpt | shown |
 
 ## Settled
 
