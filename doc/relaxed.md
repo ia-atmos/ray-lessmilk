@@ -40,3 +40,8 @@ applied by `tools/setup.sh`; nothing goes upstream).
   The runs `play` and `drift` are the same as before; `spikes` changed (the
   hearts die), and now goes on through five games (6000 frames, a best
   score of 522), where before it stopped in its second game.
+- **The Three Hearts** (`11.patch`): `player_dead` plays the sound of the
+  death if `this.sound`, a field that is never set (the flag of sound is
+  the global `sound`): JavaScript reads `undefined` with no error, and the
+  sound never plays. Now it plays when the sound is on. The traces do not
+  see sounds: the runs are the same.

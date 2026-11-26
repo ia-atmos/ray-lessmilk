@@ -1,0 +1,13 @@
+diff --git a/www.lessmilk.com/games/11/js/play.js b/www.lessmilk.com/games/11/js/play.js
+index f2126ff..18770f0 100644
+--- a/www.lessmilk.com/games/11/js/play.js
++++ b/www.lessmilk.com/games/11/js/play.js
+@@ -83,7 +83,7 @@ Game.Play.prototype = {
+ 		if (!this.player.alive)
+ 			return;
+ 
+-		if (this.sound) this.dead_s.play();
++		if (sound) this.dead_s.play();
+ 		this.player.alive = false;
+ 		var t = game.add.tween(this.dead).to({alpha:1}, 100).start();
+ 		t.onComplete.add(function(){

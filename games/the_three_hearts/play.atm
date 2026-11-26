@@ -133,7 +133,9 @@ task Play () {
     }
     val func player_dead () {
         if player.alive {
-            ;; `this.sound` of the original is never set: no sound
+            if sound {
+                eng.play(SND_DEAD, 0.2)         ;; dead_s (fixed: 11.patch)
+            }
             set player.alive = false
             spawn @tweens Death()
         }
