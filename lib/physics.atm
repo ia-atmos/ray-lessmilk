@@ -29,13 +29,16 @@
 ;; the last frame, rotated, against the world, as Sprite.updateBounds does.
 
 ```:prelude
+// the transform of Pixi in 32-bit floats: behaviour, not form (doc/relaxed.md):
+// with double, three runs change what happens (collisions at an edge)
+#define PHS_F float
 // The scale of a sprite, as Sprite.updateCache computes it from the world
 // transform of Pixi (32-bit floats): not exactly the scale when rotated.
 // Body.updateBounds takes it as the scale of the body.
 static void phs_scale (double rot, double sx, double sy, double* out) {
     double sr = sin(rot), cr = cos(rot);
-    float a00 = (float)(cr * sx), a01 = (float)(-sr * sy);
-    float a10 = (float)(sr * sx), a11 = (float)(cr * sy);
+    PHS_F a00 = (PHS_F)(cr * sx), a01 = (PHS_F)(-sr * sy);
+    PHS_F a10 = (PHS_F)(sr * sx), a11 = (PHS_F)(cr * sy);
     double d00 = a00, d01 = a01, d10 = a10, d11 = a11;
     out[0] = sqrt(d00*d00 + d01*d01);
     out[1] = sqrt(d10*d10 + d11*d11);
@@ -46,10 +49,10 @@ static void phs_scale (double rot, double sx, double sy, double* out) {
 static void phs_corners (double x, double y, double rot, double sx, double sy,
                          double fw, double fh, double ax, double ay, double* out) {
     double sr = sin(rot), cr = cos(rot);
-    float l0 = (float)(cr * sx), l1 = (float)(-sr * sy);
-    float l3 = (float)(sr * sx), l4 = (float)(cr * sy);
+    PHS_F l0 = (PHS_F)(cr * sx), l1 = (PHS_F)(-sr * sy);
+    PHS_F l3 = (PHS_F)(sr * sx), l4 = (PHS_F)(cr * sy);
     double a00 = l0, a01 = l1, a10 = l3, a11 = l4;
-    double a02 = (float)x, a12 = (float)y;
+    double a02 = (PHS_F)x, a12 = (PHS_F)y;
     a01 *= -1;
     a10 *= -1;
     double id = 1 / (a00 * a11 + a01 * -a10);
@@ -73,10 +76,10 @@ static void phs_local (double x, double y, double rot, double sx, double sy,
                        double fw, double fh, double ax, double ay,
                        double px, double py, double* out) {
     double sr = sin(rot), cr = cos(rot);
-    float l0 = (float)(cr * sx), l1 = (float)(-sr * sy);
-    float l3 = (float)(sr * sx), l4 = (float)(cr * sy);
+    PHS_F l0 = (PHS_F)(cr * sx), l1 = (PHS_F)(-sr * sy);
+    PHS_F l3 = (PHS_F)(sr * sx), l4 = (PHS_F)(cr * sy);
     double a00 = l0, a11 = l4, i01 = l1, i10 = l3;
-    double a02 = (float)x, a12 = (float)y;
+    double a02 = (PHS_F)x, a12 = (PHS_F)y;
     double idi = 1 / (a00 * a11 + i01 * -i10);
     out[0] = a11*idi*px + -i01*idi*py + (a12*i01 - a02*a11)*idi + ax*fw;
     out[1] = a00*idi*py + -i10*idi*px + (-a12*a00 + a02*i10)*idi + ay*fh;
@@ -90,11 +93,11 @@ static void phs_local (double x, double y, double rot, double sx, double sy,
 static void phs_bounds (double x, double y, double rot, double sx, double sy,
                         double fw, double fh, double ax, double ay, double* out) {
     double sr = sin(rot), cr = cos(rot);
-    float l0 = (float)(cr * sx), l1 = (float)(-sr * sy);
-    float l3 = (float)(sr * sx), l4 = (float)(cr * sy);
-    float w0 = (float)(1.0*l0 + 0.0*l3), w1 = (float)(1.0*l1 + 0.0*l4);
-    float w3 = (float)(0.0*l0 + 1.0*l3), w4 = (float)(0.0*l1 + 1.0*l4);
-    float w2 = (float)x, w5 = (float)y;
+    PHS_F l0 = (PHS_F)(cr * sx), l1 = (PHS_F)(-sr * sy);
+    PHS_F l3 = (PHS_F)(sr * sx), l4 = (PHS_F)(cr * sy);
+    PHS_F w0 = (PHS_F)(1.0*l0 + 0.0*l3), w1 = (PHS_F)(1.0*l1 + 0.0*l4);
+    PHS_F w3 = (PHS_F)(0.0*l0 + 1.0*l3), w4 = (PHS_F)(0.0*l1 + 1.0*l4);
+    PHS_F w2 = (PHS_F)x, w5 = (PHS_F)y;
     double a00 = w0, a01 = w1, a10 = w3, a11 = w4;
     double a02 = w2, a12 = w5;
     a01 *= -1;
@@ -172,7 +175,7 @@ func camera_set (k, v) {
 
 ;; a 32-bit float, as the transforms of Pixi keep positions
 func f32 (x) {
-    `:number.float (double)(float)a_dbl($x)`
+    `:number.float (double)(PHS_F)a_dbl($x)`
 }
 
 ;; the scale of the transform drawn of a sprite (see phs_scale)
