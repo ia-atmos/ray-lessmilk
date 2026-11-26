@@ -383,7 +383,7 @@ The same as the original on its three runs, line by line
 |-----|-------:|-----:|-------|------:|
 | `play` | 3610 | 3 | UP on the menu; LEFT and RIGHT at random (Python's generator, seed 6); UP after each death | 3 |
 | `drift` | 4777 | 14 | short moves and pauses at random (seed 66); UP every 900 frames | 3 |
-| `spikes` | 1550 | 1 | what a bot pressed (`tools/original/bot/6.js`): it steers to the lowest platform above her feet; score 305, spikes from frame 1159 | 1 and the start of a second |
+| `spikes` | 6000 | 1 | what a bot pressed (`tools/original/bot/6.js`): it steers to the lowest platform above her feet; on the original with its bugs fixed (`tools/original/fixes/6.patch`, doc/relaxed.md) | 5, best score 522, the spikes |
 
 Trace: frame, state, score, best score; in Play, the princess (x, y,
 velocity, alive, scale, frame), the camera, the platforms that exist (how
@@ -396,15 +396,15 @@ collide only from above (`allowCollision`); an emitter of an area, turned
 on and off by the game, which `start` turns on in the create, so that it
 emits out of the screen until the first update turns it off. Kept as in
 the original: the jump ends with the princess facing left (its
-`onComplete` tests `scale.x == 1` when the scale is 1.3 or -1.3), and no
-heart is ever killed (`update_heart(h)` hides the global `h`, and the test
-compares a number with a string).
+`onComplete` tests `scale.x == 1` when the scale is 1.3 or -1.3), a bug of
+the game's logic, not of JavaScript. Fixed in both (doc/relaxed.md): no
+heart was ever killed (`update_heart(h)` hid the global `h`, and the test
+compared a number with a string).
 
-The spikes come from a score of 250: the run `spikes` reaches 305 (the
-runs at random reach 27). It stops early in its second game: there the
-original throws in `add_platform_moving` (`add_platform` returns nothing
-when the 15 platforms are all in use, and the next line reads its body),
-which the harness cannot step over; the port does the same in its frames.
+The spikes come from a score of 250: the run `spikes` reaches 522 (the
+runs at random reach 27). It runs on the original with two of its bugs
+fixed (doc/relaxed.md): before, the original stopped in a second game, when
+its pool of platforms was empty.
 
 ## 7. Connected
 

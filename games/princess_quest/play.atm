@@ -124,9 +124,14 @@ task Play () {
             set c.b.vx = if rand(2) == 1 => 8 => -8
         }
     }
+    ;; with no platform left in the pool (15), a platform that moves, or with
+    ;; a spike or a heart, is not added: the original read the body of the
+    ;; platform it did not get, and stopped (tools/original/fixes/6.patch)
     val func add_moving (y) {
         val p = add_platform(y)
-        set p.b.vx = if rand(2) == 0 => -120 => 120
+        if p {
+            set p.b.vx = if rand(2) == 0 => -120 => 120
+        }
     }
     val func add_double (y) {
         add_platform(y)
@@ -159,13 +164,15 @@ task Play () {
                     }
                     ;; add_platform_spike
                     val p = add_platform(y - 150)
-                    add_spike(p.s.x, p.s.y + 18)
+                    if p {
+                        add_spike(p.s.x, p.s.y + 18)
+                    }
                     set next_platform += 150
                 }
                 kind == 5 => {
                     ;; add_platform_heart
                     val p = add_platform(y)
-                    val hh = group_first_dead(hearts)
+                    val hh = p && group_first_dead(hearts)
                     if hh {
                         set hh.s.ax, hh.s.ay = (0.5, 0.5)
                         sprite_reset(hh.s, hh.b, p.s.x, y - 29)
@@ -226,8 +233,15 @@ task Play () {
                     }
                 }
             }
-            ;; update_heart: its parameter `h` hides the height, and the test
-            ;; compares a number with a string: no heart is ever killed
+            ;; update_heart: a heart below the screen dies (in the original,
+            ;; its parameter `h` hid the height, the test compared a number
+            ;; with a string, and no heart ever died: fixed, 6.patch)
+            loop _, x in hearts.slots {
+                val hs = x.s
+                if hs.alive && ((hs.y - (IMG_HEART.fh * hs.sy)) > (Camera.y + H)) {
+                    sprite_kill(hs)
+                }
+            }
             loop _, x in spikes.slots {
                 val sp = x.s
                 if sp.alive && ((sp.y - (IMG_SPIKE.fh * sp.sy)) > (Camera.y + H)) {

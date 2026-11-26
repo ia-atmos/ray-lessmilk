@@ -1,0 +1,39 @@
+diff --git a/www.lessmilk.com/games/6/js/play.js b/www.lessmilk.com/games/6/js/play.js
+index 78a677f..a46a846 100644
+--- a/www.lessmilk.com/games/6/js/play.js
++++ b/www.lessmilk.com/games/6/js/play.js
+@@ -255,6 +255,7 @@ Game.Play.prototype = {
+ 
+ 	add_platform_heart: function(y) {
+ 		var p = this.add_platform(y);
++		if (!p) return;
+ 		var heart = this.hearts.getFirstExists(false);
+ 
+ 		if (heart) {
+@@ -265,11 +266,13 @@ Game.Play.prototype = {
+ 	
+ 	add_platform_spike: function(y) {
+ 		var p = this.add_platform(y);
++		if (!p) return;
+ 		this.add_spike(p.x, p.y+18);
+ 	},
+ 
+ 	add_platform_moving: function(y) {
+ 		var p = this.add_platform(y);
++		if (!p) return;
+ 		
+ 		if (rand(2) == 0)
+ 			p.body.velocity.x = -120;
+@@ -310,9 +313,9 @@ Game.Play.prototype = {
+ 			p.kill();
+ 	},
+ 
+-	update_heart: function(h) {
+-		if (h.y - h.height > this.game.camera.y+h)
+-			h.kill();
++	update_heart: function(heart) {
++		if (heart.y - heart.height > this.game.camera.y+h)
++			heart.kill();
+ 	},
+ 
+ 	update_spike: function(s) {

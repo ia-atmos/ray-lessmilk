@@ -59,6 +59,16 @@ if [ -n "$DESKTOP" ]; then
     rm -f ext/raylib/src/*.o
 fi
 
+# the bugs of the originals that the ports do not reproduce (safety, or tied
+# to JavaScript), fixed in this local copy for the checks only, one patch
+# per game (doc/relaxed.md)
+for f in tools/original/fixes/*.patch; do
+    [ -f "$f" ] || continue
+    if ! git -C ext/originals apply --check --reverse "$ROOT/$f" 2>/dev/null; then
+        git -C ext/originals apply "$ROOT/$f"
+    fi
+done
+
 # the originals load their assets from next to them: the copy of the site
 # has them only for games 1 and 2
 for n in $(seq 1 12); do
