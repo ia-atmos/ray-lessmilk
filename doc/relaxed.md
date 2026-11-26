@@ -57,3 +57,12 @@ pool of its own, and end with it.
 - **I Hate Rabbits**: `Rabbit` (2026-11-26). The two runs give the same
   traces. 250 lines and 2306 tokens (were 245 and 2252): a few more, for a
   lifetime in one place.
+- **Pixel War**: kept with its slots (tried 2026-11-26). Each sprite of a
+  group remembers whether it was in the world when it died
+  (`outOfBoundsKill` compares with where it was), and a spawn takes the
+  first dead sprite: one that never lived (made at 0, 0) or that died in
+  the world (shot) is killed at its first preUpdate, where it appears above
+  the screen, so that enemy, bullet or bonus never shows; one that died out
+  of the world lives. Which spawns vanish depends on the history of each
+  slot, which the runs see (from frame 7 on): the slots are behaviour here,
+  and a task per entity would have to keep them.
