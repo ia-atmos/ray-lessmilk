@@ -75,7 +75,7 @@ func prop_get (o, k) {
         (k == "angle") && (o ?? :Sprite) => angle_get(o)
         (k == "angle") && (o ?? :Group2) => group_angle(o)
         (k == "width") && (o ?? :Sprite) => o.sx * o.img.fw
-        else => o@(k)
+        else => o@k
     }
 }
 func prop_set (o, k, v) {
@@ -84,7 +84,7 @@ func prop_set (o, k, v) {
         (k == "angle") && (o ?? :Group2) => group_angle_set(o, v)
         (k == "width") && (o ?? :Sprite) => set o.sx = v / o.img.fw
         o ?? :Camera => camera_set(k, v)
-        else => set o@(k) = v
+        else => set o@k = v
     }
 }
 
@@ -105,7 +105,7 @@ func sprite_add (s, name, frames, fps, loop_) {
         all
     }
     val a = [ frames=fs, delay=1000/(fps || 60), loop=loop_ || false ]
-    set s.anims@(name) = a
+    set s.anims@name = a
     set s.cur = a
     set s.playing = false
     set s.index = 0
@@ -115,7 +115,7 @@ func sprite_add (s, name, frames, fps, loop_) {
 
 ;; animations.play(name, [fps, loop])
 func sprite_play (s, name, fps, loop_) {
-    val a = s.anims@(name)
+    val a = s.anims@name
     if a && ((a != s.cur) || !s.playing) {
         if fps {
             set a.delay = 1000 / fps

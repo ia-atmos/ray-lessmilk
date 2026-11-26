@@ -212,7 +212,7 @@ task Play () {
             }
         }
         loop i in 6 {
-            loop j in min@(i) {
+            loop j in min@i {
                 spawn @dots Dot(j, i, false)
             }
         }

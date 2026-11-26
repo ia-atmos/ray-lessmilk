@@ -272,7 +272,7 @@ task Play () {
                 set ra = (ra + 1) % #tab
             }
             set coin_x = ra
-            sprite_reset(coin, cbody, tab@(ra)@0, tab@(ra)@1)
+            sprite_reset(coin, cbody, tab@ra@0, tab@ra@1)
             emit @:global :coin
         }
 

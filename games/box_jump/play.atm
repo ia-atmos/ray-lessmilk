@@ -22,7 +22,7 @@ pin CUBES = [
 
 ;; a cube: it grows from the line to its height, until the level ends
 task Cube (x, kind) {
-    val c = CUBES@(kind)
+    val c = CUBES@kind
     val b = Body(do {
         val s = Sprite(IMG_CUBE, x, if c.air => ((H * 2) / 3) - 22 => (H * 2) / 3)
         set s.ax, s.ay = (0, 1)

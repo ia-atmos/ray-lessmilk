@@ -47,7 +47,7 @@ func Cursor () {
 }
 
 func cursor_down (c, k) {
-    ray.key_down(k) && ((Keys.pressed@(k) || -1) > c.born)
+    ray.key_down(k) && ((Keys.pressed@k || -1) > c.born)
 }
 
 ;; input.reset, which Phaser 1.1.3 does when a state starts (World.destroy):
@@ -63,7 +63,7 @@ func input_reset () {
 
 ;; game.input.keyboard.isDown(k), since the last reset
 func key_down (k) {
-    ray.key_down(k) && ((Keys.pressed@(k) || -1) > Input.reset)
+    ray.key_down(k) && ((Keys.pressed@k || -1) > Input.reset)
 }
 
 ;; game.input.activePointer.isDown, since the last reset

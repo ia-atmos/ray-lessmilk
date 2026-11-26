@@ -110,7 +110,7 @@ task Play () {
         if level == 1 {
             spawn @tweens Motion(start, [alpha=0], 500)
         }
-        loop i, k in MAP@(level) {
+        loop i, k in MAP@level {
             if k != 0 {
                 spawn @rabbits Rabbit(i * (math.pi / 10), i, cw)
             }

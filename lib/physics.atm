@@ -146,7 +146,7 @@ pin Physics = [
 ;; camera.x and camera.y set (Camera in lib/sprite.atm): kept in the bounds of
 ;; the world (Camera.checkBounds, with view.floor()), as the setter does
 func camera_set (k, v) {
-    set Camera@(k) = v
+    set Camera@k = v
     if Camera.v2 {
         ;; Phaser 2: Camera.checkBounds
         if Camera.x <= Physics.x { set Camera.x = Physics.x }
@@ -475,7 +475,7 @@ func qt_insert (q, b) {
     if q.nodes {
         val i = qt_index(q, b)
         if i != -1 {
-            qt_insert(q.nodes@(i), b)
+            qt_insert(q.nodes@i, b)
             return nil
         }
     }
@@ -487,9 +487,9 @@ func qt_insert (q, b) {
         var i = 0
         loop {
             while i < #q.objects
-            val j = qt_index(q, q.objects@(i))
+            val j = qt_index(q, q.objects@i)
             if j != -1 {
-                qt_insert(q.nodes@(j), vector.remove(q.objects, i))
+                qt_insert(q.nodes@j, vector.remove(q.objects, i))
             } else {
                 set i += 1
             }
@@ -508,10 +508,10 @@ func qt_retrieve (q, b, out) {
     if q.nodes {
         val i = qt_index(q, b)
         if i != -1 {
-            qt_retrieve(q.nodes@(i), b, out)
+            qt_retrieve(q.nodes@i, b, out)
         } else {
             loop k in 4 {
-                qt_retrieve(q.nodes@(k), b, out)
+                qt_retrieve(q.nodes@k, b, out)
             }
         }
     }

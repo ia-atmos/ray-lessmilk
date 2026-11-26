@@ -84,7 +84,7 @@ task Play () {
 
     val func draw_level () {
         eng.play(SND_NEXT, 0.1)
-        loop i, row in MAP@(level) {
+        loop i, row in MAP@level {
             loop j, k in row {
                 if k != 0 {
                     add_tile((j * TILE) + OX, (i * TILE) + OY, k)
@@ -92,7 +92,7 @@ task Play () {
             }
         }
         set expl.x, expl.y = (W/2, H - 35)
-        set expl.s = TEXT@(level)
+        set expl.s = TEXT@level
         set expl.sx, expl.sy = (0.1, 0.1)
         spawn @tweens Motion(expl, [sx=1, sy=1], 1000, Ease.bounce_out)
     }

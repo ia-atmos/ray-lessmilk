@@ -63,14 +63,14 @@ func emitter_start (e, explode, lifespan, frequency, quantity) {
 task Particle (e) {
     var slot = 0
     loop {
-        while e.busy@(slot)
+        while e.busy@slot
         set slot += 1
     }
-    set e.busy@(slot) = true
+    set e.busy@slot = true
     defer {
-        set e.busy@(slot) = false
+        set e.busy@slot = false
     }
-    val b = Body(Sprite(if e.keys => e.keys@(slot) => e.img, e.x, e.y), :particle)
+    val b = Body(Sprite(if e.keys => e.keys@slot => e.img, e.x, e.y), :particle)
     val s = b.spr
     set s.ax, s.ay = (0.5, 0.5)
     set pub = s
