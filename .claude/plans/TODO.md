@@ -61,8 +61,8 @@ tables above were given before the rule and stay as they are.
 | #13 | Excerpt, idiomatic: the effects of Crazy Snake as a table by score, walked by a task that awaits each (`games/crazy_snake/play.atm:156-178`, `207-211`) | excerpt | shown |
 | #14 | Excerpt, bad: the same task must be the last branch of the `par`, after the update, to see the score of the coin of that update: an order of waking that nothing in the code says (`games/crazy_snake/play.atm:203-217`) | excerpt | shown |
 | #15 | Merge the branch `relaxed` into main (the exact ports stay at the tag `exact`; the expected traces of Connected and Princess Quest change with it) | decision | open; recommended: merge |
-| #16 | Excerpt, idiomatic: a coin of Dark Blue as a task, which ends when its sprite no longer exists (`games/dark_blue/play.atm:76-85`) | excerpt | shown |
-| #17 | Excerpt, bad: `set :out s.tw = tw`, the sprite pointing at the pool of tweens of its own task, so that `take_coin`, which gets a body, can reach it (`games/dark_blue/play.atm:82`) | excerpt | shown |
+| #16 | Excerpt, idiomatic: a coin of Dark Blue as a task, which ends when its sprite no longer exists (`games/dark_blue/play.atm:73-81`) | excerpt | shown |
+| #17 | Excerpt, bad: `set :out s.tw = tw`, the sprite pointing at the pool of tweens of its own task, so that `take_coin`, which gets a body, can reach it (`games/dark_blue/play.atm:79`) | excerpt | shown |
 
 ## Settled
 
