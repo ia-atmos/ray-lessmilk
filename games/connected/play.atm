@@ -1,4 +1,4 @@
-;; Play: a grid of 6 x 6 dots of four colors, from a group of 70.
+;; Play: a grid of 6 x 6 dots of four colors, each dot a task.
 
 pin IMG_BAR      = eng.image(A ++ "images/bar.png")
 pin IMG_PROGRESS = eng.image(A ++ "images/progress.png")
@@ -22,7 +22,7 @@ task Play () {
     pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
     set :out Physics.scr = phys
     input_reset()
-    pin dots = Group(IMG_DOT, 70, :dot)
+    pin dots = tasks(70)                ;; as many as the group of the original
     pin label_score = Text(40, 20, "0", 20)
     pin label_moves = Text(W - 75, 20, "0/20", 20)
     loop _, t in [label_score, label_moves] {
@@ -55,7 +55,11 @@ task Play () {
     spawn {
         loop on :draw {
             ray.clear(BG)
-            group_draw(dots)
+            loop _, t in dots {
+                if t.pub.s.visible {
+                    sprite_draw(t.pub.s)
+                }
+            }
             text_draw(label_score)
             text_draw(label_moves)
             sprite_draw(progress)
@@ -79,25 +83,30 @@ task Play () {
 
     val func width_bar () { prop_get(progress, "width") / 28 }
 
-    val func add_dot (i, j, first) {
-        val x = group_first_dead(dots)
-        val d = x.s
-        val r = rand(4)
-        set d.frame = r * 2
+    ;; a dot: it grows in, may be selected, falls, and when it is removed
+    ;; grows to 2 and fades, and dies (the update below kills it). Its
+    ;; tweens are in its own pool. pub: its sprite and body, and the pool.
+    val task Dot (i, j, first) {
+        val b = Body(Sprite(IMG_DOT, 0, 0), :dot)
+        val d = b.spr
+        pin tw = tasks()
+        set pub = [ s=d, b=b ]
+        set :out pub.tw = tw
+        defer {
+            body_remove(b)
+        }
+        set d.frame = rand(4) * 2
         set d.ax, d.ay = (0.5, 0.5)
         set d.selected = false
         set d.pos_i, d.pos_j = (i, j)
         set d.move_y = 0
-        body_set_size(x.b, 30, 30, 0, 0)
+        body_set_size(b, 30, 30, 0, 0)
         set d.alpha = 1
         set d.sx, d.sy = (0.01, 0.01)
         set d.alive2 = true
-        sprite_reset(d, x.b, offset_x + (j * TILE), offset_y + (i * TILE))
-        if first {
-            spawn @tweens Tween(d, [sx=1, sy=1], 400, (j * 100) + 1)
-        } else {
-            spawn @tweens Tween(d, [sx=1, sy=1], 400, 400)
-        }
+        sprite_reset(d, b, offset_x + (j * TILE), offset_y + (i * TILE))
+        spawn @tw Tween(d, [sx=1, sy=1], 400, if first => (j * 100) + 1 => 400)
+        await :update until !d.alive
     }
 
     val func clear_bar () {
@@ -106,10 +115,11 @@ task Play () {
 
     val func unselect_all () {
         set count = 0
-        loop _, x in dots.slots {
-            if x.s.alive && x.s.selected {
-                set x.s.selected = false
-                set x.s.frame -= 1
+        loop _, t in dots {
+            val e = t.pub.s
+            if e.alive && e.selected {
+                set e.selected = false
+                set e.frame -= 1
             }
         }
         clear_bar()
@@ -145,9 +155,9 @@ task Play () {
     ;; try_select_a_dot: the dots under the pointer, in the order of the group
     val func try_select () {
         val px, py = (pointer_x(), pointer_y())
-        loop _, x in dots.slots {
-            val e = x.s
-            if e.alive && !e.selected && contains(x.b, px, py) {
+        loop _, t in dots {
+            val e = t.pub.s
+            if e.alive && !e.selected && contains(t.pub.b, px, py) {
                 if type == -1 {
                     set type = e.frame
                 }
@@ -161,11 +171,11 @@ task Play () {
     }
 
     val func remove_selected () {
-        loop _, x in dots.slots {
-            val e = x.s
+        loop _, t in dots {
+            val e = t.pub.s
             if e.alive && e.selected {
-                spawn @tweens Tween(e, [sx=2, sy=2], 300)
-                spawn @tweens Tween(e, [alpha=0], 300)
+                spawn @(t.pub.tw) Tween(e, [sx=2, sy=2], 300)
+                spawn @(t.pub.tw) Tween(e, [alpha=0], 300)
                 set deleted@+ = [i=e.pos_i, j=e.pos_j]
                 set e.alive2 = false
             }
@@ -174,19 +184,19 @@ task Play () {
 
     val func move_down () {
         loop _, del in deleted {
-            loop _, x in dots.slots {
-                val e = x.s
+            loop _, t in dots {
+                val e = t.pub.s
                 if e.alive && !e.selected && (e.pos_j == del.j) && (e.pos_i < del.i) {
                     set e.move_y += TILE
                 }
             }
         }
-        loop _, x in dots.slots {
-            val e = x.s
+        loop _, t in dots {
+            val e = t.pub.s
             if e.alive && (e.move_y != 0) {
                 val coef = e.move_y / TILE
                 set e.pos_i += coef
-                spawn @tweens Tween(e, [y=e.y + e.move_y], 100 * coef, 100)
+                spawn @(t.pub.tw) Tween(e, [y=e.y + e.move_y], 100 * coef, 100)
                 set e.move_y = 0
             }
         }
@@ -195,15 +205,15 @@ task Play () {
 
     val func add_missing () {
         pin min = [6, 6, 6, 6, 6, 6]
-        loop _, x in dots.slots {
-            val e = x.s
+        loop _, t in dots {
+            val e = t.pub.s
             if e.alive && (e.pos_i < min@(e.pos_j)) && e.alive2 {
                 set min@(e.pos_j) = e.pos_i
             }
         }
         loop i in 6 {
             loop j in min@(i) {
-                add_dot(j, i, false)
+                spawn @dots Dot(j, i, false)
             }
         }
     }
@@ -219,16 +229,16 @@ task Play () {
     ;; build_world
     loop i in 6 {
         loop j in 6 {
-            add_dot(i, j, true)
+            spawn @dots Dot(i, j, true)
         }
     }
 
     ;; the dots grown to 2 die, first in each update
     spawn {
         loop on :update {
-            loop _, x in dots.slots {
-                if x.s.alive && (x.s.sx == 2) {
-                    sprite_kill(x.s)
+            loop _, t in dots {
+                if t.pub.s.alive && (t.pub.s.sx == 2) {
+                    sprite_kill(t.pub.s)
                 }
             }
         }
@@ -278,17 +288,18 @@ func trace (p) {
         return tostring(f) ++ " " ++ screen ++ " " ++ tostring(score)
     }
     var n, fr, sy, sc = (0, 0, 0, 0)
-    loop _, x in p.dots.slots {
-        if x.s.alive {
+    loop _, t in p.dots {
+        val e = t.pub.s
+        if e.alive {
             set n += 1
-            set fr += x.s.frame
-            set sy += x.s.y
-            set sc += x.s.sx
+            set fr += e.frame
+            set sy += e.y
+            set sc += math.floor((e.sx * 1000) + 0.5)    ;; as trace/7.js
         }
     }
     tostring(f) ++ " Play " ++ tostring(score) ++ " " ++ tostring(p.moves()) ++ " " ++
         tostring(p.count()) ++ " " ++ tostring(p.type()) ++ " " ++
         eng.fixed(prop_get(p.progress, "width"), 2) ++ " " ++ tostring(n) ++ " " ++
-        tostring(fr) ++ " " ++ eng.fixed(sy, 2) ++ " " ++ eng.fixed(sc, 3)
+        tostring(fr) ++ " " ++ eng.fixed(sy, 2) ++ " " ++ eng.fixed(sc / 1000, 3)
 }
 ;; [/trace]

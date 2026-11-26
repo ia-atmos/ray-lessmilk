@@ -66,3 +66,10 @@ pool of its own, and end with it.
   of the world lives. Which spawns vanish depends on the history of each
   slot, which the runs see (from frame 7 on): the slots are behaviour here,
   and a task per entity would have to keep them.
+- **Connected**: `Dot` (2026-11-26). The two runs give the same traces,
+  once the trace sums the scales of the dots in an order that does not
+  depend on the list (each rounded to thousandths, summed as an integer,
+  in `tools/original/trace/7.js` and in the port): in another order, the
+  sum of the same scales differed in its last digit in one line of each
+  run. A dot that is removed grows over its neighbours while it fades; it
+  is drawn in the order of the pool, not of the slots of the group.
