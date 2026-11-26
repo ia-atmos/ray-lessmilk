@@ -6,7 +6,7 @@
   shared modules of `lib/` (2181 lines and 19428 tokens for now), which do
   what Phaser did.
 - **%**: the change from JavaScript to Atmos. In all, the twelve games have
-  7% more lines and 23% fewer tokens (3287 to 3514 lines, 37669 to 28980
+  9% more lines and 22% fewer tokens (3287 to 3571 lines, 37669 to 29299
   tokens). Tokens are the measure that matters: lines depend on the layout
   (Atmos puts each step of a sequence, and each closing brace, on its own
   line; the originals put an `if` and its call on one), while tokens count
@@ -27,15 +27,15 @@
 | 1 | Run! | 1.1.3 | 144 | 141 | -2 | 1502 | 1031 | -31 | 4 | 0 | 3 (3900 frames, 12 games) | yes |
 | 2 | Pixel War | 1.1.3 | 198 | 234 | +18 | 2188 | 1532 | -30 | 5 | 1 | 2 (6000 frames, 9 games) | yes |
 | 3 | Box Jump | 1.1.3 | 185 | 210 | +14 | 2746 | 2290 | -17 | 3 | 2 | 3 (20500 frames, the 20 levels and End) | yes |
-| 4 | Man vs Penguins | 1.1.3 | 308 | 301 | -2 | 3566 | 2491 | -30 | 6 | 3 | 2 (8400 frames, many deaths) | yes |
+| 4 | Man vs Penguins | 1.1.3 | 308 | 315 | +2 | 3566 | 2573 | -28 | 6 | 3 | 2 (8400 frames, many deaths) | yes |
 | 5 | Fill the Holes | 1.1.3 | 363 | 411 | +13 | 4875 | 4025 | -17 | 3 | 2 | 3 (17952 frames, the 15 levels solved, End) | yes |
-| 6 | Princess Quest | 1.1.3 | 403 | 358 | -11 | 4306 | 2904 | -33 | 5 | 4 | 3 (9937 frames, 6 games, score 305 and the spikes) | yes |
-| 7 | Connected | 1.1.3 | 334 | 362 | +8 | 3386 | 2646 | -22 | 2 | 0 | 2 (13033 frames, 3 games) | yes |
+| 6 | Princess Quest | 1.1.3 | 403 | 391 | -3 | 4306 | 3071 | -29 | 5 | 4 | 3 (9937 frames, 6 games, score 305 and the spikes) | yes |
+| 7 | Connected | 1.1.3 | 334 | 369 | +10 | 3386 | 2709 | -20 | 2 | 0 | 2 (13033 frames, 3 games) | yes |
 | 8 | Save the City | 1.1.3 | 176 | 193 | +10 | 1896 | 1604 | -15 | 2 | 1 | 2 (2162 frames, 2 cities gone, a restart) | yes |
-| 9 | I Hate Rabbits | 1.1.3 | 252 | 245 | -3 | 3161 | 2252 | -29 | 3 | 1 | 2 (9200 frames, 5 games) | yes |
-| 10 | Dark Blue | 1.1.6 | 307 | 424 | +38 | 3268 | 3266 | 0 | 4 | 3 (+1) | 3 (9900 frames, levels 1 and 2, 30 deaths) | yes |
-| 11 | The Three Hearts | 2.0.1 | 331 | 339 | +2 | 3479 | 2590 | -26 | 3 | 3 | 2 (1800 frames, a death, a key, four doors, a heart) | yes |
-| 12 | Crazy Snake | 2.0.2 | 286 | 296 | +3 | 3296 | 2349 | -29 | 4 | 2 (+1) | 2 (9800 frames, score 52, 2 games) | yes |
+| 9 | I Hate Rabbits | 1.1.3 | 252 | 250 | -1 | 3161 | 2306 | -27 | 3 | 1 | 2 (9200 frames, 5 games) | yes |
+| 10 | Dark Blue | 1.1.6 | 307 | 430 | +40 | 3268 | 3267 | 0 | 4 | 3 (+1) | 3 (9900 frames, levels 1 and 2, 30 deaths) | yes |
+| 11 | The Three Hearts | 2.0.1 | 331 | 342 | +3 | 3479 | 2602 | -25 | 3 | 3 | 2 (1800 frames, a death, a key, four doors, a heart) | yes |
+| 12 | Crazy Snake | 2.0.2 | 286 | 285 | 0 | 3296 | 2289 | -31 | 4 | 2 (+1) | 2 (9800 frames, score 52, 2 games) | yes |
 
 "(+1)": a flag that the port adds. Dark Blue: `over.done`, the end of the
 turn of the last level. Crazy Snake, `over.dead`: the end of

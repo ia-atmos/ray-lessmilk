@@ -100,3 +100,19 @@ pool of its own, and end with it.
   turns the level in each update from 50 on. The task is a branch of the
   `par` after the update, so that it sees the score of the coin taken in
   the same update, as the original. The two runs give the same traces.
+
+## Where the relaxed ports stand (2026-11-26)
+
+- The 36 tests pass, with the traces of the originals (Princess Quest
+  and The Three Hearts against their originals with the bugs fixed, and
+  Connected with its trace summing in any order).
+- A task per entity in five games (I Hate Rabbits, Connected, Man vs
+  Penguins, Princess Quest, Dark Blue); Pixel War and Fill the Holes keep
+  their slots (behaviour); Run!, Box Jump and Save the City already had
+  theirs as tasks.
+- Size (`doc/table.md`, without `lib/`): 3571 lines and 29299 tokens, from
+  3514 and 28980 in the exact ports: the life of each entity is now written
+  in the game, where the slots of `lib/` did it before.
+- Not changed: the 32-bit floats and the order of the frame of Phaser
+  (behaviour); the control left, where it is read and written in the same
+  update in the order of the original (`doc/state.md`).
