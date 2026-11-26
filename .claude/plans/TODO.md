@@ -49,6 +49,9 @@ tables above were given before the rule and stay as they are.
 | #1 | What comes next: the new vocabulary of `ray.atm` (TODO 27, traces kept identical), or the relaxed ports on top of the tag `exact` (TODO 15) | decision | the vocabulary done by the session (to be confirmed); the relaxed ports next |
 | #2 | Go back to the first form of three rewrites of the first migration of `pin` (the cache of images and sounds, `sprite_add`, the text of a letter of Save the City), which the rules allow again | decision | merged into main (2026-11-22, the author: "follow your recommendations") |
 | #3 | `set :out` (compiler 8361f88): a place outside refers to a value pinned inside, until the block ends. Use it for the global lists that refer to what a screen owns: the bodies would refer to the sprites of the screen (no `Body(do { ... })`, no ownership by the list), the tweens would keep their object (no mark and emit per tween), the trace could read the screen (no `:trace` hooks). To try on a branch, keeping the traces | decision | merged into main (2026-11-22, the author: "follow your recommendations"); 33 tests identical on compiler 98e4787 |
+| #4 | Answer to the general instruction for the ports (2026-11-26, pico-1oom#29 through `atmos`): how much the port follows it, what to redo, a grade | answer | given in this session (grade 5): the exact ports follow fidelity as frame-exact traces, which carried Phaser's internals (32-bit floats, quadtree, recycled slots) and some bugs of JavaScript; the relaxed ports (TODO 15) are where 1-4 apply |
+| #5 | Excerpt, idiomatic: a timer as a loop that awaits (`games/run/play.atm:75-83`) | excerpt | shown |
+| #6 | Excerpt, bad: an emulated bug of JavaScript, a shadowed `h` compared with a string, which kills no heart (`games/princess_quest/play.atm:229-230`) | excerpt | shown; to fix in the relaxed port (instruction, item 4) |
 
 ## Settled
 
