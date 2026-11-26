@@ -35,7 +35,7 @@
 | 9 | I Hate Rabbits | 1.1.3 | 252 | 245 | -3 | 3161 | 2252 | -29 | 3 | 1 | 2 (9200 frames, 5 games) | yes |
 | 10 | Dark Blue | 1.1.6 | 307 | 424 | +38 | 3268 | 3266 | 0 | 4 | 3 (+1) | 3 (9900 frames, levels 1 and 2, 30 deaths) | yes |
 | 11 | The Three Hearts | 2.0.1 | 331 | 339 | +2 | 3479 | 2590 | -26 | 3 | 3 | 2 (1800 frames, a death, a key, four doors, a heart) | yes |
-| 12 | Crazy Snake | 2.0.2 | 286 | 296 | +3 | 3296 | 2349 | -29 | 4 | 3 (+1) | 2 (9800 frames, score 52, 2 games) | yes |
+| 12 | Crazy Snake | 2.0.2 | 286 | 296 | +3 | 3296 | 2349 | -29 | 4 | 2 (+1) | 2 (9800 frames, score 52, 2 games) | yes |
 
 "(+1)": a flag that the port adds. Dark Blue: `over.done`, the end of the
 turn of the last level. Crazy Snake, `over.dead`: the end of

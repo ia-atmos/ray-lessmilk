@@ -83,3 +83,12 @@ pool of its own, and end with it.
   changes from line 3031.
 - **Princess Quest**: `Thing`, for the clouds, platforms, hearts and spikes
   (2026-11-26). The three runs give the same traces.
+
+## Control in place of flags
+
+- **Crazy Snake** (2026-11-26): the nine effects by score, an `ifs` with a
+  counter `effect` tested in each update, are a table walked by a task
+  that awaits each score (`await :update until score == e@0`), and then
+  turns the level in each update from 50 on. The task is a branch of the
+  `par` after the update, so that it sees the score of the coin taken in
+  the same update, as the original. The two runs give the same traces.

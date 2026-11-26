@@ -152,6 +152,29 @@ task Play () {
     set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
 
+    ;; the effects on the level, by score
+    val effects = [
+        [5,  \{ spawn @tweens Motion(level, [angle=30], 5000) }],
+        [10, \{ spawn @tweens Motion(level, [sx=0.5, sy=0.5], 3000) }],
+        [15, \{
+            spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
+            spawn @tweens Motion(level, [sx=0.3, sy=0.9], 5000)
+            spawn @tweens Motion(level, [angle=0], 5000)
+        }],
+        [20, \{ spawn @tweens Motion(level, [sx=1, sy=1], 3000) }],
+        [25, \{
+            spawn @tweens Motion(level, [sx=0.2, sy=0.2], 5000)
+            spawn @tweens Motion(level, [x=(W/2) + 150, y=(H/2) + 150], 5000)
+        }],
+        [30, \{ spawn @tweens Jump(level) }],
+        [35, \{
+            spawn @tweens Motion(level, [sx=1, sy=1], 5000)
+            spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
+        }],
+        [40, \{ spawn @tweens Motion(level, [angle=-100], 5000) }],
+        [45, \{ spawn @tweens Motion(level, [angle=-190], 3000) }],
+    ]
+
     par :any {
         await :state until over.dead        ;; the switch, in the next frame
     } with {
@@ -173,54 +196,23 @@ task Play () {
                 key_down('DOWN') && (current != 1) => set direction = 2
             }
 
-            ;; the effects, by score
-            ifs {
-                (score == 5) && (effect == 0) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [angle=30], 5000)
-                }
-                (score == 10) && (effect == 1) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [sx=0.5, sy=0.5], 3000)
-                }
-                (score == 15) && (effect == 2) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
-                    spawn @tweens Motion(level, [sx=0.3, sy=0.9], 5000)
-                    spawn @tweens Motion(level, [angle=0], 5000)
-                }
-                (score == 20) && (effect == 3) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [sx=1, sy=1], 3000)
-                }
-                (score == 25) && (effect == 4) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [sx=0.2, sy=0.2], 5000)
-                    spawn @tweens Motion(level, [x=(W/2) + 150, y=(H/2) + 150], 5000)
-                }
-                (score == 30) && (effect == 5) => {
-                    set effect += 1
-                    spawn @tweens Jump(level)
-                }
-                (score == 35) && (effect == 6) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [sx=1, sy=1], 5000)
-                    spawn @tweens Motion(level, [x=W/2, y=H/2], 5000)
-                }
-                (score == 40) && (effect == 7) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [angle=-100], 5000)
-                }
-                (score == 45) && (effect == 8) => {
-                    set effect += 1
-                    spawn @tweens Motion(level, [angle=-190], 3000)
-                }
-                score >= 50 => group_angle_set(level, group_angle(level) - 0.2)
-            }
-
             if !in_camera(snake_array@0) {
                 dead()
             }
+        }
+    } with {
+        ;; the effects, in the update in which the score reaches each (after
+        ;; the update above, which takes the coin); from 50 on, the level
+        ;; turns in each update
+        loop i, e in effects {
+            await :update until score == e@0
+            set effect = i + 1
+            e@1()
+        }
+        await :update until score >= 50
+        loop {
+            group_angle_set(level, group_angle(level) - 0.2)
+            await :update
         }
     }
 }

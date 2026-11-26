@@ -207,10 +207,11 @@ same numbers. End's `time` is now part of the `await` of the key, and
 | `this.snake_array`, `this.snake` | the squares, head first, and the group that draws them | `snake_array`, `snake` (a `Group2`) |
 | `this.level`, `this.bg`, `this.coin`, labels | drawn | locals of `Play`, nodes of `level` |
 
-Control: 4 in the JavaScript (`effect`, `is_dead`, `head`, End's `time`), 3
-left, and 1 added. `effect` stays because the effects are tested in each
-update against the score, in the order of the original (a sequence of
-awaits would do the same in the relaxed version); `is_dead` is read by the
+Control: 4 in the JavaScript (`effect`, `is_dead`, `head`, End's `time`), 2
+left, and 1 added. The effects are a table by score, walked by a task that
+awaits each score in the update in which it is reached (after the update
+that takes the coin); `effect` is now only the position in it, for the
+trace (relaxed, 2026-11-26). `is_dead` is read by the
 timer of the moves, by `dead`, and by the trace; `head` marks the head
 during the test in `move`, as the original. The port adds `over.dead`, set
 when the tween of the death ends, which Play awaits in the next `:state`
