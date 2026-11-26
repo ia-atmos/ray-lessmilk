@@ -24,7 +24,7 @@ Each has the option recommended by this session.
 | # | Work |
 |---|------|
 | 22 | Dark Blue: no run gets through the fourth level of `levels.atm` (`s.level` 4), so levels 4 and 5 and Endd are not compared. Tried 2026-11-22: the bot (`tools/original/bot/10.js`) reaches it in 4989 frames and then stays at the start (25000 frames): the coins are to the left, beyond a wall 3 tiles high and a red pit, and it pushes against the wall; varying its take-off and its timing after deaths (as the bot of Box Jump) did not help. It needs a plan for that level (climb, run left, jump the pit) |
-| 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported); the bot gets stuck at a gap of one tile |
+| 24 | The Three Hearts: no run reaches the second and third hearts or the end (the emitter of hearts is not ported). Tried 2026-11-26: in 8000 frames the bot takes one heart and stays at (385.67, 740), pressing into a gap one tile wide: the body is 40 px wide as the tile, and Phaser 2.0.1 does not separate a body on x when it moves only on y, so it passes only at an exact x (380), which steps of 230/60 px never reach (the bot overshoots, 381.83 and 378.00). It needs a route by wider passages, or a way to align against a wall first |
 | 18 | `skip` of the compiler: where a game emulates a `continue`, use it in the relaxed version (see 15) |
 | 13 | Consider `await(n, :e)` of the compiler (the nth occurrence of a pattern) where a port counts frames |
 | 15 | The relaxed ports (`doc/relaxed.md`): merged into main on 2026-11-26; what is left: the control that is behaviour stays, as the slots of Pixel War and Fill the Holes |
