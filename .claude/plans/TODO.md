@@ -56,6 +56,10 @@ tables above were given before the rule and stay as they are.
 | #8 | Excerpt, bad: `set pub = [ s=r ]` then `set :out pub.tw = tw` to show the pool of a task (`games/i_hate_rabbits/play.atm:20-21`) | excerpt | shown |
 | #9 | Excerpt, idiomatic: the hearts below the screen die, the bug of the original fixed (`games/princess_quest/play.atm:236-245`) | excerpt | shown |
 | #10 | Excerpt, bad: Pixel War keeps the slots of its groups, because a quirk of Phaser (where a sprite died) decides which spawns vanish (`games/pixel_war/play.atm:34-42`) | excerpt | shown |
+| #11 | Excerpt, idiomatic: a penguin as a task, its life in one place (`games/man_penguins/play.atm:179-205`) | excerpt | shown |
+| #12 | Excerpt, bad: `thing` and `living`, helpers that redo a group of Phaser over a pool (a capacity, the sprites that exist) (`games/princess_quest/play.atm:57-74`) | excerpt | shown |
+| #13 | Excerpt, idiomatic: the effects of Crazy Snake as a table by score, walked by a task that awaits each (`games/crazy_snake/play.atm:156-178`, `207-211`) | excerpt | shown |
+| #14 | Excerpt, bad: the same task must be the last branch of the `par`, after the update, to see the score of the coin of that update: an order of waking that nothing in the code says (`games/crazy_snake/play.atm:203-217`) | excerpt | shown |
 
 ## Settled
 
