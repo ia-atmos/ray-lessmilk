@@ -187,6 +187,10 @@ tables above were given before the rule and stay as they are.
 - Screenshots (the author, 2026-11-26, through `atmos`): at each big step
   (a milestone, a change of what is on screen), show him a few screenshots
   in the report, in this session.
+- Code excerpts (the author, 2026-11-26, through `atmos`): in each report,
+  for each group of changes, a pair of short Atmos excerpts from that work,
+  with file and line: one that came out idiomatic, one that came out bad
+  (awkward, verbose, a workaround).
 
 - The second migration of `pin` (2026-11-18, compiler 94aedf1): done on
   main (47c6b0b), the 33 tests identical; reported to `atmos-lang`.
