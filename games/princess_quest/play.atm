@@ -32,21 +32,46 @@ task Play () {
     input_reset()
     set Physics.x, Physics.y, Physics.w, Physics.h = (0, -100000, W, H + 100000)   ;; world.setBounds
     pin keys = Cursor()
-    pin clouds = Group(IMG_CLOUD, 6, :cloud)
-    loop _, x in clouds.slots {
-        set x.s.oob_kill = true
-    }
+    ;; as many of each as the groups of the original
+    pin clouds = tasks(6)
     if score > best_score {
         set best_score = score
     }
     set score = 0
-    pin platforms = Group(IMG_PLATFORM, 15, :platform)
-    loop _, x in platforms.slots {
-        set x.b.immovable = true
-        set x.b.allow.down, x.b.allow.right, x.b.allow.left = (false, false, false)
+    pin platforms = tasks(15)
+    pin hearts = tasks(3)
+    pin spikes = tasks(5)
+
+    ;; a thing of the level (a cloud, a platform, a heart, a spike): a sprite
+    ;; with a body, set up by f, until it no longer exists. pub: its body.
+    val task Thing (img, tag, f) {
+        val b = Body(Sprite(img, 0, 0), tag)
+        set pub = b
+        defer {
+            body_remove(b)
+        }
+        f(b.spr, b)
+        await :update until !b.spr.exists
     }
-    pin hearts = Group(IMG_HEART, 3, :heart)
-    pin spikes = Group(IMG_SPIKE, 5, :spike)
+    ;; a new thing in a pool, if it is not full (its body), or nil
+    val func thing (pool, max, img, tag, f) {
+        if #pool < max {
+            val t = spawn @pool Thing(img, tag, f)
+            t.pub
+        } else {
+            nil
+        }
+    }
+    ;; the bodies of a pool whose sprites exist
+    val func living (pool) {
+        val out = []
+        loop _, t in pool {
+            if t.pub.spr.exists {
+                set out@+ = t.pub
+            }
+        }
+        out
+    }
     pin emitter = Emitter(IMG_HEART, 100)
     set emitter.x = -100
     set emitter.on = false
@@ -77,7 +102,7 @@ task Play () {
 
     ;; [trace]
     pin trace_q = [ princess=princess, pb=pb, platforms=platforms, hearts=hearts,
-                spikes=spikes, clouds=clouds, emitter=emitter,
+                spikes=spikes, clouds=clouds, emitter=emitter, living=living,
                 next=\{ next_platform }, took=\{ took_heart } ]
     set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
@@ -85,10 +110,13 @@ task Play () {
     spawn {
         loop on :draw {
             ray.clear(BG)
-            group_draw(clouds)
-            group_draw(platforms)
-            group_draw(hearts)
-            group_draw(spikes)
+            loop _, pool in [clouds, platforms, hearts, spikes] {
+                loop _, t in pool {
+                    if t.pub.spr.visible {
+                        sprite_draw(t.pub.spr)
+                    }
+                }
+            }
             emitter_draw(emitter)
             sprite_draw(princess)
             if ground.visible != false {
@@ -99,38 +127,34 @@ task Play () {
     }
 
     val func add_platform (y, x) {
-        val p = group_first_dead(platforms)
-        if p {
-            val pw = IMG_PLATFORM.fw * p.s.sx
+        thing(platforms, 15, IMG_PLATFORM, :platform, \(p, b) {
+            set b.immovable = true
+            set b.allow.down, b.allow.right, b.allow.left = (false, false, false)
+            val pw = IMG_PLATFORM.fw * p.sx
             val px = if x == nil => (rand((W - pw) - 10) + (pw / 2)) + 5 => x
-            sprite_reset(p.s, p.b, px, y)
-            set p.s.ax, p.s.ay = (0.5, 0.5)
-            set p.b.vx = 0
-        }
-        p
+            sprite_reset(p, b, px, y)
+            set p.ax, p.ay = (0.5, 0.5)
+            set b.vx = 0
+        })
     }
     val func add_spike (x, y) {
-        val sp = group_first_dead(spikes)
-        if sp {
-            body_set_size(sp.b, (IMG_SPIKE.fw * sp.s.sx) - 6, (IMG_SPIKE.fh * sp.s.sy) - 6, 0, 0)
-            set sp.s.ax, sp.s.ay = (0.5, 0.5)
-            sprite_reset(sp.s, sp.b, x, y)
-        }
+        thing(spikes, 5, IMG_SPIKE, :spike, \(sp, b) {
+            body_set_size(b, (IMG_SPIKE.fw * sp.sx) - 6, (IMG_SPIKE.fh * sp.sy) - 6, 0, 0)
+            set sp.ax, sp.ay = (0.5, 0.5)
+            sprite_reset(sp, b, x, y)
+        })
     }
     val func add_cloud (y) {
-        val c = group_first_dead(clouds)
-        if c {
-            sprite_reset(c.s, c.b, rand(W) - (IMG_CLOUD.fw * c.s.sx), y)
-            set c.b.vx = if rand(2) == 1 => 8 => -8
-        }
+        thing(clouds, 6, IMG_CLOUD, :cloud, \(c, b) {
+            set c.oob_kill = true
+            sprite_reset(c, b, rand(W) - (IMG_CLOUD.fw * c.sx), y)
+            set b.vx = if rand(2) == 1 => 8 => -8
+        })
     }
-    ;; with no platform left in the pool (15), a platform that moves, or with
-    ;; a spike or a heart, is not added: the original read the body of the
-    ;; platform it did not get, and stopped (tools/original/fixes/6.patch)
     val func add_moving (y) {
         val p = add_platform(y)
         if p {
-            set p.b.vx = if rand(2) == 0 => -120 => 120
+            set p.vx = if rand(2) == 0 => -120 => 120
         }
     }
     val func add_double (y) {
@@ -165,17 +189,18 @@ task Play () {
                     ;; add_platform_spike
                     val p = add_platform(y - 150)
                     if p {
-                        add_spike(p.s.x, p.s.y + 18)
+                        add_spike(p.spr.x, p.spr.y + 18)
                     }
                     set next_platform += 150
                 }
                 kind == 5 => {
                     ;; add_platform_heart
                     val p = add_platform(y)
-                    val hh = p && group_first_dead(hearts)
-                    if hh {
-                        set hh.s.ax, hh.s.ay = (0.5, 0.5)
-                        sprite_reset(hh.s, hh.b, p.s.x, y - 29)
+                    if p {
+                        thing(hearts, 3, IMG_HEART, :heart, \(hs, b) {
+                            set hs.ax, hs.ay = (0.5, 0.5)
+                            sprite_reset(hs, b, p.spr.x, y - 29)
+                        })
                     }
                 }
             }
@@ -220,13 +245,14 @@ task Play () {
         }
         if count_update == 20 {
             set count_update = 0
-            loop _, x in platforms.slots {
-                val p = x.s
+            loop _, t in platforms {
+                val b = t.pub
+                val p = b.spr
                 if p.alive {
                     val pw, ph = (IMG_PLATFORM.fw * p.sx, IMG_PLATFORM.fh * p.sy)
                     ifs {
-                        ((p.x + (pw / 2)) >= W) && (x.b.vx > 0) => set x.b.vx = -120
-                        ((p.x - (pw / 2)) <= 0) && (x.b.vx < 0) => set x.b.vx = 120
+                        ((p.x + (pw / 2)) >= W) && (b.vx > 0) => set b.vx = -120
+                        ((p.x - (pw / 2)) <= 0) && (b.vx < 0) => set b.vx = 120
                     }
                     if (p.y - ph) > (Camera.y + H) {
                         sprite_kill(p)
@@ -236,14 +262,14 @@ task Play () {
             ;; update_heart: a heart below the screen dies (in the original,
             ;; its parameter `h` hid the height, the test compared a number
             ;; with a string, and no heart ever died: fixed, 6.patch)
-            loop _, x in hearts.slots {
-                val hs = x.s
+            loop _, t in hearts {
+                val hs = t.pub.spr
                 if hs.alive && ((hs.y - (IMG_HEART.fh * hs.sy)) > (Camera.y + H)) {
                     sprite_kill(hs)
                 }
             }
-            loop _, x in spikes.slots {
-                val sp = x.s
+            loop _, t in spikes {
+                val sp = t.pub.spr
                 if sp.alive && ((sp.y - (IMG_SPIKE.fh * sp.sy)) > (Camera.y + H)) {
                     sprite_kill(sp)
                 }
@@ -298,19 +324,20 @@ func trace (p) {
     if screen == "Play" {
         val pr = p.princess
         var n, sx, sy = (0, 0, 0)
-        loop _, x in p.platforms.slots {
-            if x.s.exists {
+        loop _, t in p.platforms {
+            val ps = t.pub.spr
+            if ps.exists {
                 set n += 1
-                set sx += x.s.x
-                set sy += x.s.y
+                set sx += ps.x
+                set sy += ps.y
             }
         }
         set r = r ++ " " ++ eng.fixed(pr.x, 2) ++ " " ++ eng.fixed(pr.y, 2) ++ " " ++
             eng.fixed(p.pb.vx, 2) ++ " " ++ eng.fixed(p.pb.vy, 2) ++ " " ++
             (if pr.alive => "1" => "0") ++ " " ++ eng.fixed(pr.sx, 3) ++ " " ++ eng.fixed(pr.sy, 3) ++ " " ++
             tostring(pr.frame) ++ " " ++ eng.tostring(Camera.y) ++ " " ++ tostring(n) ++ " " ++
-            eng.fixed(sx, 2) ++ " " ++ eng.fixed(sy, 2) ++ " " ++ tostring(#group_living(p.hearts)) ++ " " ++
-            tostring(#group_living(p.spikes)) ++ " " ++ tostring(#group_living(p.clouds)) ++ " " ++
+            eng.fixed(sx, 2) ++ " " ++ eng.fixed(sy, 2) ++ " " ++ tostring(#p.living(p.hearts)) ++ " " ++
+            tostring(#p.living(p.spikes)) ++ " " ++ tostring(#p.living(p.clouds)) ++ " " ++
             tostring(#p.emitter.sprites) ++ " " ++ (if p.emitter.on => "1" => "0") ++ " " ++
             eng.tostring(p.next()) ++ " " ++ (if p.took() => "1" => "0")
     }

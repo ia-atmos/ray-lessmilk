@@ -81,3 +81,5 @@ pool of its own, and end with it.
 - **Fill the Holes**: keeps its slots, as Pixel War: when each reused
   sprite starts as a new one (no memory of where it died), its run `solve`
   changes from line 3031.
+- **Princess Quest**: `Thing`, for the clouds, platforms, hearts and spikes
+  (2026-11-26). The three runs give the same traces.
