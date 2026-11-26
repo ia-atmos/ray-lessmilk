@@ -184,6 +184,9 @@ tables above were given before the rule and stay as they are.
   the ports and merges into lang main stay with `atmos-lang`. Item numbers
   stay local to this session (`#N`, seen outside as `ray-lessmilk#N`), as
   the author confirmed on 2026-11-25.
+- Screenshots (the author, 2026-11-26, through `atmos`): at each big step
+  (a milestone, a change of what is on screen), show him a few screenshots
+  in the report, in this session.
 
 - The second migration of `pin` (2026-11-18, compiler 94aedf1): done on
   main (47c6b0b), the 33 tests identical; reported to `atmos-lang`.
