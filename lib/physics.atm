@@ -696,7 +696,7 @@ func collide_group (a, group) {
 func Group (img, n, tag) {
     ;; the slots, held only by their name while they are filled
     val slots = []
-    loop _ in n {
+    loop in n {
         val b = Body(Sprite(img, 0, 0), tag)
         val s = b.spr
         set s.alive, s.exists, s.visible = (false, false, false)

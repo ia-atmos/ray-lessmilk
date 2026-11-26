@@ -22,7 +22,7 @@ func Emitter (img, max) {
     val many = (img ?? :table) && !(img ?? :Image)
     val keys = []
     if many {
-        loop _ in max {
+        loop in max {
             set keys@+ = img@(eng.rnd_integer_in_range(0, #img))      ;; rnd.pick
         }
     }

@@ -23,7 +23,7 @@ spawn {
 }
 spawn {
     await Wait(50)                      ;; a wait of 50 ms in the updates
-    loop _ in 2 {                       ;; .to(1).to(-1), twice
+    loop in 2 {                       ;; .to(1).to(-1), twice
         await Motion(c, [angle=1], 50)
         await Motion(c, [angle=-1], 50)
     }

@@ -111,7 +111,7 @@ task Play () {
         loop e on :input.up {
             loop _, x in boxes.slots {
                 if input_of(e) == x.s {
-                    loop _ in x.s.listeners {
+                    loop in x.s.listeners {
                         set user_clicks += 1
                         if x.s.alive && (x.b.vx == 0) && (x.b.vy == 0) {
                             push_box(x.s, x.b, ray.mouse_x(), ray.mouse_y())
