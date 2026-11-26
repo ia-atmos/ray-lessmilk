@@ -83,6 +83,14 @@ pool of its own, and end with it.
   changes from line 3031.
 - **Princess Quest**: `Thing`, for the clouds, platforms, hearts and spikes
   (2026-11-26). The three runs give the same traces.
+- **Dark Blue**: `Coin`, `Enemy` (2026-11-26). Its coins and enemies were
+  lists to which each death of the player added the coins of the level
+  again, the dead ones kept and walked in each phase of each frame (the
+  groups of Phaser keep their killed sprites too, which changes nothing
+  that can be seen). Each is now a task that ends when its sprite no
+  longer exists. The three runs give the same traces; the logic of the run
+  `bot` (6000 frames, no drawing, CPU of the process with its loading,
+  median of 3) went from 1.25 to 0.54 ms a frame.
 
 ## Control in place of flags
 

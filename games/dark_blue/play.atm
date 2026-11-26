@@ -59,13 +59,33 @@ task Play () {
     pin st = [
         level = 1, taken = 0, total = 0, jump = 0,
         map = nil, lv = nil,    ;; the tilemap and the level it comes from
-        coins = [],         ;; [s=, b=], all that the levels made, in order
-        enemies = [],       ;; [s=, b=, move=, dir=]
         labels = [],        ;; the texts of the level
     ]
     set dead = 0
     pin tweens = tasks()
     pin over = [ done = false ]     ;; the last level ended: Endd
+
+    ;; the coins and the enemies of the level, each a task, which ends when
+    ;; its sprite no longer exists (taken, or the level cleared). pub: its
+    ;; sprite and body; a coin's sprite refers to its pool of tweens (s.tw).
+    pin coins = tasks()
+    pin enemies = tasks()
+    val task Coin (o) {
+        val s = Sprite(IMG_COIN, o@1, o@2)
+        pin tw = tasks()
+        set s.fresh = true
+        set s.ax, s.ay = (0, 1)
+        set pub = [ s=s, b=Body6(s) ]
+        set :out s.tw = tw
+        await :update until s.exists == false
+    }
+    val task Enemy (o) {
+        val s = Sprite(IMG_ENEMY, o@1, o@2)
+        set s.fresh = true
+        set s.ax, s.ay = (0, 1)
+        set pub = [ s=s, b=Body6(s), move=o@3, dir=nil ]
+        await :update until s.exists == false
+    }
 
     if sound {
         eng.play_music(SND_MUSIC, 0.2)
@@ -76,21 +96,18 @@ task Play () {
     val func add_coins () {
         loop _, o in st.lv.objects {
             if o@0 == 2 {
-                set st.coins@+ = [ s=Sprite(IMG_COIN, o@1, o@2) ]
-                val c = st.coins@(#st.coins - 1)
-                set c.s.fresh = true
-                set c.s.ax, c.s.ay = (0, 1)
-                set c.b = Body6(c.s)
+                spawn @coins Coin(o)
             }
         }
     }
     val func float_coins () {
-        loop _, c in st.coins {
+        loop _, t in coins {
+            val c = t.pub
             if c.s.alive != false {
                 set c.s.ax, c.s.ay = (0.5, 0.5)
                 set c.s.x += sprite_w6(c.s) / 2
                 set c.s.y -= sprite_w6(c.s) / 2
-                spawn @tweens Float(c.s)
+                spawn @(c.s.tw) Float(c.s)
             }
         }
     }
@@ -106,8 +123,8 @@ task Play () {
             body6_reset(pbody, (W/2) - 50, H/2)
         }
         set pbody.gy = 0
-        loop _, c in st.coins {
-            set c.s.alive, c.s.exists, c.s.visible = (false, false, false)
+        loop _, t in coins {
+            set t.pub.s.alive, t.pub.s.exists, t.pub.s.visible = (false, false, false)
         }
         set st.taken = 0
         add_coins()
@@ -117,11 +134,10 @@ task Play () {
 
     val func load_map () {
         ;; clear_map
-        loop _, c in st.coins {
-            set c.s.alive, c.s.exists, c.s.visible = (false, false, false)
-        }
-        loop _, e in st.enemies {
-            set e.s.alive, e.s.exists, e.s.visible = (false, false, false)
+        loop _, pool in [coins, enemies] {
+            loop _, t in pool {
+                set t.pub.s.alive, t.pub.s.exists, t.pub.s.visible = (false, false, false)
+            }
         }
         vector.clear(st.labels)
 
@@ -134,11 +150,7 @@ task Play () {
         loop _, gid in [4, 5] {
             loop _, o in lv.objects {
                 if o@0 == gid {
-                    set st.enemies@+ = [ s=Sprite(IMG_ENEMY, o@1, o@2), move=o@3, dir=nil ]
-                    val e = st.enemies@(#st.enemies - 1)
-                    set e.s.fresh = true
-                    set e.s.ax, e.s.ay = (0, 1)
-                    set e.b = Body6(e.s)
+                    spawn @enemies Enemy(o)
                 }
             }
         }
@@ -157,13 +169,14 @@ task Play () {
         set st.total, st.taken = (0, 0)
 
         ;; add_objects
-        loop _, c in st.coins {
-            if c.s.alive != false {
+        loop _, t in coins {
+            if t.pub.s.alive != false {
                 set st.total += 1
             }
         }
         float_coins()
-        loop _, e in st.enemies {
+        loop _, t in enemies {
+            val e = t.pub
             if e.s.alive != false {
                 ifs {
                     e.move == 1 => { set e.b.vx = 100 ; set e.dir = 1 }
@@ -212,7 +225,7 @@ task Play () {
         val c = cb.spr
         if c.alive != false {
             set c.alive = false
-            spawn @tweens Shrink(c)
+            spawn @(c.tw) Shrink(c)
             set st.taken += 1
             if sound {
                 eng.play(SND_COIN, 0.2)
@@ -276,11 +289,11 @@ task Play () {
     spawn {
         loop on :pre {
             body6_pre(pbody)
-            loop _, c in st.coins {
-                body6_pre(c.b)
+            loop _, t in coins {
+                body6_pre(t.pub.b)
             }
-            loop _, e in st.enemies {
-                body6_pre(e.b)
+            loop _, t in enemies {
+                body6_pre(t.pub.b)
             }
         }
     }
@@ -288,25 +301,22 @@ task Play () {
         loop on :post {
             body6_post(pbody)
             follow(player)
-            loop _, c in st.coins {
-                body6_post(c.b)
+            loop _, t in coins {
+                body6_post(t.pub.b)
             }
-            loop _, e in st.enemies {
-                body6_post(e.b)
+            loop _, t in enemies {
+                body6_post(t.pub.b)
             }
         }
     }
     spawn {
         loop on :render {
             sprite_drawn(player)
-            loop _, c in st.coins {
-                if c.s.visible != false {
-                    sprite_drawn(c.s)
-                }
-            }
-            loop _, e in st.enemies {
-                if e.s.visible != false {
-                    sprite_drawn(e.s)
+            loop _, pool in [coins, enemies] {
+                loop _, t in pool {
+                    if t.pub.s.visible != false {
+                        sprite_drawn(t.pub.s)
+                    }
                 }
             }
         }
@@ -315,11 +325,10 @@ task Play () {
         loop on :draw {
             ray.clear(BG)
             sprite_draw(player)
-            loop _, c in st.coins {
-                sprite_draw(c.s)
-            }
-            loop _, e in st.enemies {
-                sprite_draw(e.s)
+            loop _, pool in [coins, enemies] {
+                loop _, t in pool {
+                    sprite_draw(t.pub.s)
+                }
             }
             ;; the layer of tiles, over the sprites
             val m = st.map
@@ -339,7 +348,7 @@ task Play () {
     }
 
     ;; [trace]
-    pin trace_q = [ st=st, player=player, pbody=pbody ]
+    pin trace_q = [ st=st, player=player, pbody=pbody, coins=coins, enemies=enemies ]
     set :out Trace.q = trace_q              ;; Tracer reads it while the screen lasts
     ;; [/trace]
 
@@ -350,17 +359,18 @@ task Play () {
             tiles6_collide(st.map, pbody, nil)
             overlap6(pbody, do {
                 val bs = []
-                loop _, c in st.coins { set bs@+ = c.b }
+                loop _, t in coins { set bs@+ = t.pub.b }
                 bs
             }, take_coin)
-            loop _, e in st.enemies {
+            loop _, t in enemies {
+                val e = t.pub
                 if e.s.exists != false {
-                    tiles6_collide(st.map, e.b, \(t) { enemy_collide(e) })
+                    tiles6_collide(st.map, e.b, \(tl) { enemy_collide(e) })
                 }
             }
             overlap6(pbody, do {
                 val bs = []
-                loop _, e in st.enemies { set bs@+ = e.b }
+                loop _, t in enemies { set bs@+ = t.pub.b }
                 bs
             }, \(b) { player_dead() })
             movements()
@@ -382,14 +392,16 @@ func trace (q) {
     if q {
         val st, p, b = (q.st, q.player, q.pbody)
         var nc, cx, cy, ne, ex, ey = (0, 0, 0, 0, 0, 0)
-        loop _, c in st.coins {
+        loop _, t in q.coins {
+            val c = t.pub
             if c.s.alive != false {
                 set nc += 1
                 set cx += c.s.x
                 set cy += c.s.y
             }
         }
-        loop _, e in st.enemies {
+        loop _, t in q.enemies {
+            val e = t.pub
             if e.s.alive != false {
                 set ne += 1
                 set ex += e.s.x
