@@ -9,6 +9,28 @@ pin SND_VOWELS = [
     eng.sound(A ++ "sounds/u.mp3"),
 ]
 
+;; a rabbit: it comes to the circle (its tween running until it is there),
+;; may jump over the bad one and come back, fades when its level ends, and
+;; lives until it dies (the bad one hits it, or it has faded). Its tweens are
+;; in its own pool, so they end with it. pub: the sprite, and the pool.
+task Rabbit (angle, i, cw) {
+    val b = Body(Sprite(IMG_RABBIT, 0, 0), :rabbit)
+    val r = b.spr
+    pin tw = tasks()
+    set pub = [ s=r ]
+    set :out pub.tw = tw                ;; pub refers to the pool of the rabbit
+    defer {
+        body_remove(b)
+    }
+    set r.rot = angle + (math.pi / 2)
+    set r.jump, r.pos = (false, i)
+    sprite_reset(r, b, (W/2) + ((cw + 100) * math.cos(angle)), (H/2) + ((cw + 100) * math.sin(angle)))
+    set r.ax, r.ay = (0.5, 1)
+    spawn @tw Enter(r, (W/2) + (((cw / 2) - 2) * math.cos(angle)),
+                       (H/2) + (((cw / 2) - 2) * math.sin(angle)))
+    await :update until !r.alive
+}
+
 ;; a rabbit comes to the circle: its tween is running until it is there
 task Enter (r, x, y) {
     set r.entering = true
@@ -31,7 +53,7 @@ task Fade (r) {
 task Play () {
     pin phys = Physics_screen()         ;; the bodies of the screen (Physics)
     set :out Physics.scr = phys
-    pin rabbits = Group(IMG_RABBIT, 30, :rabbit)
+    pin rabbits = tasks(30)
     val bbody = Body(do {
         val bad = Sprite(IMG_BAD, W/2, H/2)
         set bad.ax, bad.ay = (0.5, 1)
@@ -59,7 +81,9 @@ task Play () {
     spawn {
         loop on :draw {
             ray.clear(BG)
-            group_draw(rabbits)
+            loop _, t in rabbits {
+                sprite_draw(t.pub.s)
+            }
             sprite_draw(bad)
             sprite_draw(circle)
             text_draw(start)
@@ -72,28 +96,11 @@ task Play () {
         }
     }
 
-    ;; add_rabbit
-    val func add_rabbit (angle, i) {
-        val x = group_first_not_alive(rabbits)
-        val r = x.s
-        set r.rot = angle + (math.pi / 2)
-        val x_out = (W/2) + ((cw + 100) * math.cos(angle))
-        val y_out = (H/2) + ((cw + 100) * math.sin(angle))
-        val x_in = (W/2) + (((cw / 2) - 2) * math.cos(angle))
-        val y_in = (H/2) + (((cw / 2) - 2) * math.sin(angle))
-        set r.jump = false
-        set r.alpha = 1
-        set r.pos = i
-        sprite_reset(r, x.b, x_out, y_out)
-        set r.ax, r.ay = (0.5, 1)
-        spawn @tweens Enter(r, x_in, y_in)
-    }
-
     ;; draw_level: the rabbits left fade; :end after the last level
     val func draw_level () {
-        loop _, x in rabbits.slots {
-            if x.s.alive {
-                spawn @tweens Fade(x.s)
+        loop _, t in rabbits {
+            if t.pub.s.alive {
+                spawn @(t.pub.tw) Fade(t.pub.s)
             }
         }
         set world.s = tostring(9 - level)
@@ -105,7 +112,7 @@ task Play () {
         }
         loop i, k in MAP@(level) {
             if k != 0 {
-                add_rabbit(i * (math.pi / 10), i)
+                spawn @rabbits Rabbit(i * (math.pi / 10), i, cw)
             }
         }
         set level += 1
@@ -118,10 +125,11 @@ task Play () {
     spawn {
         loop e on :key.dn {
             if e.key == 'SPACE' {
-                var min, r = (20, nil)
-                loop _, x in rabbits.slots {
-                    if x.s.alive && (x.s.jump == false) && (x.s.pos < min) {
-                        set min, r = (x.s.pos, x.s)
+                var min, r, rt = (20, nil, nil)
+                loop _, t in rabbits {
+                    val x = t.pub.s
+                    if x.alive && (x.jump == false) && (x.pos < min) {
+                        set min, r, rt = (x.pos, x, t)
                     }
                 }
                 if (min != 20) && !r.entering {
@@ -129,7 +137,7 @@ task Play () {
                     val d = (cw / 2) + 90
                     val jx = (W/2) + (d * math.cos(r.rot - (math.pi / 2)))
                     val jy = (H/2) + (d * math.sin(r.rot - (math.pi / 2)))
-                    spawn @tweens Jump(r, jx, jy, r.x, r.y)
+                    spawn @(rt.pub.tw) Jump(r, jx, jy, r.x, r.y)
                     set r.jump = true
                 }
             }
@@ -173,12 +181,13 @@ func trace (p) {
             tostring(level) ++ " " ++ tostring(best_score)
     if screen == "Play" {
         var n, sx, sy, sa = (0, 0, 0, 0)
-        loop _, x in p.rabbits.slots {
-            if x.s.alive {
+        loop _, t in p.rabbits {
+            val x = t.pub.s
+            if x.alive {
                 set n += 1
-                set sx += x.s.x
-                set sy += x.s.y
-                set sa += x.s.alpha
+                set sx += x.x
+                set sy += x.y
+                set sa += x.alpha
             }
         }
         set r = r ++ " " ++ eng.fixed(angle_get(p.bad), 2) ++ " " ++ tostring(n) ++ " " ++

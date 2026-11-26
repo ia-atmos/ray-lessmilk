@@ -45,3 +45,15 @@ applied by `tools/setup.sh`; nothing goes upstream).
   the global `sound`): JavaScript reads `undefined` with no error, and the
   sound never plays. Now it plays when the sound is on. The traces do not
   see sounds: the runs are the same.
+
+## A task per entity, in place of the recycled slots of a group
+
+Phaser recycles the sprites of a group (`createMultiple`,
+`getFirstExists`); the exact ports kept those slots (`Group`, `.slots`).
+A relaxed port makes each entity a task that owns its sprite and body,
+spawned into a pool, and ends when the entity dies; its tweens go to a
+pool of its own, and end with it.
+
+- **I Hate Rabbits**: `Rabbit` (2026-11-26). The two runs give the same
+  traces. 250 lines and 2306 tokens (were 245 and 2252): a few more, for a
+  lifetime in one place.
