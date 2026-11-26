@@ -63,6 +63,8 @@ tables above were given before the rule and stay as they are.
 | #15 | Merge the branch `relaxed` into main (the exact ports stay at the tag `exact`; the expected traces of Connected and Princess Quest change with it) | decision | merged into main (2026-11-26, the author: "ok") |
 | #16 | Excerpt, idiomatic: a coin of Dark Blue as a task, which ends when its sprite no longer exists (`games/dark_blue/play.atm:73-81`) | excerpt | shown |
 | #17 | Excerpt, bad: `set :out s.tw = tw`, the sprite pointing at the pool of tweens of its own task, so that `take_coin`, which gets a body, can reach it (`games/dark_blue/play.atm:79`) | excerpt | shown |
+| #18 | Excerpt, idiomatic: an index by a name without parentheses, `ENG_IMAGES@path` (`lib/engine.atm:364`), one of the 32 of the rewrite of `@(name)` | excerpt | shown |
+| #19 | Excerpt, bad: `[@(k)=i]`, a key computed in a table constructor, keeps its parentheses, as the only way to build a table whose key is in a variable (`games/man_penguins/play.atm:49-51`) | excerpt | shown |
 
 ## Settled
 
