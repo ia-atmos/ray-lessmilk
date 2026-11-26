@@ -209,6 +209,10 @@ tables above were given before the rule and stay as they are.
   (awkward, verbose, a workaround). Each excerpt takes a number `#N` of this
   session, listed in the index of items; each bad one says why it is bad and
   what would make it better (the language, the environment, or the port).
+- Idioms (the author, 2026-11-26, `atmos#29`): read `.claude/plans/IDIOMS.md`
+  of `ia-atmos/lang` before writing Atmos. When the author corrects or
+  approves an excerpt of this session and a general rule comes out of it,
+  send it to `atmos` (source `ray-lessmilk#N`, a before and an after).
 
 - The second migration of `pin` (2026-11-18, compiler 94aedf1): done on
   main (47c6b0b), the 33 tests identical; reported to `atmos-lang`.
