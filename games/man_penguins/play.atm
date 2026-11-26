@@ -1,4 +1,4 @@
-;; Play: the man, the penguins (a group of 40), the coin, the level.
+;; Play: the man, the penguins (each a task, 40 at most), the coin, the level.
 
 pin IMG_BRICK  = eng.image(A ++ "images/brick.png")
 pin IMG_PLAYER = eng.image(A ++ "images/player.png", 27, 33)
@@ -77,10 +77,7 @@ task Play () {
     sprite_add(player, :walk, [1, 2], 6, true)
     var jump_count = 1
 
-    pin enemies = Group(IMG_ENEMY, 40, :enemy)
-    loop _, x in enemies.slots {
-        set x.s.oob_kill = true
-    }
+    pin enemies = tasks(40)             ;; as many as the group of the original
 
     val cbody = Body(Sprite(IMG_COIN, 150, H/2), :coin)
     val coin = cbody.spr
@@ -112,7 +109,11 @@ task Play () {
         loop on :draw {
             ray.clear(BG)
             sprite_draw(player)
-            group_draw(enemies)
+            loop _, t in enemies {
+                if t.pub.s.visible {
+                    sprite_draw(t.pub.s)
+                }
+            }
             sprite_draw(coin)
             text_draw(label_score)
             text_draw(label_best)
@@ -124,9 +125,9 @@ task Play () {
     spawn {
         loop on :pre {
             sprite_update(player)
-            loop _, x in enemies.slots {
-                if x.s.exists {
-                    sprite_update(x.s)
+            loop _, t in enemies {
+                if t.pub.s.exists {
+                    sprite_update(t.pub.s)
                 }
             }
         }
@@ -138,7 +139,7 @@ task Play () {
     }
 
     val func enemy_die (e, all) {
-        spawn @tweens Flatten(e)
+        spawn @(e.tw) Flatten(e)
         set e.alive = false
         if !all {
             eng.play(SND_KILL, 0.15)
@@ -162,31 +163,46 @@ task Play () {
             }
             set score = 0
             set label_score.s = "score: 0"
-            loop _, x in enemies.slots {
-                if x.s.alive {
-                    enemy_die(x.s, true)
+            loop _, t in enemies {
+                if t.pub.s.alive {
+                    enemy_die(t.pub.s, true)
                 }
             }
             shake(10, 100)
         }
     }
 
+    ;; a penguin: it falls from the top, walks once it lands, turns at the
+    ;; walls; it ends when its sprite no longer exists (it flattened, or it
+    ;; fell out of the world). pub: its sprite and body; its sprite refers to
+    ;; its pool of tweens (e.tw).
+    val task Penguin () {
+        val b = Body(Sprite(IMG_ENEMY, 0, 0), :enemy)
+        val e = b.spr
+        pin tw = tasks()
+        set pub = [ s=e, b=b ]
+        set :out e.tw = tw
+        defer {
+            body_remove(b)
+        }
+        set e.oob_kill = true
+        sprite_reset(e, b, W/2, 0)
+        set e.sx, e.sy = (1, 1)
+        set e.ax, e.ay = (0.5, 1)
+        set b.gy = 5
+        set b.vx = 0
+        sprite_add(e, :walk, [0, 1], 3, true)
+        if half == 1 {
+            set e.sx, e.sy = (-1, 1)
+            set half = 0
+        } else {
+            set half = 1
+        }
+        await :update until !e.exists
+    }
     val func new_enemy () {
-        val x = group_first_dead(enemies)
-        if x {
-            val e = x.s
-            sprite_reset(e, x.b, W/2, 0)
-            set e.sx, e.sy = (1, 1)
-            set e.ax, e.ay = (0.5, 1)
-            set x.b.gy = 5
-            set x.b.vx = 0
-            sprite_add(e, :walk, [0, 1], 3, true)
-            if half == 1 {
-                set e.sx, e.sy = (-1, 1)
-                set half = 0
-            } else {
-                set half = 1
-            }
+        if #enemies < 40 {
+            spawn @enemies Penguin()
         }
     }
 
@@ -201,15 +217,16 @@ task Play () {
     loop on :update {
         collide_group(pbody, :platform)
         collide_group(pbody, :wall)
-        loop _, x in enemies.slots {
-            if x.s.exists {
-                collide_group(x.b, :platform)
+        loop _, t in enemies {
+            if t.pub.s.exists {
+                collide_group(t.pub.b, :platform)
             }
         }
         collide_group(cbody, :platform)
 
         ;; overlap(enemies, walls): the penguin turns at a wall
-        loop _, x in enemies.slots {
+        loop _, t in enemies {
+            val x = t.pub
             if x.s.exists {
                 loop _, wb in overlap_list(x.b, :wall) {
                     val e = x.s
@@ -262,7 +279,8 @@ task Play () {
         set pbody.vx = 0
         ;; updateEnemy: a penguin that lands walks; one that falls out is
         ;; replaced
-        loop _, x in enemies.slots {
+        loop _, t in enemies {
+            val x = t.pub
             val e = x.s
             if e.alive {
                 if (x.b.vx == 0) && x.b.touching.down {
@@ -334,12 +352,13 @@ func trace (p) {
         return tostring(f) ++ " " ++ screen
     }
     var n, a, sx, sy = (0, 0, 0, 0)
-    loop _, x in p.enemies.slots {
-        if x.s.exists {
+    loop _, t in p.enemies {
+        val e = t.pub.s
+        if e.exists {
             set n += 1
-            set sx += x.s.x
-            set sy += x.s.y
-            if x.s.alive {
+            set sx += e.x
+            set sy += e.y
+            if e.alive {
                 set a += 1
             }
         }

@@ -73,3 +73,11 @@ pool of its own, and end with it.
   sum of the same scales differed in its last digit in one line of each
   run. A dot that is removed grows over its neighbours while it fades; it
   is drawn in the order of the pool, not of the slots of the group.
+- **Man vs Penguins**: `Penguin` (2026-11-26). The two runs give the same
+  traces. A penguin that falls out is replaced inside the loop over the
+  penguins; a new task is visited by that loop, where a reused slot before
+  it was not, but a new penguin does nothing in it (not on the ground, not
+  below the screen).
+- **Fill the Holes**: keeps its slots, as Pixel War: when each reused
+  sprite starts as a new one (no memory of where it died), its run `solve`
+  changes from line 3031.
